@@ -64,3 +64,8 @@ jobs:
           IMAGE=ghcr.io/nepta75/livora-hub
           docker tag $IMAGE:sha-$SHA $IMAGE:preprod
           docker push $IMAGE:preprod
+
+      - name: Deploy to preprod VPS
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+          "docker service update --image ghcr.io/nepta75/livora-hub:preprod --with-registry-auth --detach=false livora_hub"
