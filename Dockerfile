@@ -4,11 +4,13 @@ FROM node:${NODE_VERSION} AS dependencies
 
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock .env.production ./
+COPY package.json yarn.lock ./
 
 RUN yarn install --frozen-lockfile
 
 FROM node:${NODE_VERSION} AS builder
+
+ARG ENV=production
 
 WORKDIR /usr/src/app
 
@@ -16,7 +18,7 @@ COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 
 COPY . .
 
-RUN yarn build
+RUN cp .env.${ENV} .env.production && yarn build
 
 FROM node:${NODE_VERSION}-slim AS production
 
@@ -24,9 +26,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf 
 
 WORKDIR /usr/src/app
 
+ARG ENV=production
+
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/.next ./.next
-COPY --from=builder /usr/src/app/.env.production ./.env
+COPY --from=builder /usr/src/app/.env.${ENV} ./.env
 
 ENV NODE_ENV=production
 

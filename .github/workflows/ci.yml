@@ -55,6 +55,7 @@ jobs:
 
           docker build . \
             --progress=plain \
+            --build-arg ENV=preprod \
             --tag $IMAGE:sha-$SHA
 
           docker push $IMAGE:sha-$SHA

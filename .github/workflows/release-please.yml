@@ -51,6 +51,7 @@ jobs:
           IMAGE=ghcr.io/nepta75/livora-hub
 
           docker build . \
+            --build-arg ENV=production \
             --tag $IMAGE:$VERSION \
             --tag $IMAGE:sha-$SHA \
             --tag $IMAGE:latest
