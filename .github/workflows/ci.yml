@@ -65,6 +65,9 @@ jobs:
           docker tag $IMAGE:sha-$SHA $IMAGE:preprod
           docker push $IMAGE:preprod
 
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
       - name: Deploy to preprod VPS
         run: |
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
