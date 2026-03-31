@@ -1,0 +1,79 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          target-branch: main
+
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        run: |
+          VERSION=v${{ needs.release-please.outputs.version }}
+          SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          IMAGE=ghcr.io/nepta75/livora-hub
+
+          docker build . \
+            --tag $IMAGE:$VERSION \
+            --tag $IMAGE:sha-$SHA \
+            --tag $IMAGE:latest
+
+          docker push $IMAGE:$VERSION
+          docker push $IMAGE:sha-$SHA
+          docker push $IMAGE:latest
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    environment: Production
+    needs: ["release-please", "build-and-push"]
+    concurrency:
+      group: deploy-production-hub
+      cancel-in-progress: false
+
+    steps:
+      - name: Update apt-get and Install sshpass
+        run: |
+          sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Deploy to Server via SSH using Password
+        run: |
+          VERSION=v${{ needs.release-please.outputs.version }}
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+          "docker service update --image ghcr.io/nepta75/livora-hub:$VERSION --container-label-add app.version=$VERSION --with-registry-auth --detach=false livora_hub"
