@@ -26,7 +26,7 @@ class HttpClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(url, { ...fetchOptions, headers });
+    const response = await fetch(url, { ...fetchOptions, credentials: 'include', headers });
 
     if (response.status === 401) {
       document.dispatchEvent(new Event('auth-error'));

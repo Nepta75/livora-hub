@@ -3,6 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_HOST;
 async function authRequest<T>(endpoint: string, body: unknown): Promise<T> {
   const response = await fetch(`${API_URL}${endpoint}`, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
