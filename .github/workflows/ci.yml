@@ -72,5 +72,6 @@ jobs:
 
       - name: Deploy to preprod VPS
         run: |
+          SHA=$(echo ${{ github.sha }} | cut -c1-7)
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-          "docker service update --image ghcr.io/nepta75/livora-hub:preprod --with-registry-auth --detach=false livora_hub"
+          "docker service update --image ghcr.io/nepta75/livora-hub:sha-$SHA --with-registry-auth --detach=false livora_hub"
