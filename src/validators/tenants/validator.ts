@@ -24,6 +24,7 @@ export const createTenantSchema = yup.object({
   defaultBankDetail: yup.object({
     bankLabel: yup.string().required('Libellé requis'),
     bankName: yup.string().required('Nom de la banque requis'),
+    accountHolderName: yup.string().required('Titulaire du compte requis'),
     iban: yup.string().required('IBAN requis').min(15, 'IBAN invalide').max(34, 'IBAN invalide'),
     bic: yup.string().required('BIC requis').min(8, 'BIC invalide').max(11, 'BIC invalide'),
     bankCode: yup.string().required('Code banque requis'),

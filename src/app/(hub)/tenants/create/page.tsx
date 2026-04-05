@@ -46,7 +46,7 @@ export default function CreateTenantPage() {
     defaultValues: {
       name: '', email: '', phone: '', siretNumber: '', rcsCity: '', vatNumber: '',
       address: { name: '', streetNumber: '', street: '', postalCode: '', city: '', country: 'France' },
-      defaultBankDetail: { bankLabel: '', bankName: '', iban: '', bic: '', bankCode: '', accountNumber: '' },
+      defaultBankDetail: { bankLabel: '', bankName: '', accountHolderName: '', iban: '', bic: '', bankCode: '', accountNumber: '' },
     },
   });
 
@@ -148,6 +148,11 @@ export default function CreateTenantPage() {
             <Field label="Nom de la banque" id="bankName" error={errors.defaultBankDetail?.bankName?.message}>
               <Input id="bankName" {...register('defaultBankDetail.bankName')} placeholder="BNP Paribas" />
             </Field>
+            <div className="col-span-2">
+              <Field label="Titulaire du compte" id="accountHolderName" error={errors.defaultBankDetail?.accountHolderName?.message}>
+                <Input id="accountHolderName" {...register('defaultBankDetail.accountHolderName')} placeholder="Acme Corp" />
+              </Field>
+            </div>
             <div className="col-span-2">
               <Field label="IBAN" id="iban" error={errors.defaultBankDetail?.iban?.message}>
                 <Input id="iban" {...register('defaultBankDetail.iban')} placeholder="FR76 3000 6000 0112 3456 7890 189" className="font-mono" />
