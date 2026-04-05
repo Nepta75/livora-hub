@@ -8,7 +8,7 @@ import { AuthContext } from '@/contexts/AuthContext';
 import { getRolesFromToken, isTokenExpired, type HubUserRoles } from '@/utils/getRolesFromToken';
 import { authService } from '@/services/auth/authService';
 
-const COOKIE_NAME = 'hub_token';
+const HUB_TOKEN_COOKIE_NAME = 'hub_token';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -20,10 +20,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 function AuthProviderInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [cookies, setCookie, removeCookie] = useCookies([COOKIE_NAME]);
+  const [cookies, setCookie, removeCookie] = useCookies([HUB_TOKEN_COOKIE_NAME]);
   const [loading, setLoading] = useState(false);
 
-  const rawToken: string = (cookies[COOKIE_NAME] as string | undefined) ?? '';
+  const rawToken: string = (cookies[HUB_TOKEN_COOKIE_NAME] as string | undefined) ?? '';
 
   const userRoles: HubUserRoles | null = useMemo(() => {
     if (!rawToken) return null;
@@ -33,13 +33,13 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (rawToken && isTokenExpired(rawToken)) {
-      removeCookie(COOKIE_NAME, { path: '/' });
+      removeCookie(HUB_TOKEN_COOKIE_NAME, { path: '/' });
     }
   }, [rawToken, removeCookie]);
 
   useEffect(() => {
     const handleAuthError = () => {
-      removeCookie(COOKIE_NAME, { path: '/' });
+      removeCookie(HUB_TOKEN_COOKIE_NAME, { path: '/' });
       router.replace('/login');
     };
 
@@ -50,6 +50,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       setLoading(true);
+      removeCookie(HUB_TOKEN_COOKIE_NAME, { path: '/' });
 
       try {
         const data = await authService.login(email, password);
@@ -67,7 +68,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
         }
 
         const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) as { exp: number };
-        setCookie(COOKIE_NAME, token, {
+        setCookie(HUB_TOKEN_COOKIE_NAME, token, {
           path: '/',
           expires: new Date(payload.exp * 1000),
         });
@@ -83,7 +84,7 @@ function AuthProviderInner({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    removeCookie(COOKIE_NAME, { path: '/' });
+    removeCookie(HUB_TOKEN_COOKIE_NAME, { path: '/' });
     router.replace('/login');
   }, [removeCookie, router]);
 
