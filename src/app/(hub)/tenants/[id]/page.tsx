@@ -10,6 +10,7 @@ import {
   useAdminTenant,
   useAdminTenantUsers,
   useInviteUserToTenant,
+  useUpdateAdminTenant,
   useUpdateTenantUser,
   useRemoveTenantUser,
 } from '@/hooks/api/tenants/useAdminTenants';
@@ -17,8 +18,10 @@ import {
   TENANT_USER_ROLES,
   inviteTenantUserSchema,
   editTenantUserSchema,
+  updateTenantSchema,
   type InviteTenantUserFormValues,
   type EditTenantUserFormValues,
+  type UpdateTenantFormValues,
 } from '@/validators/tenants/validator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,14 +53,36 @@ import {
 import { ArrowLeft, Plus, UserPlus, Pencil, Trash2 } from 'lucide-react';
 import type { IUser } from '@/types/generated/api-types';
 
+function Field({
+  label,
+  id,
+  error,
+  children,
+}: {
+  label: string;
+  id: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id}>{label}</Label>
+      {children}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
+  );
+}
+
 export default function TenantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: tenant, isLoading: tenantLoading } = useAdminTenant(id);
   const { data: users, isLoading: usersLoading } = useAdminTenantUsers(id);
   const inviteMutation = useInviteUserToTenant(id);
+  const updateTenantMutation = useUpdateAdminTenant(id);
   const updateMutation = useUpdateTenantUser(id);
   const removeMutation = useRemoveTenantUser(id);
 
+  const [isEditing, setIsEditing] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<IUser | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
@@ -70,6 +95,59 @@ export default function TenantDetailPage() {
   const editForm = useForm<EditTenantUserFormValues>({
     resolver: yupResolver(editTenantUserSchema),
   });
+
+  const editTenantForm = useForm<UpdateTenantFormValues>({
+    resolver: yupResolver(updateTenantSchema),
+  });
+
+  const openEditTenant = () => {
+    if (!tenant) return;
+    editTenantForm.reset({
+      name: tenant.name ?? '',
+      email: tenant.email ?? '',
+      phone: '',
+      siretNumber: tenant.siretNumber ?? '',
+      rcsCity: tenant.rcsCity ?? '',
+      vatNumber: tenant.vatNumber ?? '',
+      address: {
+        name: tenant.address?.name ?? '',
+        streetNumber: tenant.address?.streetNumber ?? '',
+        street: tenant.address?.street ?? '',
+        postalCode: tenant.address?.postalCode ?? '',
+        city: tenant.address?.city ?? '',
+        country: tenant.address?.country ?? 'France',
+      },
+      defaultBankDetail: {
+        bankLabel: tenant.defaultBankDetail?.bankLabel ?? '',
+        bankName: tenant.defaultBankDetail?.bankName ?? '',
+        accountHolderName: tenant.defaultBankDetail?.accountHolderName ?? '',
+        iban: tenant.defaultBankDetail?.iban ?? '',
+        bic: tenant.defaultBankDetail?.bic ?? '',
+        bankCode: tenant.defaultBankDetail?.bankCode ?? '',
+        accountNumber: tenant.defaultBankDetail?.accountNumber ?? '',
+      },
+    });
+    setIsEditing(true);
+  };
+
+  const onEditTenantSubmit = async (values: UpdateTenantFormValues) => {
+    try {
+      const payload = {
+        ...values,
+        address: {
+          ...values.address,
+          type: 'billing' as const,
+          latitude: tenant?.address?.latitude ?? 0,
+          longitude: tenant?.address?.longitude ?? 0,
+        },
+      };
+      await updateTenantMutation.mutateAsync(payload);
+      toast.success('Tenant mis à jour.');
+      setIsEditing(false);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Une erreur est survenue.');
+    }
+  };
 
   const onInviteSubmit = async (values: InviteTenantUserFormValues) => {
     try {
@@ -141,33 +219,165 @@ export default function TenantDetailPage() {
         <h2 className="text-2xl font-bold">{tenant.name}</h2>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Détails</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Email</span>
-            <span>{tenant.email}</span>
+      {isEditing ? (
+        <form
+          id="edit-tenant-form"
+          onSubmit={editTenantForm.handleSubmit(onEditTenantSubmit)}
+          className="space-y-6"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Informations générales</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <Field label="Nom" id="edit-name" error={editTenantForm.formState.errors.name?.message}>
+                <Input id="edit-name" {...editTenantForm.register('name')} />
+              </Field>
+              <Field label="Email" id="edit-email" error={editTenantForm.formState.errors.email?.message}>
+                <Input id="edit-email" type="email" {...editTenantForm.register('email')} />
+              </Field>
+              <Field label="Téléphone" id="edit-phone" error={editTenantForm.formState.errors.phone?.message}>
+                <Input id="edit-phone" {...editTenantForm.register('phone')} />
+              </Field>
+              <Field label="Numéro SIRET" id="edit-siretNumber" error={editTenantForm.formState.errors.siretNumber?.message}>
+                <Input id="edit-siretNumber" {...editTenantForm.register('siretNumber')} maxLength={14} />
+              </Field>
+              <Field label="Ville RCS" id="edit-rcsCity" error={editTenantForm.formState.errors.rcsCity?.message}>
+                <Input id="edit-rcsCity" {...editTenantForm.register('rcsCity')} />
+              </Field>
+              <Field label="Numéro de TVA" id="edit-vatNumber" error={editTenantForm.formState.errors.vatNumber?.message}>
+                <Input id="edit-vatNumber" {...editTenantForm.register('vatNumber')} />
+              </Field>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Adresse</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <Field label="Libellé" id="edit-address-name" error={editTenantForm.formState.errors.address?.name?.message}>
+                <Input id="edit-address-name" {...editTenantForm.register('address.name')} />
+              </Field>
+              <Field label="Numéro de rue" id="edit-streetNumber" error={editTenantForm.formState.errors.address?.streetNumber?.message}>
+                <Input id="edit-streetNumber" {...editTenantForm.register('address.streetNumber')} />
+              </Field>
+              <div className="col-span-2">
+                <Field label="Rue" id="edit-street" error={editTenantForm.formState.errors.address?.street?.message}>
+                  <Input id="edit-street" {...editTenantForm.register('address.street')} />
+                </Field>
+              </div>
+              <Field label="Code postal" id="edit-postalCode" error={editTenantForm.formState.errors.address?.postalCode?.message}>
+                <Input id="edit-postalCode" {...editTenantForm.register('address.postalCode')} />
+              </Field>
+              <Field label="Ville" id="edit-city" error={editTenantForm.formState.errors.address?.city?.message}>
+                <Input id="edit-city" {...editTenantForm.register('address.city')} />
+              </Field>
+              <Field label="Pays" id="edit-country" error={editTenantForm.formState.errors.address?.country?.message}>
+                <Input id="edit-country" {...editTenantForm.register('address.country')} />
+              </Field>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Coordonnées bancaires</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-4">
+              <Field label="Libellé compte" id="edit-bankLabel" error={editTenantForm.formState.errors.defaultBankDetail?.bankLabel?.message}>
+                <Input id="edit-bankLabel" {...editTenantForm.register('defaultBankDetail.bankLabel')} />
+              </Field>
+              <Field label="Nom de la banque" id="edit-bankName" error={editTenantForm.formState.errors.defaultBankDetail?.bankName?.message}>
+                <Input id="edit-bankName" {...editTenantForm.register('defaultBankDetail.bankName')} />
+              </Field>
+              <div className="col-span-2">
+                <Field label="Titulaire du compte" id="edit-accountHolderName" error={editTenantForm.formState.errors.defaultBankDetail?.accountHolderName?.message}>
+                  <Input id="edit-accountHolderName" {...editTenantForm.register('defaultBankDetail.accountHolderName')} />
+                </Field>
+              </div>
+              <div className="col-span-2">
+                <Field label="IBAN" id="edit-iban" error={editTenantForm.formState.errors.defaultBankDetail?.iban?.message}>
+                  <Input id="edit-iban" {...editTenantForm.register('defaultBankDetail.iban')} className="font-mono" />
+                </Field>
+              </div>
+              <Field label="BIC" id="edit-bic" error={editTenantForm.formState.errors.defaultBankDetail?.bic?.message}>
+                <Input id="edit-bic" {...editTenantForm.register('defaultBankDetail.bic')} className="font-mono" />
+              </Field>
+              <Field label="Code banque" id="edit-bankCode" error={editTenantForm.formState.errors.defaultBankDetail?.bankCode?.message}>
+                <Input id="edit-bankCode" {...editTenantForm.register('defaultBankDetail.bankCode')} />
+              </Field>
+              <Field label="Numéro de compte" id="edit-accountNumber" error={editTenantForm.formState.errors.defaultBankDetail?.accountNumber?.message}>
+                <Input id="edit-accountNumber" {...editTenantForm.register('defaultBankDetail.accountNumber')} className="font-mono" />
+              </Field>
+            </CardContent>
+          </Card>
+
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => setIsEditing(false)}
+            >
+              Annuler
+            </Button>
+            <Button
+              form="edit-tenant-form"
+              type="submit"
+              className="flex-1"
+              disabled={updateTenantMutation.isPending}
+            >
+              {updateTenantMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
+            </Button>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">SIRET</span>
-            <span className="font-mono">{tenant.siretNumber}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">TVA</span>
-            <span className="font-mono">{tenant.vatNumber}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Créé le</span>
-            <span>{new Date(tenant.createdAt).toLocaleDateString('fr-FR')}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Mis à jour le</span>
-            <span>{new Date(tenant.updatedAt).toLocaleDateString('fr-FR')}</span>
-          </div>
-        </CardContent>
-      </Card>
+        </form>
+      ) : (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Détails</CardTitle>
+            <Button variant="ghost" size="icon" onClick={openEditTenant}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Email</span>
+              <span>{tenant.email}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">SIRET</span>
+              <span className="font-mono">{tenant.siretNumber}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">TVA</span>
+              <span className="font-mono">{tenant.vatNumber}</span>
+            </div>
+            {tenant.rcsCity && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Ville RCS</span>
+                <span>{tenant.rcsCity}</span>
+              </div>
+            )}
+            {tenant.address && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Adresse</span>
+                <span className="text-right">
+                  {tenant.address.streetNumber} {tenant.address.street},{' '}
+                  {tenant.address.postalCode} {tenant.address.city}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Créé le</span>
+              <span>{new Date(tenant.createdAt).toLocaleDateString('fr-FR')}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Mis à jour le</span>
+              <span>{new Date(tenant.updatedAt).toLocaleDateString('fr-FR')}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div>
         <div className="flex items-center justify-between mb-4">

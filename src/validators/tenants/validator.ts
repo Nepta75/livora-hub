@@ -34,6 +34,9 @@ export const createTenantSchema = yup.object({
 
 export type CreateTenantFormValues = yup.InferType<typeof createTenantSchema>;
 
+export const updateTenantSchema = createTenantSchema;
+export type UpdateTenantFormValues = CreateTenantFormValues;
+
 export const TENANT_USER_ROLES = [
   { value: 'ROLE_MANAGER_ADMIN', label: 'Manager Admin' },
   { value: 'ROLE_MANAGER', label: 'Manager' },

@@ -41,6 +41,8 @@ export interface UpdateTenantUserPayload {
   roles: string[];
 }
 
+export type UpdateTenantPayload = Partial<CreateTenantPayload>;
+
 export const tenantsService = {
   getAll: (token: string) => httpClient.get<ITenant[]>('/tenant', { token }),
 
@@ -58,6 +60,9 @@ export const tenantsService = {
 
   updateUser: (tenantId: string, userId: string, data: UpdateTenantUserPayload, token: string) =>
     httpClient.patch<IUser>(`/tenant/${tenantId}/users/${userId}`, data, { token }),
+
+  update: (id: string, data: UpdateTenantPayload, token: string) =>
+    httpClient.patch<ITenant>(`/tenant/${id}`, data, { token }),
 
   removeUser: (tenantId: string, userId: string, token: string) =>
     httpClient.delete(`/tenant/${tenantId}/users/${userId}`, { token }),

@@ -4,6 +4,7 @@ import {
   tenantsService,
   type CreateTenantPayload,
   type InviteTenantUserPayload,
+  type UpdateTenantPayload,
   type UpdateTenantUserPayload,
 } from '@/services/admin/tenantsService';
 
@@ -39,6 +40,19 @@ export function useCreateAdminTenant() {
   return useMutation({
     mutationFn: (data: CreateTenantPayload) => tenantsService.create(data, token),
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: TENANTS_KEYS.all });
+    },
+  });
+}
+
+export function useUpdateAdminTenant(id: string) {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateTenantPayload) => tenantsService.update(id, data, token),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: TENANTS_KEYS.detail(id) });
       void queryClient.invalidateQueries({ queryKey: TENANTS_KEYS.all });
     },
   });
