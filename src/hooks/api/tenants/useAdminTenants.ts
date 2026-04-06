@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   tenantsService,
   type CreateTenantPayload,
-  type IImpersonationLog,
+  type ImpersonationLog,
   type InviteTenantUserPayload,
   type UpdateTenantPayload,
   type UpdateTenantUserPayload,
@@ -120,7 +120,7 @@ export function useImpersonateTenant() {
 export function useImpersonationLogs(tenantId: string) {
   const { token } = useAuth();
 
-  return useQuery<IImpersonationLog[]>({
+  return useQuery<ImpersonationLog[]>({
     queryKey: TENANTS_KEYS.impersonationLogs(tenantId),
     queryFn: () => tenantsService.getImpersonationLogs(tenantId, token),
   });

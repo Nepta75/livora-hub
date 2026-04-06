@@ -16,9 +16,9 @@ export type DriverScheduleStatus = "planned" | "active" | "completed" | "cancell
 export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" | "unavailable";
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
 export type GlobalSettingPricingType = "distance" | "city";
+export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
-export type UserTenantReadRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type VehicleType = "bike" | "cargo_bike" | "scooter" | "motorbike" | "car" | "van" | "truck" | "electric_van" | "electric_bike" | "pedestrian";
 export type WeightPricingTierType = "fixed" | "per_kg";
 
@@ -289,9 +289,21 @@ export interface IHubUser {
   roles?: string[];
 }
 
+export interface ImpersonationLog {
+  id?: string;
+  hubUserEmail?: string;
+  hubUserFirstName?: string;
+  hubUserLastName?: string;
+  impersonatedUserEmail?: string;
+  impersonatedUserFirstName?: string;
+  impersonatedUserLastName?: string;
+  createdAt?: string;
+  tenant: ITenant2;
+}
+
 export interface InviteUserDto {
   email: string;
-  roles: UserTenantReadRoles[];
+  roles: InviteUserRoles[];
   organizationId?: string;
   privateCustomerId?: string;
   customerRole: boolean;
@@ -778,6 +790,11 @@ export interface ITenant {
 export interface ITenant2 {
   user?: IUser;
   privateCustomer?: IPrivateCustomer[];
+}
+
+export interface ITenant3 {
+  user?: IUser;
+  privateCustomer?: IPrivateCustomer[];
   name: string;
 }
 
@@ -840,6 +857,7 @@ export interface IUser {
   ssoExternalId?: string;
   currentTenantId?: string;
   roles?: string[];
+  impersonated?: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
@@ -880,11 +898,9 @@ export interface IUserTenantRead {
   id: string;
   user: IUser;
   tenant: ITenant;
-  roles?: UserTenantReadRoles[];
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
-  role: string[];
 }
 
 export interface IVehicle {
@@ -977,6 +993,10 @@ export interface IWeightPricingTierDto {
 
 // API Response Types
 export type post_hub_register_confirmResponse = IHubUser;
+export type post_admin_tenant_impersonateResponse = {
+  token?: string;
+};
+export type get_admin_tenant_impersonation_logsResponse = ImpersonationLog[];
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
 export type post_global_setting_createResponse = IGlobalSetting;
 export type post_organization_createResponse = IOrganization;

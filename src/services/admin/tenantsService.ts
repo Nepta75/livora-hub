@@ -1,16 +1,7 @@
 import { httpClient } from '@/services/http/httpClient';
-import type { ITenant, IUser } from '@/types/generated/api-types';
+import type { ImpersonationLog, ITenant, IUser } from '@/types/generated/api-types';
 
-export interface IImpersonationLog {
-  id: string;
-  hubUserEmail: string;
-  hubUserFirstName: string;
-  hubUserLastName: string;
-  impersonatedUserEmail: string;
-  impersonatedUserFirstName: string;
-  impersonatedUserLastName: string;
-  createdAt: string;
-}
+export type { ImpersonationLog };
 
 export interface CreateTenantPayload {
   name: string;
@@ -82,5 +73,5 @@ export const tenantsService = {
     httpClient.post<{ token: string }>(`/tenant/${tenantId}/impersonate/${userId}`, {}, { token }),
 
   getImpersonationLogs: (tenantId: string, token: string) =>
-    httpClient.get<IImpersonationLog[]>(`/tenant/${tenantId}/impersonation-logs`, { token }),
+    httpClient.get<ImpersonationLog[]>(`/tenant/${tenantId}/impersonation-logs`, { token }),
 };

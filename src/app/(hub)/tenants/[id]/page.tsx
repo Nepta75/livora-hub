@@ -555,7 +555,7 @@ export default function TenantDetailPage() {
                     <div className="text-xs text-muted-foreground">{log.impersonatedUserEmail}</div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(log.createdAt).toLocaleString('fr-FR')}
+                    {log.createdAt ? new Date(log.createdAt).toLocaleString('fr-FR') : '—'}
                   </TableCell>
                 </TableRow>
               ))}
