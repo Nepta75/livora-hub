@@ -62,54 +62,57 @@ export default function UsersPage() {
         )}
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nom</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Rôles</TableHead>
-            {userRoles?.isAdmin && <TableHead className="w-24">Actions</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users?.map(user => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">
-                {user.firstName} {user.lastName}
-              </TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <div className="flex gap-1 flex-wrap">
-                  {(user.roles ?? []).map(role => (
-                    <Badge key={role} variant="secondary">
-                      {role}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              {userRoles?.isAdmin && (
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/users/${user.id}`}>
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => setConfirmDeleteId(user.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nom</TableHead>
+              <TableHead className="hidden sm:table-cell">Email</TableHead>
+              <TableHead className="hidden md:table-cell">Rôles</TableHead>
+              {userRoles?.isAdmin && <TableHead className="w-24">Actions</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users?.map(user => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">
+                  {user.firstName} {user.lastName}
+                  <div className="text-xs text-muted-foreground sm:hidden">{user.email}</div>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">{user.email}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <div className="flex gap-1 flex-wrap">
+                    {(user.roles ?? []).map(role => (
+                      <Badge key={role} variant="secondary">
+                        {role}
+                      </Badge>
+                    ))}
                   </div>
                 </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                {userRoles?.isAdmin && (
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/users/${user.id}`}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setConfirmDeleteId(user.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <Dialog open={!!confirmDeleteId} onOpenChange={open => !open && setConfirmDeleteId(null)}>
         <DialogContent showCloseButton={false}>

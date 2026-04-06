@@ -33,32 +33,37 @@ export default function TenantsPage() {
         )}
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nom</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Créé le</TableHead>
-            <TableHead className="w-16">Voir</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tenants?.map(tenant => (
-            <TableRow key={tenant.id}>
-              <TableCell className="font-medium">{tenant.name}</TableCell>
-              <TableCell>{tenant.email}</TableCell>
-              <TableCell>{new Date(tenant.createdAt).toLocaleDateString('fr-FR')}</TableCell>
-              <TableCell>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href={`/tenants/${tenant.id}`}>
-                    <Eye className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </TableCell>
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nom</TableHead>
+              <TableHead className="hidden sm:table-cell">Email</TableHead>
+              <TableHead className="hidden md:table-cell">Créé le</TableHead>
+              <TableHead className="w-16">Voir</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {tenants?.map(tenant => (
+              <TableRow key={tenant.id}>
+                <TableCell className="font-medium">
+                  {tenant.name}
+                  <div className="text-xs text-muted-foreground sm:hidden">{tenant.email}</div>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">{tenant.email}</TableCell>
+                <TableCell className="hidden md:table-cell">{new Date(tenant.createdAt).toLocaleDateString('fr-FR')}</TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/tenants/${tenant.id}`}>
+                      <Eye className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

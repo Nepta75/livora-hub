@@ -85,7 +85,7 @@ export default function CreateTenantPage() {
           <CardHeader>
             <CardTitle className="text-base">Informations générales</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Nom" id="name" error={errors.name?.message}>
               <Input id="name" {...register('name')} placeholder="Acme Corp" />
             </Field>
@@ -112,7 +112,7 @@ export default function CreateTenantPage() {
           <CardHeader>
             <CardTitle className="text-base">Adresse</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Libellé" id="address.name" error={errors.address?.name?.message}>
               <Input id="address.name" {...register('address.name')} placeholder="Siège social" />
             </Field>
@@ -141,7 +141,7 @@ export default function CreateTenantPage() {
           <CardHeader>
             <CardTitle className="text-base">Coordonnées bancaires</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Libellé compte" id="bankLabel" error={errors.defaultBankDetail?.bankLabel?.message}>
               <Input id="bankLabel" {...register('defaultBankDetail.bankLabel')} placeholder="Compte principal" />
             </Field>

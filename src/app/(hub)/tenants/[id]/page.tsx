@@ -250,7 +250,7 @@ export default function TenantDetailPage() {
             <CardHeader>
               <CardTitle className="text-base">Informations générales</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Nom" id="edit-name" error={editTenantForm.formState.errors.name?.message}>
                 <Input id="edit-name" {...editTenantForm.register('name')} />
               </Field>
@@ -276,7 +276,7 @@ export default function TenantDetailPage() {
             <CardHeader>
               <CardTitle className="text-base">Adresse</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Libellé" id="edit-address-name" error={editTenantForm.formState.errors.address?.name?.message}>
                 <Input id="edit-address-name" {...editTenantForm.register('address.name')} />
               </Field>
@@ -304,7 +304,7 @@ export default function TenantDetailPage() {
             <CardHeader>
               <CardTitle className="text-base">Coordonnées bancaires</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Libellé compte" id="edit-bankLabel" error={editTenantForm.formState.errors.defaultBankDetail?.bankLabel?.message}>
                 <Input id="edit-bankLabel" {...editTenantForm.register('defaultBankDetail.bankLabel')} />
               </Field>
@@ -475,57 +475,60 @@ export default function TenantDetailPage() {
             <p className="text-muted-foreground text-sm">Invitez le premier utilisateur.</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nom</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Rôles</TableHead>
-                <TableHead className="w-32" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map(user => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">
-                    {user.firstName} {user.lastName}
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {user.roles?.join(', ') || '—'}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Accéder à l'app en tant que cet utilisateur"
-                        disabled={impersonatingUserId === user.id}
-                        onClick={() => user.id && handleImpersonate(user.id)}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(user)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setConfirmRemoveId(user.id ?? null)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead className="hidden sm:table-cell">Email</TableHead>
+                  <TableHead className="hidden md:table-cell">Rôles</TableHead>
+                  <TableHead className="w-32" />
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {users.map(user => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">
+                      {user.firstName} {user.lastName}
+                      <div className="text-xs text-muted-foreground sm:hidden">{user.email}</div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">{user.email}</TableCell>
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                      {user.roles?.join(', ') || '—'}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Accéder à l'app en tant que cet utilisateur"
+                          disabled={impersonatingUserId === user.id}
+                          onClick={() => user.id && handleImpersonate(user.id)}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(user)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setConfirmRemoveId(user.id ?? null)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
 
