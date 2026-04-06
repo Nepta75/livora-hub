@@ -88,6 +88,20 @@ export default function TenantDetailPage() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<IUser | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [impersonatingUserId, setImpersonatingUserId] = useState<string | null>(null);
+
+  const handleImpersonate = async (userId: string) => {
+    setImpersonatingUserId(userId);
+    try {
+      const { token } = await impersonateMutation.mutateAsync({ tenantId: id, userId });
+      const vistaUrl = process.env.NEXT_PUBLIC_VISTA_APP_URL ?? '';
+      window.open(`${vistaUrl}/auth/impersonate?token=${token}`, '_blank');
+    } catch {
+      toast.error("Impossible d'accéder à l'application.");
+    } finally {
+      setImpersonatingUserId(null);
+    }
+  };
 
   const inviteForm = useForm<InviteTenantUserFormValues>({
     resolver: yupResolver(inviteTenantUserSchema),
@@ -221,23 +235,6 @@ export default function TenantDetailPage() {
           </Button>
           <h2 className="text-2xl font-bold">{tenant.name}</h2>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={impersonateMutation.isPending}
-          onClick={async () => {
-            try {
-              const { token } = await impersonateMutation.mutateAsync(id);
-              const vistaUrl = process.env.NEXT_PUBLIC_VISTA_APP_URL ?? '';
-              window.open(`${vistaUrl}/auth/impersonate?token=${token}`, '_blank');
-            } catch {
-              toast.error("Impossible d'accéder à l'application.");
-            }
-          }}
-        >
-          <ExternalLink className="h-4 w-4 mr-2" />
-          {impersonateMutation.isPending ? 'Connexion...' : "Accéder à l'app"}
-        </Button>
       </div>
 
       {isEditing ? (
@@ -481,7 +478,7 @@ export default function TenantDetailPage() {
                 <TableHead>Nom</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Rôles</TableHead>
-                <TableHead className="w-20" />
+                <TableHead className="w-32" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -496,6 +493,15 @@ export default function TenantDetailPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Accéder à l'app en tant que cet utilisateur"
+                        disabled={impersonatingUserId === user.id}
+                        onClick={() => user.id && handleImpersonate(user.id)}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
