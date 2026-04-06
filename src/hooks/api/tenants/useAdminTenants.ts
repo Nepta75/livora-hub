@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   tenantsService,
   type CreateTenantPayload,
+  type IImpersonationLog,
   type InviteTenantUserPayload,
   type UpdateTenantPayload,
   type UpdateTenantUserPayload,
@@ -12,6 +13,7 @@ export const TENANTS_KEYS = {
   all: ['admin', 'tenants'] as const,
   detail: (id: string) => ['admin', 'tenants', id] as const,
   users: (id: string) => ['admin', 'tenants', id, 'users'] as const,
+  impersonationLogs: (id: string) => ['admin', 'tenants', id, 'impersonation-logs'] as const,
 };
 
 export function useAdminTenants() {
@@ -112,5 +114,14 @@ export function useImpersonateTenant() {
   return useMutation({
     mutationFn: ({ tenantId, userId }: { tenantId: string; userId: string }) =>
       tenantsService.impersonate(tenantId, userId, token),
+  });
+}
+
+export function useImpersonationLogs(tenantId: string) {
+  const { token } = useAuth();
+
+  return useQuery<IImpersonationLog[]>({
+    queryKey: TENANTS_KEYS.impersonationLogs(tenantId),
+    queryFn: () => tenantsService.getImpersonationLogs(tenantId, token),
   });
 }

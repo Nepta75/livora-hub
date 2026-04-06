@@ -10,10 +10,11 @@ import {
   useAdminTenant,
   useAdminTenantUsers,
   useInviteUserToTenant,
+  useImpersonationLogs,
+  useImpersonateTenant,
+  useRemoveTenantUser,
   useUpdateAdminTenant,
   useUpdateTenantUser,
-  useRemoveTenantUser,
-  useImpersonateTenant,
 } from '@/hooks/api/tenants/useAdminTenants';
 import {
   TENANT_USER_ROLES,
@@ -83,6 +84,7 @@ export default function TenantDetailPage() {
   const updateMutation = useUpdateTenantUser(id);
   const removeMutation = useRemoveTenantUser(id);
   const impersonateMutation = useImpersonateTenant();
+  const { data: impersonationLogs } = useImpersonationLogs(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -525,6 +527,42 @@ export default function TenantDetailPage() {
           </Table>
         )}
       </div>
+
+      {impersonationLogs && impersonationLogs.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Accès administrateurs</h3>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Admin</TableHead>
+                <TableHead>Compte utilisé</TableHead>
+                <TableHead>Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {impersonationLogs.map(log => (
+                <TableRow key={log.id}>
+                  <TableCell>
+                    <div className="font-medium text-sm">
+                      {log.hubUserFirstName} {log.hubUserLastName}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{log.hubUserEmail}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {log.impersonatedUserFirstName} {log.impersonatedUserLastName}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{log.impersonatedUserEmail}</div>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {new Date(log.createdAt).toLocaleString('fr-FR')}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {/* Edit user dialog */}
       <Dialog open={!!editingUser} onOpenChange={open => { if (!open) setEditingUser(null); }}>
