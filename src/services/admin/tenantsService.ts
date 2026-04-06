@@ -66,4 +66,7 @@ export const tenantsService = {
 
   removeUser: (tenantId: string, userId: string, token: string) =>
     httpClient.delete(`/tenant/${tenantId}/users/${userId}`, { token }),
+
+  impersonate: (tenantId: string, token: string) =>
+    httpClient.post<{ token: string }>(`/tenant/${tenantId}/impersonate`, {}, { token }),
 };

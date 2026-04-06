@@ -105,3 +105,11 @@ export function useRemoveTenantUser(tenantId: string) {
     },
   });
 }
+
+export function useImpersonateTenant() {
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: (tenantId: string) => tenantsService.impersonate(tenantId, token),
+  });
+}

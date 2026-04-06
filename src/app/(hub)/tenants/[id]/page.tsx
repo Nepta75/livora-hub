@@ -13,6 +13,7 @@ import {
   useUpdateAdminTenant,
   useUpdateTenantUser,
   useRemoveTenantUser,
+  useImpersonateTenant,
 } from '@/hooks/api/tenants/useAdminTenants';
 import {
   TENANT_USER_ROLES,
@@ -50,7 +51,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Plus, UserPlus, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink } from 'lucide-react';
 import type { IUser } from '@/types/generated/api-types';
 
 function Field({
@@ -81,6 +82,7 @@ export default function TenantDetailPage() {
   const updateTenantMutation = useUpdateAdminTenant(id);
   const updateMutation = useUpdateTenantUser(id);
   const removeMutation = useRemoveTenantUser(id);
+  const impersonateMutation = useImpersonateTenant();
 
   const [isEditing, setIsEditing] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -210,13 +212,32 @@ export default function TenantDetailPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/tenants">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/tenants">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <h2 className="text-2xl font-bold">{tenant.name}</h2>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={impersonateMutation.isPending}
+          onClick={async () => {
+            try {
+              const { token } = await impersonateMutation.mutateAsync(id);
+              const vistaUrl = process.env.NEXT_PUBLIC_VISTA_APP_URL ?? '';
+              window.open(`${vistaUrl}/auth/impersonate?token=${token}`, '_blank');
+            } catch {
+              toast.error("Impossible d'accéder à l'application.");
+            }
+          }}
+        >
+          <ExternalLink className="h-4 w-4 mr-2" />
+          {impersonateMutation.isPending ? 'Connexion...' : "Accéder à l'app"}
         </Button>
-        <h2 className="text-2xl font-bold">{tenant.name}</h2>
       </div>
 
       {isEditing ? (
