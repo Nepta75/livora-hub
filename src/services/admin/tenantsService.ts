@@ -1,7 +1,23 @@
 import { httpClient } from '@/services/http/httpClient';
-import type { ImpersonationLog, ITenant, IUser } from '@/types/generated/api-types';
+import type { AuditLogAction, IAuditLog, ImpersonationLog, ITenant, IUser } from '@/types/generated/api-types';
 
-export type { ImpersonationLog };
+export type { IAuditLog, ImpersonationLog };
+
+export interface TenantAuditLogFilters {
+  impersonationSessionId?: string;
+  impersonatedByEmail?: string;
+  userEmail?: string;
+  entityType?: string;
+  action?: AuditLogAction | '';
+  dateFrom?: string;
+  dateTo?: string;
+  isImpersonated?: boolean;
+}
+
+export interface TenantAuditLogPagination {
+  limit?: number;
+  offset?: number;
+}
 
 export interface CreateTenantPayload {
   name: string;
@@ -74,4 +90,23 @@ export const tenantsService = {
 
   getImpersonationLogs: (tenantId: string, token: string) =>
     httpClient.get<ImpersonationLog[]>(`/tenant/${tenantId}/impersonation-logs`, { token }),
+
+  getAuditLogs: (
+    tenantId: string,
+    filters: TenantAuditLogFilters,
+    token: string,
+    pagination?: TenantAuditLogPagination,
+  ) => {
+    const query = new URLSearchParams();
+    Object.entries({ ...filters, ...pagination }).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, String(value));
+      }
+    });
+    const qs = query.toString();
+    return httpClient.get<IAuditLog[]>(
+      `/tenant/${tenantId}/audit-logs${qs ? `?${qs}` : ''}`,
+      { token },
+    );
+  },
 };

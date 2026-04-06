@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import {
   useAdminTenant,
+  useAdminTenantAuditLogs,
   useAdminTenantUsers,
   useInviteUserToTenant,
   useImpersonationLogs,
@@ -16,6 +17,7 @@ import {
   useUpdateAdminTenant,
   useUpdateTenantUser,
 } from '@/hooks/api/tenants/useAdminTenants';
+import type { IAuditLog, ImpersonationLog } from '@/services/admin/tenantsService';
 import {
   TENANT_USER_ROLES,
   inviteTenantUserSchema,
@@ -52,9 +54,156 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, ScrollText } from 'lucide-react';
+import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, ScrollText, ChevronDown, ChevronRight, ClipboardList } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { IUser } from '@/types/generated/api-types';
+
+const ACTION_LABELS: Record<string, string> = {
+  CREATE: 'Création',
+  UPDATE: 'Modification',
+  DELETE: 'Suppression',
+};
+
+function formatShortDateTime(iso?: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function AuditLogEntry({ log }: { log: IAuditLog }) {
+  const hasChanges = log.changes && Object.keys(log.changes).length > 0;
+  const [changesExpanded, setChangesExpanded] = useState(false);
+
+  return (
+    <div className="py-2 border-b last:border-0">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {log.action && (
+              <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
+                {ACTION_LABELS[log.action] ?? log.action}
+              </span>
+            )}
+            {log.entityType && (
+              <span className="text-xs text-muted-foreground font-medium">{log.entityType}</span>
+            )}
+          </div>
+          <p className="text-sm mt-0.5">{log.message}</p>
+          {hasChanges && (
+            <button
+              type="button"
+              onClick={() => setChangesExpanded(p => !p)}
+              className="flex items-center gap-1 text-xs text-muted-foreground mt-1 hover:text-foreground transition-colors"
+            >
+              {changesExpanded ? (
+                <ChevronDown className="h-3 w-3" />
+              ) : (
+                <ChevronRight className="h-3 w-3" />
+              )}
+              Détails
+            </button>
+          )}
+          {changesExpanded && hasChanges && (
+            <div className="mt-1 pl-2 border-l-2 border-muted space-y-0.5">
+              {Object.entries(log.changes as Record<string, [unknown, unknown]>).map(
+                ([field, [oldVal, newVal]]) => (
+                  <p key={field} className="text-xs">
+                    <span className="font-medium text-muted-foreground">{field}: </span>
+                    <span className="line-through text-destructive">{String(oldVal ?? '—')}</span>
+                    {' → '}
+                    <span className="text-green-600 dark:text-green-400">
+                      {String(newVal ?? '—')}
+                    </span>
+                  </p>
+                ),
+              )}
+            </div>
+          )}
+        </div>
+        <time className="shrink-0 text-xs text-muted-foreground">
+          {formatShortDateTime(log.createdAt)}
+        </time>
+      </div>
+    </div>
+  );
+}
+
+function ImpersonationSessionRow({
+  log,
+  tenantId,
+}: {
+  log: ImpersonationLog;
+  tenantId: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const { data: auditLogs, isLoading } = useAdminTenantAuditLogs(
+    tenantId,
+    { impersonationSessionId: log.id ?? '' },
+    expanded,
+    { limit: 100 },
+  );
+
+  return (
+    <div className="border-b last:border-0">
+      <div className="flex items-start gap-3 px-6 py-3">
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
+          <ShieldCheck className="h-3.5 w-3.5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm leading-snug">
+            <span className="font-medium">
+              {log.hubUserFirstName} {log.hubUserLastName}
+            </span>
+            <span className="text-muted-foreground"> a accédé en tant que </span>
+            <span className="font-medium">
+              {log.impersonatedUserFirstName} {log.impersonatedUserLastName}
+            </span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            {log.hubUserEmail} → {log.impersonatedUserEmail}
+          </p>
+          <button
+            type="button"
+            onClick={() => setExpanded(p => !p)}
+            className="flex items-center gap-1 text-xs text-muted-foreground mt-1.5 hover:text-foreground transition-colors"
+          >
+            <ClipboardList className="h-3 w-3" />
+            {expanded ? 'Masquer les changements' : 'Voir les changements'}
+            {expanded ? (
+              <ChevronDown className="h-3 w-3" />
+            ) : (
+              <ChevronRight className="h-3 w-3" />
+            )}
+          </button>
+        </div>
+        <time className="shrink-0 text-xs text-muted-foreground pt-0.5">
+          {formatShortDateTime(log.createdAt)}
+        </time>
+      </div>
+      {expanded && (
+        <div className="px-6 pb-3">
+          {isLoading && (
+            <p className="text-xs text-muted-foreground">Chargement…</p>
+          )}
+          {!isLoading && auditLogs && auditLogs.length === 0 && (
+            <p className="text-xs text-muted-foreground">Aucun changement enregistré pour cette session.</p>
+          )}
+          {!isLoading && auditLogs && auditLogs.length > 0 && (
+            <div className="rounded border bg-muted/30 px-3 py-1">
+              {auditLogs.map(entry => (
+                <AuditLogEntry key={entry.id} log={entry} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Field({
   label,
@@ -544,33 +693,9 @@ export default function TenantDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="max-h-72 overflow-y-auto divide-y">
+            <div className="max-h-[600px] overflow-y-auto divide-y">
               {impersonationLogs.map(log => (
-                <div key={log.id} className="flex items-start gap-3 px-6 py-3">
-                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm leading-snug">
-                      <span className="font-medium">{log.hubUserFirstName} {log.hubUserLastName}</span>
-                      <span className="text-muted-foreground"> a accédé en tant que </span>
-                      <span className="font-medium">{log.impersonatedUserFirstName} {log.impersonatedUserLastName}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                      {log.hubUserEmail} → {log.impersonatedUserEmail}
-                    </p>
-                  </div>
-                  <time className="shrink-0 text-xs text-muted-foreground pt-0.5">
-                    {log.createdAt
-                      ? new Date(log.createdAt).toLocaleString('fr-FR', {
-                          day: '2-digit',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : '—'}
-                  </time>
-                </div>
+                <ImpersonationSessionRow key={log.id} log={log} tenantId={id} />
               ))}
             </div>
           </CardContent>

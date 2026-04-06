@@ -3,8 +3,11 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   tenantsService,
   type CreateTenantPayload,
+  type IAuditLog,
   type ImpersonationLog,
   type InviteTenantUserPayload,
+  type TenantAuditLogFilters,
+  type TenantAuditLogPagination,
   type UpdateTenantPayload,
   type UpdateTenantUserPayload,
 } from '@/services/admin/tenantsService';
@@ -14,6 +17,8 @@ export const TENANTS_KEYS = {
   detail: (id: string) => ['admin', 'tenants', id] as const,
   users: (id: string) => ['admin', 'tenants', id, 'users'] as const,
   impersonationLogs: (id: string) => ['admin', 'tenants', id, 'impersonation-logs'] as const,
+  auditLogs: (id: string, filters?: TenantAuditLogFilters) =>
+    ['admin', 'tenants', id, 'audit-logs', filters] as const,
 };
 
 export function useAdminTenants() {
@@ -123,5 +128,20 @@ export function useImpersonationLogs(tenantId: string) {
   return useQuery<ImpersonationLog[]>({
     queryKey: TENANTS_KEYS.impersonationLogs(tenantId),
     queryFn: () => tenantsService.getImpersonationLogs(tenantId, token),
+  });
+}
+
+export function useAdminTenantAuditLogs(
+  tenantId: string,
+  filters: TenantAuditLogFilters,
+  enabled: boolean,
+  pagination?: TenantAuditLogPagination,
+) {
+  const { token } = useAuth();
+
+  return useQuery<IAuditLog[]>({
+    queryKey: TENANTS_KEYS.auditLogs(tenantId, filters),
+    queryFn: () => tenantsService.getAuditLogs(tenantId, filters, token, pagination),
+    enabled: enabled && !!tenantId,
   });
 }

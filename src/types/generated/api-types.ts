@@ -12,6 +12,7 @@ export type IPricingType = 'distance' | 'city';
 
 // Enum Types (extracted from inline enum properties in OpenAPI schemas)
 export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing";
+export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE";
 export type DriverScheduleStatus = "planned" | "active" | "completed" | "cancelled";
 export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" | "unavailable";
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
@@ -82,6 +83,24 @@ export interface IAddressMandatoryDto {
   fullAddress: string;
 }
 
+export interface IAuditLog {
+  id?: string;
+  message?: string;
+  action?: AuditLogAction;
+  entityType?: string;
+  entityId?: string;
+  userEmail?: string;
+  userId?: string;
+  tenantId?: string;
+  isImpersonated?: boolean;
+  impersonatedByEmail?: string;
+  impersonatedByName?: string;
+  ip?: string;
+  createdAt?: string;
+  changes?: { [key: string]: unknown };
+  impersonationSessionId?: string;
+}
+
 export interface IBankDetail {
   id: string;
   tenant?: ITenant;
@@ -95,6 +114,7 @@ export interface IBankDetail {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IChatMessage {
@@ -132,6 +152,7 @@ export interface ICityPricingConfig {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IDeliveryPrestation {
@@ -147,6 +168,7 @@ export interface IDeliveryPrestation {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IDeliveryPrestationTimeSlot {
@@ -171,6 +193,7 @@ export interface IDeliveryZone {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IDeliveryZoneDto {
@@ -203,6 +226,7 @@ export interface IDistancePricingConfig {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IDriverSchedule {
@@ -267,6 +291,7 @@ export interface IGlobalSetting {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IGlobalSettingDto {
@@ -357,6 +382,7 @@ export interface Invoice {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface InvoiceDto {
@@ -395,6 +421,7 @@ export interface IOrder {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
   shortReference: string;
   pickupFormattedDate: string;
   totalCreditAmount: number;
@@ -406,6 +433,7 @@ export interface IOrderAdjustment {
   description: string;
   amountHt: number;
   createdAt: string;
+  auditIdentifier: string;
 }
 
 export interface IOrderAdjustmentDto {
@@ -502,6 +530,7 @@ export interface IOrganization {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
   sirenNumber: string;
 }
 
@@ -536,6 +565,7 @@ export interface IPackageCategory {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
   volume: number;
   volumetricWeight: number;
 }
@@ -566,6 +596,7 @@ export interface IPricingConfig {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IPricingSummaryDto {
@@ -603,6 +634,7 @@ export interface IPrivateCustomer {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
   tenants: ITenant[];
 }
 
@@ -679,6 +711,7 @@ export interface IQuote {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IQuoteDto {
@@ -721,6 +754,7 @@ export interface IQuoteVersion {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
   sortedOrders: unknown[];
 }
 
@@ -782,6 +816,7 @@ export interface ITenant {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
   sirenNumber: string;
   users: IUser[];
   privateCustomers: IPrivateCustomer[];
@@ -858,6 +893,9 @@ export interface IUser {
   currentTenantId?: string;
   roles?: string[];
   impersonated?: boolean;
+  impersonatedByEmail?: string;
+  impersonatedByName?: string;
+  impersonationSessionId?: string;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
@@ -867,6 +905,7 @@ export interface IUser {
   passwordResetTokenValid: boolean;
   tenants: ITenant[];
   admin: boolean;
+  auditIdentifier: string;
   userName: string;
   salt?: string;
 }
@@ -901,6 +940,7 @@ export interface IUserTenantRead {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IVehicle {
@@ -916,6 +956,7 @@ export interface IVehicle {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IVehicleDto {
@@ -946,6 +987,7 @@ export interface IWarehouse {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+  auditIdentifier: string;
 }
 
 export interface IWarehouseDto {
@@ -992,11 +1034,14 @@ export interface IWeightPricingTierDto {
 
 
 // API Response Types
+export type get_audit_log_readResponse = IAuditLog[];
+export type get_audit_log_entity_typesResponse = string[];
 export type post_hub_register_confirmResponse = IHubUser;
 export type post_admin_tenant_impersonateResponse = {
   token?: string;
 };
 export type get_admin_tenant_impersonation_logsResponse = ImpersonationLog[];
+export type get_admin_tenant_audit_logsResponse = IAuditLog[];
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
 export type post_global_setting_createResponse = IGlobalSetting;
 export type post_organization_createResponse = IOrganization;
