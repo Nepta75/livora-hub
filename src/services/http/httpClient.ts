@@ -34,8 +34,8 @@ class HttpClient {
     }
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({})) as { error?: string };
-      throw new Error(errorData.error ?? "Une erreur est survenue lors de l'appel API.");
+      const errorData = await response.json().catch(() => ({})) as { error?: string; message?: string };
+      throw new Error(errorData.message ?? errorData.error ?? "Une erreur est survenue lors de l'appel API.");
     }
 
     if (response.status === 204) {
