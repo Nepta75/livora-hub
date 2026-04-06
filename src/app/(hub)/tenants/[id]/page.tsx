@@ -52,7 +52,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, ScrollText } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import type { IUser } from '@/types/generated/api-types';
 
 function Field({
@@ -227,7 +228,7 @@ export default function TenantDetailPage() {
   if (!tenant) return <p className="text-destructive">Tenant introuvable.</p>;
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
@@ -529,39 +530,48 @@ export default function TenantDetailPage() {
       </div>
 
       {impersonationLogs && impersonationLogs.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Accès administrateurs</h3>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Admin</TableHead>
-                <TableHead>Compte utilisé</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ScrollText className="h-4 w-4 text-muted-foreground" />
+              Journal d&apos;accès admin
+              <Badge variant="secondary" className="ml-auto font-mono text-xs">
+                {impersonationLogs.length}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-72 overflow-y-auto divide-y">
               {impersonationLogs.map(log => (
-                <TableRow key={log.id}>
-                  <TableCell>
-                    <div className="font-medium text-sm">
-                      {log.hubUserFirstName} {log.hubUserLastName}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{log.hubUserEmail}</div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {log.impersonatedUserFirstName} {log.impersonatedUserLastName}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{log.impersonatedUserEmail}</div>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {log.createdAt ? new Date(log.createdAt).toLocaleString('fr-FR') : '—'}
-                  </TableCell>
-                </TableRow>
+                <div key={log.id} className="flex items-start gap-3 px-6 py-3">
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm leading-snug">
+                      <span className="font-medium">{log.hubUserFirstName} {log.hubUserLastName}</span>
+                      <span className="text-muted-foreground"> a accédé en tant que </span>
+                      <span className="font-medium">{log.impersonatedUserFirstName} {log.impersonatedUserLastName}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {log.hubUserEmail} → {log.impersonatedUserEmail}
+                    </p>
+                  </div>
+                  <time className="shrink-0 text-xs text-muted-foreground pt-0.5">
+                    {log.createdAt
+                      ? new Date(log.createdAt).toLocaleString('fr-FR', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : '—'}
+                  </time>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Edit user dialog */}
