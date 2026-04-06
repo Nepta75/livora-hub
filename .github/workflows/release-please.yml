@@ -78,3 +78,20 @@ jobs:
           VERSION=v${{ needs.release-please.outputs.version }}
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
           "docker service update --image ghcr.io/nepta75/livora-hub:$VERSION --container-label-add app.version=$VERSION --with-registry-auth --detach=false livora_hub"
+
+      - name: Prune old Docker images
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash << 'ENDSSH'
+          IMAGE="ghcr.io/nepta75/livora-hub"
+          KEEP=5
+          CUTOFF=$((48 * 3600))
+          protected=$(docker images "$IMAGE" --filter "reference=${IMAGE}:v*" --format "{{.CreatedAt}} {{.ID}}" | sort -r | head -n $KEEP | awk '{print $NF}' | sort -u)
+          now=$(date +%s)
+          for id in $(docker images "$IMAGE" --format "{{.ID}}" | sort -u); do
+            echo "$protected" | grep -q "$id" && continue
+            created=$(docker inspect --format='{{.Created}}' "$id" 2>/dev/null | cut -c1-19 | tr 'T' ' ')
+            [ -z "$created" ] && continue
+            created_epoch=$(date -d "$created" +%s 2>/dev/null) || continue
+            [ $((now - created_epoch)) -gt $CUTOFF ] && docker rmi "$id" 2>/dev/null || true
+          done
+          ENDSSH
