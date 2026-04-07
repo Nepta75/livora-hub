@@ -85,7 +85,14 @@ jobs:
           sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh \
             -o StrictHostKeyChecking=no \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "state=\$(docker service inspect livora_hub --format '{{.UpdateStatus.State}}'); \
-             echo \"Rollout state: \${state:-completed}\"; \
-             [ \"\$state\" = 'completed' ] || [ -z \"\$state\" ] || \
-             { echo \"ERROR: rollout failed (state: \$state)\"; docker service ps livora_hub --no-trunc; exit 1; }"
+            "for i in 1 2 3 4 5 6; do \
+               state=\$(docker service inspect livora_hub --format '{{.UpdateStatus.State}}'); \
+               echo \"Rollout state: \${state:-completed}\"; \
+               if [ \"\$state\" = 'completed' ] || [ -z \"\$state\" ]; then exit 0; \
+               elif echo \"\$state\" | grep -qE 'rollback|paused'; then \
+                 echo \"ERROR: rollout failed (state: \$state)\"; docker service ps livora_hub --no-trunc; exit 1; \
+               fi; \
+               sleep 5; \
+             done; \
+             echo \"ERROR: timed out waiting for rollout to complete\"; \
+             docker service ps livora_hub --no-trunc; exit 1"
