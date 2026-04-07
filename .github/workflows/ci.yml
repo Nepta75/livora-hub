@@ -73,5 +73,19 @@ jobs:
       - name: Deploy to preprod VPS
         run: |
           SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-          "docker service update --image ghcr.io/nepta75/livora-hub:sha-$SHA --with-registry-auth --detach=false livora_hub"
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh \
+            -o StrictHostKeyChecking=no \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=3 \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "docker service update --image ghcr.io/nepta75/livora-hub:sha-$SHA --with-registry-auth --detach=false livora_hub"
+
+      - name: Verify rollout
+        run: |
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "state=\$(docker service inspect livora_hub --format '{{.UpdateStatus.State}}'); \
+             echo \"Rollout state: \${state:-completed}\"; \
+             [ \"\$state\" = 'completed' ] || [ -z \"\$state\" ] || \
+             { echo \"ERROR: rollout failed (state: \$state)\"; docker service ps livora_hub --no-trunc; exit 1; }"
