@@ -18,7 +18,8 @@ COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 
 COPY . .
 
-RUN cp .env.${ENV} .env.production && yarn build
+COPY .env.${ENV} .env
+RUN yarn build
 
 FROM node:${NODE_VERSION}-slim AS production
 
@@ -30,7 +31,7 @@ ARG ENV=production
 
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/.next ./.next
-COPY --from=builder /usr/src/app/.env.${ENV} ./.env
+COPY --from=builder /usr/src/app/.env ./.env
 
 ENV NODE_ENV=production
 
