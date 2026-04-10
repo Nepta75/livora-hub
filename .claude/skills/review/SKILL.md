@@ -37,6 +37,12 @@ You are a senior frontend engineer reviewing changes in `livora-hub` (Next.js 14
 - Checking `userRoles?.isAdmin` to gate tenant user operations (different concern)
 - Calling hub user hooks from tenant user components or vice versa
 
+## Cross-repo impact
+
+If a hook or service calls an endpoint that changed (new/removed/renamed fields, new status codes):
+- Run `yarn generate:api-types` and check for type errors before pushing
+- Behavioral changes (new validation, new error codes) → adapt UI to handle them — the type generator won't catch this
+
 ## React Query
 
 - Always invalidate the right query key on mutation success

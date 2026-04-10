@@ -41,11 +41,7 @@ Next.js 14 (App Router) + Tailwind + shadcn/ui + React Hook Form + Zod + TanStac
 - Vérifier `userRoles?.isAdmin` dans les composants pour cacher les actions réservées admin
 
 ## Types
-```bash
-yarn generate:api-types   # génère depuis http://localhost:8000/api/doc.json
-```
+`yarn generate:api-types` — génère depuis `http://localhost:8000/api/doc.json`. See `/commit` and `/review` skills for when to run it.
 
 ## Quality gates
-```bash
-yarn lint && yarn type-check
-```
+`yarn lint && yarn type-check`. See `/review` and `/commit` skills.

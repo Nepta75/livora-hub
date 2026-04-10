@@ -38,6 +38,13 @@ refactor(hub): distinguish HubUser and User roles in sidebar
 ci: add release-please workflow
 ```
 
+## Pre-commit checklist (livora-hub)
+
+Before staging, verify:
+- `yarn lint && yarn type-check` passes
+- API contract changed? → `yarn generate:api-types` run and types updated
+- Hub user vs app user distinction not broken (no ROLE_ADMIN leaking into tenant selects)
+
 ## Rules
 
 - English, lowercase, no trailing period, max 72 chars on first line
