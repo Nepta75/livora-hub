@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Nepta75/livora-hub/compare/livora-hub-v0.2.0...livora-hub-v0.2.1) (2026-04-10)
+
+
+### Bug Fixes
+
+* **docker:** replace cp with COPY to avoid same-file error on prod build ([aa7e3e3](https://github.com/Nepta75/livora-hub/commit/aa7e3e32b241ac09f0df81ecac67b1048bfdd781))
+
 ## [0.2.0](https://github.com/Nepta75/livora-hub/compare/livora-hub-v0.1.0...livora-hub-v0.2.0) (2026-04-10)
 
 
