@@ -25,17 +25,23 @@ export default function EditPlanPage() {
 
   if (!id) return <p className="text-destructive">ID de plan manquant.</p>;
   if (userRoles && !userRoles.isAdmin) return null;
+  if (planLoading) return <p className="text-muted-foreground">Chargement...</p>;
+  if (!plan) return <p className="text-destructive">Plan introuvable.</p>;
 
   const onSubmit = async (values: PlanFormValues, features: PlanFeatureState[]) => {
     try {
       await updateMutation.mutateAsync({
         name: values.name,
         type: values.type,
-        isPublic: values.isPublic ?? false,
+        isVisible: values.isVisible ?? false,
         trialDays: values.trialDays ?? null,
         description: values.description ?? null,
         stripeProductId: values.stripeProductId ?? null,
-        stripePriceId: values.stripePriceId ?? null,
+        stripeMonthlyPriceId: values.stripeMonthlyPriceId ?? null,
+        stripeAnnualPriceId: values.stripeAnnualPriceId ?? null,
+        monthlyPriceEuro: values.monthlyPriceEuro ?? null,
+        annualPriceEuro: values.annualPriceEuro ?? null,
+        isFeatured: values.isFeatured ?? false,
         planFeatures: buildPlanFeaturesPayload(features),
       });
       toast.success('Plan mis à jour');
@@ -45,21 +51,23 @@ export default function EditPlanPage() {
     }
   };
 
-  if (planLoading) return <p className="text-muted-foreground">Chargement...</p>;
-  if (!plan) return <p className="text-destructive">Plan introuvable.</p>;
-
   const defaultValues: PlanFormValues = {
     name: plan.name,
     type: (plan.type === 'custom' ? 'custom' : 'standard') satisfies PlanType,
-    isPublic: plan.isPublic ?? false,
+    isVisible: plan.isVisible ?? false,
     trialDays: plan.trialDays ?? null,
     description: plan.description ?? null,
     stripeProductId: plan.stripeProductId ?? null,
-    stripePriceId: plan.stripePriceId ?? null,
+    stripeMonthlyPriceId: plan.stripeMonthlyPriceId ?? null,
+    stripeAnnualPriceId: plan.stripeAnnualPriceId ?? null,
+    monthlyPriceEuro: plan.monthlyPriceEuro ?? null,
+    annualPriceEuro: plan.annualPriceEuro ?? null,
+    isFeatured: plan.isFeatured ?? false,
   };
 
   return (
     <PlanForm
+      key={id}
       title={`Modifier le plan — ${plan.name}`}
       defaultValues={defaultValues}
       existingPlanFeatures={plan.planFeatures}

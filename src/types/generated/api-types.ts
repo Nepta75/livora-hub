@@ -576,6 +576,10 @@ export interface IOrganizationDto {
   sirenNumber: string;
 }
 
+export interface IOverageDto {
+  allowOverage?: boolean;
+}
+
 export interface IPackageCategory {
   id: string;
   tenant: ITenant;
@@ -613,11 +617,15 @@ export interface IPlan {
   id: string;
   name: string;
   type: string;
-  isPublic?: boolean;
+  isVisible?: boolean;
   stripeProductId?: string;
-  stripePriceId?: string;
+  stripeMonthlyPriceId?: string;
+  stripeAnnualPriceId?: string;
   trialDays?: number;
   description?: string;
+  monthlyPriceEuro?: number;
+  annualPriceEuro?: number;
+  isFeatured?: boolean;
   planFeatures: IPlanFeature[];
 }
 
@@ -625,24 +633,33 @@ export interface IPlan2 {
   id: string;
   name: string;
   type: string;
-  isPublic?: boolean;
+  isVisible?: boolean;
   stripeProductId?: string;
-  stripePriceId?: string;
+  stripeMonthlyPriceId?: string;
+  stripeAnnualPriceId?: string;
   trialDays?: number;
   description?: string;
+  monthlyPriceEuro?: number;
+  annualPriceEuro?: number;
+  isFeatured?: boolean;
   planFeatures: IPlanFeature2[];
 }
 
 export interface IPlanDto {
   name: string;
   type: PlanType;
-  isPublic?: boolean;
+  isVisible?: boolean;
   stripeProductId?: string;
-  stripePriceId?: string;
+  stripeMonthlyPriceId?: string;
+  stripeAnnualPriceId?: string;
   trialDays?: number;
   description?: string;
+  monthlyPriceEuro?: number;
+  annualPriceEuro?: number;
+  isFeatured?: boolean;
   planFeatures?: IPlanFeatureDto[];
-  public: boolean;
+  visible: boolean;
+  featured: boolean;
 }
 
 export interface IPlanFeature {
@@ -891,6 +908,7 @@ export interface ISubscription {
   currentPeriodEnd?: string;
   canceledAt?: string;
   allowOverage?: boolean;
+  active: boolean;
 }
 
 export interface ISubscriptionDto {
@@ -1160,6 +1178,9 @@ export type get_admin_feature_readResponse = IFeature | IFeature[];
 export type get_admin_plan_readResponse = IPlan | IPlan[];
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
 export type post_global_setting_createResponse = IGlobalSetting;
+export type post_stripe_customer_portalResponse = {
+  url?: string;
+};
 export type post_organization_createResponse = IOrganization;
 export type post_user_inviteResponse = {
   user?: IUserRead;
@@ -1199,6 +1220,7 @@ export type post_driver_schedule_createResponse = IDriverSchedule;
 export type get_driver_schedule_readResponse = IDriverSchedule[] | IDriverSchedule;
 export type post_delivery_zone_createResponse = IDeliveryZone;
 export type get_delivery_zone_readResponse = IDeliveryZone[] | IDeliveryZone;
+export type get_subscription_readResponse = ISubscription;
 export type post_public_activate_accountResponse = {
   token?: string;
   message?: string;
@@ -1209,6 +1231,7 @@ export type post_public_forgot_passwordResponse = {
 export type post_public_reset_passwordResponse = {
   message?: string;
 };
+export type get_public_plan_readResponse = IPlan[];
 export type post_chat_create_messageResponse = IChatMessage;
 export type get_chat_read_messagesResponse = IChatMessage[];
 export type get_chat_list_conversationsResponse = IChatMessage[];

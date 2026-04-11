@@ -92,7 +92,7 @@ function PlanRow({ plan, isAdmin }: { plan: IPlan; isAdmin: boolean }) {
         <TableCell>
           <PlanTypeBadge type={plan.type} />
         </TableCell>
-        <TableCell>{plan.isPublic ? '✅' : '—'}</TableCell>
+        <TableCell>{plan.isVisible ? '✅' : '—'}</TableCell>
         <TableCell>{plan.trialDays ? `${plan.trialDays}j` : '—'}</TableCell>
         <TableCell className="text-muted-foreground text-sm">{plan.description ?? '—'}</TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>

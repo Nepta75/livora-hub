@@ -4,11 +4,15 @@ import type { IFeature, IPlan, ISubscription } from '@/types/generated/api-types
 export interface CreatePlanPayload {
   name: string;
   type: string;
-  isPublic: boolean;
+  isVisible: boolean;
   trialDays?: number | null;
   description?: string | null;
   stripeProductId?: string | null;
-  stripePriceId?: string | null;
+  stripeMonthlyPriceId?: string | null;
+  stripeAnnualPriceId?: string | null;
+  monthlyPriceEuro?: number | null;
+  annualPriceEuro?: number | null;
+  isFeatured?: boolean;
   planFeatures?: Array<{
     featureKey: string;
     enabled?: boolean | null;
@@ -18,6 +22,8 @@ export interface CreatePlanPayload {
   }>;
 }
 
+// Full replace — the backend update() always sets all fields.
+// planFeatures: null = skip features update; [] = remove all features.
 export type UpdatePlanPayload = CreatePlanPayload;
 
 export interface CreateSubscriptionPayload {

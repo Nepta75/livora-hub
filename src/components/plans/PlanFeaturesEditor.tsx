@@ -139,7 +139,7 @@ export function PlanFeaturesEditor({ value, onChange }: PlanFeaturesEditorProps)
                       <input
                         type="number"
                         min={0}
-                        step={0.01}
+                        step="any"
                         value={f.overagePriceEuro ?? ''}
                         onChange={(e) =>
                           update(f.featureKey, {

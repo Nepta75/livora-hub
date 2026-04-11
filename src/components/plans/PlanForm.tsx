@@ -71,9 +71,11 @@ export function PlanForm({
       featuresInitialized.current = true;
       setPlanFeatures(initFeaturesState(features, existingPlanFeatures));
     }
+    // Intentionally one-shot: background RQ refetches must not reset the user's
+    // in-progress edits. Navigation between plans is handled via key={id} on PlanForm
+    // in the edit page, which remounts the component entirely.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [features, existingPlanFeatures]);
-
-  const formId = `plan-form-${title.replace(/\s+/g, '-').toLowerCase()}`;
 
   const {
     register,
@@ -82,6 +84,8 @@ export function PlanForm({
     watch,
     formState: { errors },
   } = useForm<PlanFormValues>({
+    // Cast needed: yupResolver infers optional keys (field?) while RHF expects required keys
+    // with undefined in value type (field: T | undefined). Same shape, different optionality.
     resolver: yupResolver(planSchema) as unknown as Resolver<PlanFormValues>,
     defaultValues,
   });
@@ -103,7 +107,7 @@ export function PlanForm({
         <h2 className="text-2xl font-bold">{title}</h2>
       </div>
 
-      <form id={formId} onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Informations générales</CardTitle>
@@ -118,7 +122,7 @@ export function PlanForm({
             <Field label="Type" id="type" error={errors.type?.message}>
               <Select
                 value={typeValue ?? 'standard'}
-                onValueChange={(v) => setValue('type', v as PlanFormValues['type'])}
+                onValueChange={(v) => setValue('type', v as PlanFormValues['type'], { shouldValidate: true })}
               >
                 <SelectTrigger id="type">
                   <SelectValue placeholder="Type" />
@@ -134,9 +138,9 @@ export function PlanForm({
               <Input
                 id="trialDays"
                 type="number"
-                min={0}
+                min={1}
                 {...register('trialDays')}
-                placeholder="0"
+                placeholder="14"
               />
             </Field>
 
@@ -164,26 +168,79 @@ export function PlanForm({
             </Field>
 
             <Field
-              label="Stripe Price ID"
-              id="stripePriceId"
-              error={errors.stripePriceId?.message}
+              label="Stripe Price ID mensuel"
+              id="stripeMonthlyPriceId"
+              error={errors.stripeMonthlyPriceId?.message}
             >
               <Input
-                id="stripePriceId"
-                {...register('stripePriceId')}
-                placeholder="price_xxx"
+                id="stripeMonthlyPriceId"
+                {...register('stripeMonthlyPriceId')}
+                placeholder="price_xxx_monthly"
                 className="font-mono"
               />
             </Field>
 
-            <div className="flex items-center gap-2">
-              <input
-                id="isPublic"
-                type="checkbox"
-                className="h-4 w-4"
-                {...register('isPublic')}
+            <Field
+              label="Stripe Price ID annuel"
+              id="stripeAnnualPriceId"
+              error={errors.stripeAnnualPriceId?.message}
+            >
+              <Input
+                id="stripeAnnualPriceId"
+                {...register('stripeAnnualPriceId')}
+                placeholder="price_xxx_annual"
+                className="font-mono"
               />
-              <Label htmlFor="isPublic">Plan public</Label>
+            </Field>
+
+            <Field
+              label="Prix mensuel (€)"
+              id="monthlyPriceEuro"
+              error={errors.monthlyPriceEuro?.message}
+            >
+              <Input
+                id="monthlyPriceEuro"
+                type="number"
+                min={0}
+                {...register('monthlyPriceEuro')}
+                placeholder="Ex : 49"
+              />
+            </Field>
+
+            <Field
+              label="Prix annuel / mois (€)"
+              id="annualPriceEuro"
+              error={errors.annualPriceEuro?.message}
+            >
+              <Input
+                id="annualPriceEuro"
+                type="number"
+                min={0}
+                {...register('annualPriceEuro')}
+                placeholder="Ex : 39"
+              />
+            </Field>
+
+            <div className="col-span-2 flex flex-wrap gap-6 pt-1">
+              <div className="flex items-center gap-2">
+                <input
+                  id="isVisible"
+                  type="checkbox"
+                  className="h-4 w-4"
+                  {...register('isVisible')}
+                />
+                <Label htmlFor="isVisible">Visible sur la landing page</Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  id="isFeatured"
+                  type="checkbox"
+                  className="h-4 w-4"
+                  {...register('isFeatured')}
+                />
+                <Label htmlFor="isFeatured">Mis en avant (badge &quot;populaire&quot;)</Label>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -201,7 +258,7 @@ export function PlanForm({
           </CardContent>
         </Card>
 
-        <Button form={formId} type="submit" className="w-full" disabled={isPending}>
+        <Button type="submit" className="w-full" disabled={isPending}>
           {isPending ? 'Enregistrement...' : submitLabel}
         </Button>
       </form>

@@ -12,11 +12,15 @@ import { toast } from 'sonner';
 const CREATE_DEFAULTS: PlanFormValues = {
   name: '',
   type: 'standard',
-  isPublic: false,
+  isVisible: false,
   trialDays: null,
   description: null,
   stripeProductId: null,
-  stripePriceId: null,
+  stripeMonthlyPriceId: null,
+  stripeAnnualPriceId: null,
+  monthlyPriceEuro: null,
+  annualPriceEuro: null,
+  isFeatured: false,
 };
 
 export default function CreatePlanPage() {
@@ -37,11 +41,15 @@ export default function CreatePlanPage() {
       await createMutation.mutateAsync({
         name: values.name,
         type: values.type,
-        isPublic: values.isPublic ?? false,
+        isVisible: values.isVisible ?? false,
         trialDays: values.trialDays ?? null,
         description: values.description ?? null,
         stripeProductId: values.stripeProductId ?? null,
-        stripePriceId: values.stripePriceId ?? null,
+        stripeMonthlyPriceId: values.stripeMonthlyPriceId ?? null,
+        stripeAnnualPriceId: values.stripeAnnualPriceId ?? null,
+        monthlyPriceEuro: values.monthlyPriceEuro ?? null,
+        annualPriceEuro: values.annualPriceEuro ?? null,
+        isFeatured: values.isFeatured ?? false,
         planFeatures: buildPlanFeaturesPayload(features),
       });
       toast.success('Plan créé avec succès');

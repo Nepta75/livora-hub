@@ -7,25 +7,36 @@ export const planSchema = yup.object({
     .string()
     .oneOf<PlanType>(['standard', 'custom'], 'Type invalide')
     .required('Type requis'),
-  isPublic: yup.boolean().required(),
+  isVisible: yup.boolean().required(),
   trialDays: yup
+    .number()
+    .nullable()
+    .min(1, 'Doit être >= 1')
+    .transform((value, original) => (original === '' ? null : value)),
+  description: yup.string().nullable(),
+  stripeProductId: yup.string().nullable(),
+  stripeMonthlyPriceId: yup.string().nullable(),
+  stripeAnnualPriceId: yup.string().nullable(),
+  monthlyPriceEuro: yup
+    .number()
+    .nullable()
+    .min(0, 'Doit être >= 0')
+    .transform((value, original) => (original === '' ? null : value)),
+  annualPriceEuro: yup
     .number()
     .nullable()
     .min(0, 'Doit être >= 0')
     .transform((value, original) => (original === '' ? null : value))
-    .optional(),
-  description: yup.string().nullable().optional(),
-  stripeProductId: yup.string().nullable().optional(),
-  stripePriceId: yup.string().nullable().optional(),
+    .test(
+      'annual-lte-monthly',
+      'Le prix annuel par mois doit être ≤ au prix mensuel',
+      function (annualValue) {
+        const { monthlyPriceEuro } = this.parent as { monthlyPriceEuro?: number | null };
+        if (annualValue == null || monthlyPriceEuro == null) return true;
+        return annualValue <= monthlyPriceEuro;
+      }
+    ),
+  isFeatured: yup.boolean().required(),
 });
 
-// Explicit type with required keys to avoid Yup optional vs RHF type friction
-export interface PlanFormValues {
-  name: string;
-  type: PlanType;
-  isPublic: boolean;
-  trialDays: number | null | undefined;
-  description: string | null | undefined;
-  stripeProductId: string | null | undefined;
-  stripePriceId: string | null | undefined;
-}
+export type PlanFormValues = yup.InferType<typeof planSchema>;
