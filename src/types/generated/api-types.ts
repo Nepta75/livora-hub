@@ -19,6 +19,10 @@ export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency
 export type GlobalSettingPricingType = "distance" | "city";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
+export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
+export type PlanType = "standard" | "custom";
+export type SubscriptionSource = "stripe" | "manual";
+export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 export type VehicleType = "bike" | "cargo_bike" | "scooter" | "motorbike" | "car" | "van" | "truck" | "electric_van" | "electric_bike" | "pedestrian";
 export type WeightPricingTierType = "fixed" | "per_kg";
@@ -276,6 +280,25 @@ export interface IDriverScheduleTimeSlotDto {
   endTime: string;
   slotType: DriverScheduleTimeSlotType;
   description?: string;
+}
+
+export interface IFeature {
+  id: string;
+  key: string;
+  type: string;
+  description?: string;
+}
+
+export interface IFeature2 {
+  id: string;
+  key: string;
+  type: string;
+}
+
+export interface IFeature3 {
+  id: string;
+  key: string;
+  type: string;
 }
 
 export interface IForgotPasswordDto {
@@ -586,6 +609,68 @@ export interface IPackageDimensionDto {
   volumetricWeight: number;
 }
 
+export interface IPlan {
+  id: string;
+  name: string;
+  type: string;
+  isPublic?: boolean;
+  stripeProductId?: string;
+  stripePriceId?: string;
+  trialDays?: number;
+  description?: string;
+  planFeatures: IPlanFeature[];
+}
+
+export interface IPlan2 {
+  id: string;
+  name: string;
+  type: string;
+  isPublic?: boolean;
+  stripeProductId?: string;
+  stripePriceId?: string;
+  trialDays?: number;
+  description?: string;
+  planFeatures: IPlanFeature2[];
+}
+
+export interface IPlanDto {
+  name: string;
+  type: PlanType;
+  isPublic?: boolean;
+  stripeProductId?: string;
+  stripePriceId?: string;
+  trialDays?: number;
+  description?: string;
+  planFeatures?: IPlanFeatureDto[];
+  public: boolean;
+}
+
+export interface IPlanFeature {
+  id: string;
+  feature?: IFeature2;
+  enabled?: boolean;
+  limitValue?: number;
+  overageEnabled?: boolean;
+  overagePriceEuro?: number;
+}
+
+export interface IPlanFeature2 {
+  id: string;
+  feature?: IFeature3;
+  enabled?: boolean;
+  limitValue?: number;
+  overageEnabled?: boolean;
+  overagePriceEuro?: number;
+}
+
+export interface IPlanFeatureDto {
+  featureKey: PlanFeatureKey;
+  enabled?: boolean;
+  limitValue?: number;
+  overageEnabled?: boolean;
+  overagePriceEuro?: number;
+}
+
 export interface IPricingConfig {
   id: string;
   tenantId: string;
@@ -796,6 +881,28 @@ export interface IStoragePricingTier {
   archivedAt?: string;
 }
 
+export interface ISubscription {
+  id: string;
+  tenant?: ITenant3;
+  plan?: IPlan2;
+  source: string;
+  status: string;
+  trialEndsAt?: string;
+  currentPeriodEnd?: string;
+  canceledAt?: string;
+  allowOverage?: boolean;
+}
+
+export interface ISubscriptionDto {
+  planId: string;
+  source: SubscriptionSource;
+  status: SubscriptionStatus;
+  trialEndsAt?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  allowOverage?: boolean;
+}
+
 export interface ITenant {
   user?: IUser;
   privateCustomer?: IPrivateCustomer[];
@@ -828,6 +935,12 @@ export interface ITenant2 {
 }
 
 export interface ITenant3 {
+  user?: IUser;
+  privateCustomer?: IPrivateCustomer[];
+  id: string;
+}
+
+export interface ITenant4 {
   user?: IUser;
   privateCustomer?: IPrivateCustomer[];
   name: string;
@@ -1042,6 +1155,9 @@ export type post_admin_tenant_impersonateResponse = {
 };
 export type get_admin_tenant_impersonation_logsResponse = ImpersonationLog[];
 export type get_admin_tenant_audit_logsResponse = IAuditLog[];
+export type get_admin_tenant_subscription_readResponse = ISubscription;
+export type get_admin_feature_readResponse = IFeature | IFeature[];
+export type get_admin_plan_readResponse = IPlan | IPlan[];
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
 export type post_global_setting_createResponse = IGlobalSetting;
 export type post_organization_createResponse = IOrganization;
@@ -1057,16 +1173,25 @@ export type post_user_resend_invitationResponse = {
   message?: string;
 };
 export type post_private_customer_createResponse = IPrivateCustomer;
-export type get_private_customer_readResponse = IPrivateCustomer[] | IPrivateCustomer;
+export type get_private_customer_readResponse = (IPrivateCustomer | {
+  data?: IPrivateCustomer[];
+  total?: number;
+});
 export type post_order_createResponse = IOrder;
 export type post_order_calculate_tripResponse = ITripSummaryDto;
 export type post_order_calculate_pricingResponse = IPricingSummaryDto;
 export type post_invoice_createResponse = Invoice;
 export type post_quote_createResponse = IQuote;
 export type post_package_category_createResponse = IPackageCategory;
-export type get_package_category_readResponse = IPackageCategory[] | IPackageCategory;
+export type get_package_category_readResponse = (IPackageCategory | {
+  data?: IPackageCategory[];
+  total?: number;
+});
 export type post_weight_pricing_tier_createResponse = IWeightPricingTier;
-export type get_weight_pricing_tier_readResponse = IWeightPricingTier[] | IWeightPricingTier;
+export type get_weight_pricing_tier_readResponse = (IWeightPricingTier | {
+  data?: IWeightPricingTier[];
+  total?: number;
+});
 export type post_vehicle_createResponse = IVehicle;
 export type post_warehouse_createResponse = IWarehouse;
 export type post_warehouse_order_readResponse = IOrderWarehouseResponseDto[];

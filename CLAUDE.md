@@ -1,6 +1,6 @@
 # livora-hub — Admin Back Office
 
-Next.js 14 (App Router) + Tailwind + shadcn/ui + React Hook Form + Zod + TanStack React Query v5.
+Next.js 14 (App Router) + Tailwind + shadcn/ui + React Hook Form + Yup + TanStack React Query v5.
 
 ## Rules
 - Abstraction layer: tous les composants UI passent par `src/components/ui/` (wrappers shadcn)
