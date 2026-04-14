@@ -104,6 +104,9 @@ function PlanRow({ plan, isAdmin }: { plan: IPlan; isAdmin: boolean }) {
           <PlanTypeBadge type={plan.type} />
         </TableCell>
         <TableCell>{plan.isVisible ? '✅' : '—'}</TableCell>
+        <TableCell>
+          <StripeStatusBadge plan={plan} />
+        </TableCell>
         <TableCell>{plan.trialDays ? `${plan.trialDays}j` : '—'}</TableCell>
         <TableCell className="text-muted-foreground text-sm">{plan.description ?? '—'}</TableCell>
         <TableCell onClick={(e) => e.stopPropagation()}>
@@ -150,7 +153,7 @@ function PlanRow({ plan, isAdmin }: { plan: IPlan; isAdmin: boolean }) {
 
       {expanded && (
         <TableRow>
-          <TableCell colSpan={7} className="bg-muted/30 p-4">
+          <TableCell colSpan={8} className="bg-muted/30 p-4">
             <PlanFeaturesPanel features={plan.planFeatures ?? []} />
           </TableCell>
         </TableRow>
@@ -188,6 +191,35 @@ function PlanTypeBadge({ type }: { type: string }) {
     <Badge variant={type === 'custom' ? 'secondary' : 'default'}>
       {type === 'custom' ? 'Custom' : 'Standard'}
     </Badge>
+  );
+}
+
+function StripeStatusBadge({ plan }: { plan: IPlan }) {
+  const hasProduct = Boolean(plan.stripeProductId);
+  const hasPrice = plan.monthlyPriceEuro != null && plan.monthlyPriceEuro > 0;
+
+  if (hasProduct) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        Synchronisé
+      </span>
+    );
+  }
+
+  if (hasPrice) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+        À synchroniser
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs text-muted-foreground">
+      Brouillon
+    </span>
   );
 }
 
@@ -247,6 +279,7 @@ export default function PlansPage() {
               <TableHead>Nom</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Public</TableHead>
+              <TableHead>Stripe</TableHead>
               <TableHead>Trial</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="w-24" />

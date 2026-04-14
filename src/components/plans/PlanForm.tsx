@@ -281,7 +281,7 @@ export function PlanForm({
             </div>
 
             <Field
-              label="Prix mensuel (€)"
+              label="Prix mensuel (€) *"
               id="monthlyPriceEuro"
               error={errors.monthlyPriceEuro?.message}
             >

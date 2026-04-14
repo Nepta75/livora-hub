@@ -27,8 +27,8 @@ export const planSchema = yup.object({
   monthlyPriceEuro: yup
     .number()
     .nullable()
-    .min(0, 'Doit être >= 0')
     .transform((value, original) => (original === '' ? null : value))
+    .test('monthly-required', 'Prix mensuel requis', (value) => value != null)
     .test(
       'monthly-positive-if-set',
       'Le prix mensuel doit être strictement supérieur à 0.',
