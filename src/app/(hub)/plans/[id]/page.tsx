@@ -10,6 +10,8 @@ import {
   useDuplicateAdminPlan,
 } from '@/hooks/api/plans/useAdminPlans';
 import { usePlanSubscriptions } from '@/hooks/api/plans/usePlanSubscriptions';
+import { useAdminAuditLogs } from '@/hooks/api/auditLogs/useAdminAuditLogs';
+import { AuditLogCard } from '@/components/auditLogs/AuditLogCard';
 import { PlanForm } from '@/components/plans/PlanForm';
 import { buildPlanFeaturesPayload, type PlanFeatureState } from '@/components/plans/PlanFeaturesEditor';
 import type { PlanFormValues } from '@/validators/plans/validator';
@@ -24,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Users, ExternalLink, Copy, AlertTriangle } from 'lucide-react';
+import { Users, ExternalLink, Copy, AlertTriangle, Loader2, ScrollText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -169,6 +171,64 @@ function PlanSubscriptionsCard({ planId }: { planId: string }) {
 
 const ACTIVE_STATUSES = new Set(['active', 'trialing', 'past_due']);
 
+function PlanHistoryCard({ planId }: { planId: string }) {
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useAdminAuditLogs({
+    entityType: 'Plan',
+    entityId: planId,
+  });
+
+  const logs = data?.pages.flat() ?? [];
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <ScrollText className="h-4 w-4 text-muted-foreground" />
+          Historique
+          {!isLoading && (
+            <Badge variant="secondary" className="ml-2 font-mono text-xs">
+              {logs.length}
+              {hasNextPage ? '+' : ''}
+            </Badge>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-20 rounded bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : logs.length === 0 ? (
+          <p className="text-sm text-muted-foreground italic">
+            Aucun événement sur ce plan.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {logs.map((log) => (
+              <AuditLogCard key={log.id} log={log} />
+            ))}
+            {hasNextPage && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                >
+                  {isFetchingNextPage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isFetchingNextPage ? 'Chargement...' : 'Charger plus'}
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function EditPlanPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -295,6 +355,7 @@ export default function EditPlanPage() {
         submitLabel="Enregistrer les modifications"
       />
       <PlanSubscriptionsCard planId={id} />
+      <PlanHistoryCard planId={id} />
 
       <Dialog
         open={pendingSubmit !== null}

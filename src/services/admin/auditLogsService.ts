@@ -5,6 +5,7 @@ export interface AdminAuditLogFilters {
   search?: string;
   userEmail?: string;
   entityType?: string;
+  entityId?: string;
   action?: AuditLogAction;
   dateFrom?: string;
   dateTo?: string;
@@ -23,6 +24,7 @@ function buildQuery(params: AdminAuditLogPageParams): string {
   if (params.search) query.set('search', params.search);
   if (params.userEmail) query.set('userEmail', params.userEmail);
   if (params.entityType) query.set('entityType', params.entityType);
+  if (params.entityId) query.set('entityId', params.entityId);
   if (params.action) query.set('action', params.action);
   if (params.dateFrom) query.set('dateFrom', params.dateFrom);
   if (params.dateTo) query.set('dateTo', params.dateTo);
