@@ -65,8 +65,8 @@ class HttpClient {
     return this.request<T>(endpoint, { ...options, method: 'PATCH', body: JSON.stringify(body) });
   }
 
-  async delete(endpoint: string, options?: FetchOptions): Promise<void> {
-    return this.request<void>(endpoint, { ...options, method: 'DELETE' });
+  async delete<T = void>(endpoint: string, options?: FetchOptions): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 }
 

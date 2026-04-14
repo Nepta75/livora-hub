@@ -86,6 +86,8 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
     reset,
     formState: { errors },
   } = useForm<PromoCodeFormValues>({
+    // Cast needed: yupResolver infers optional keys (field?) while RHF expects required keys
+    // with undefined in value type (field: T | undefined). Same shape, different optionality.
     resolver: yupResolver(promoCodeSchema) as unknown as Resolver<PromoCodeFormValues>,
     defaultValues: DEFAULTS,
   });

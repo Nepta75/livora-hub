@@ -12,6 +12,9 @@ export const ACTION = {
   destructive: 'text-red-600 hover:text-red-700 hover:bg-red-50',
 } as const;
 
+// Each token carries its own border color because shadcn's Badge variants
+// default to `border-transparent`; twMerge resolves the collision so the
+// palette's border wins, keeping the pill readable against any row hover tint.
 export const STATUS_BADGE = {
   active: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50',
   inactive: 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-100',

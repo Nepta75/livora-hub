@@ -12,10 +12,10 @@ export const promoCodesService = {
     httpClient.post<IPromoCodeDto>('/promo-code', data, { token }),
 
   archive: (promoCodeId: string, token: string) =>
-    httpClient.post(`/promo-code/${promoCodeId}/archive`, {}, { token }),
+    httpClient.post<IPromoCodeDto>(`/promo-code/${promoCodeId}/archive`, {}, { token }),
 
   reactivate: (promoCodeId: string, token: string) =>
-    httpClient.post(`/promo-code/${promoCodeId}/reactivate`, {}, { token }),
+    httpClient.post<IPromoCodeDto>(`/promo-code/${promoCodeId}/reactivate`, {}, { token }),
 
   delete: (promoCodeId: string, token: string) =>
     httpClient.delete(`/promo-code/${promoCodeId}`, { token }),
@@ -24,5 +24,5 @@ export const promoCodesService = {
     httpClient.post<IPromoCodeDto>(`/promo-code/${promoCodeId}/rule`, data, { token }),
 
   removeRule: (promoCodeId: string, ruleId: string, token: string) =>
-    httpClient.delete(`/promo-code/${promoCodeId}/rule/${ruleId}`, { token }),
+    httpClient.delete<IPromoCodeDto>(`/promo-code/${promoCodeId}/rule/${ruleId}`, { token }),
 };

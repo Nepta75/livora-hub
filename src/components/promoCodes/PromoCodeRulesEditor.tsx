@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Check, Package, Plus, Trash2 } from 'lucide-react';
 import { useAdminPlans } from '@/hooks/api/plans/useAdminPlans';
+import { ACTION } from '@/lib/action-palette';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +37,7 @@ interface PromoCodeRulesEditorProps {
 const RULE_TYPE_META: Record<CreatePromoCodeRuleType, { label: string; description: string }> = {
   ELIGIBLE_PLAN_IDS: {
     label: 'Plans éligibles',
-    description: 'Le code ne s’applique qu’aux plans sélectionnés.',
+    description: "Le code ne s'applique qu'aux plans sélectionnés.",
   },
 };
 
@@ -128,10 +129,14 @@ export function PromoCodeRulesEditor({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground hover:text-destructive opacity-60 group-hover:opacity-100 transition-opacity"
+                  className={cn(
+                    ACTION.destructive,
+                    'opacity-60 group-hover:opacity-100 transition-opacity',
+                  )}
                   onClick={() => onRemove(rule.id)}
                   disabled={isBusy}
                   title="Supprimer"
+                  aria-label="Supprimer la règle"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -151,7 +156,13 @@ export function PromoCodeRulesEditor({
           <Label htmlFor="ruleType">Type de règle</Label>
           <Select
             value={ruleType}
-            onValueChange={(v) => setRuleType(v as CreatePromoCodeRuleType)}
+            onValueChange={(v) => {
+              // Reset auxiliary state when switching rule type so stale input
+              // from a previous type doesn't leak into the newly selected one.
+              setRuleType(v as CreatePromoCodeRuleType);
+              setSelectedPlanIds([]);
+              setError(null);
+            }}
           >
             <SelectTrigger id="ruleType">
               <SelectValue />
@@ -160,15 +171,15 @@ export function PromoCodeRulesEditor({
               {(Object.entries(RULE_TYPE_META) as [CreatePromoCodeRuleType, { label: string; description: string }][]).map(
                 ([type, meta]) => (
                   <SelectItem key={type} value={type}>
-                    <div>
-                      <div className="font-medium">{meta.label}</div>
-                      <div className="text-xs text-muted-foreground">{meta.description}</div>
-                    </div>
+                    {meta.label}
                   </SelectItem>
                 ),
               )}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            {RULE_TYPE_META[ruleType]?.description}
+          </p>
         </div>
 
         {ruleType === 'ELIGIBLE_PLAN_IDS' && (

@@ -192,10 +192,15 @@ function PromoCodeRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className={ACTION.destructive}
+                className={
+                  canDelete
+                    ? ACTION.destructive
+                    : `${ACTION.neutral} opacity-40 cursor-not-allowed`
+                }
                 onClick={() => setDeleteOpen(true)}
                 disabled={deleteMutation.isPending || !canDelete}
                 title={deleteDisabledReason}
+                aria-label={deleteDisabledReason}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
