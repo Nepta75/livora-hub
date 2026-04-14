@@ -221,6 +221,20 @@ export function PlanForm({
               />
             </Field>
 
+            <div className="col-span-2">
+              <Field
+                label="Libellé du CTA (landing page)"
+                id="ctaLabel"
+                error={errors.ctaLabel?.message}
+              >
+                <Input
+                  id="ctaLabel"
+                  {...register('ctaLabel')}
+                  placeholder="Ex : Démarrer l'essai — laisser vide pour le libellé par défaut"
+                />
+              </Field>
+            </div>
+
             <div className="col-span-2 flex flex-wrap gap-6 pt-1">
               <div className="flex items-center gap-2">
                 <input

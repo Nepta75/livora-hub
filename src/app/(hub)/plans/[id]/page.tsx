@@ -42,6 +42,7 @@ export default function EditPlanPage() {
         monthlyPriceEuro: values.monthlyPriceEuro ?? null,
         annualPriceEuro: values.annualPriceEuro ?? null,
         isFeatured: values.isFeatured ?? false,
+        ctaLabel: values.ctaLabel ?? null,
         planFeatures: buildPlanFeaturesPayload(features),
       });
       toast.success('Plan mis à jour');
@@ -63,6 +64,7 @@ export default function EditPlanPage() {
     monthlyPriceEuro: plan.monthlyPriceEuro ?? null,
     annualPriceEuro: plan.annualPriceEuro ?? null,
     isFeatured: plan.isFeatured ?? false,
+    ctaLabel: plan.ctaLabel ?? null,
   };
 
   return (

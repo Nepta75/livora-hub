@@ -37,6 +37,11 @@ export const planSchema = yup.object({
       }
     ),
   isFeatured: yup.boolean().required(),
+  ctaLabel: yup
+    .string()
+    .nullable()
+    .max(255, 'Maximum 255 caractères')
+    .transform((value, original) => (original === '' ? null : value)),
 });
 
 export type PlanFormValues = yup.InferType<typeof planSchema>;

@@ -13,6 +13,7 @@ export interface CreatePlanPayload {
   monthlyPriceEuro?: number | null;
   annualPriceEuro?: number | null;
   isFeatured?: boolean;
+  ctaLabel?: string | null;
   planFeatures?: Array<{
     featureKey: string;
     enabled?: boolean | null;

@@ -13,6 +13,10 @@ export type IPricingType = 'distance' | 'city';
 // Enum Types (extracted from inline enum properties in OpenAPI schemas)
 export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing";
 export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE";
+export type ContactRequestContext = "founding-setup" | "enterprise" | "demo";
+export type ContactRequestVolume = "1-50" | "50-200" | "200-500" | "500+";
+export type CreatePromoCodeDuration = "once" | "repeating" | "forever";
+export type CreatePromoCodeRuleType = "ELIGIBLE_PLAN_IDS";
 export type DriverScheduleStatus = "planned" | "active" | "completed" | "cancelled";
 export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" | "unavailable";
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
@@ -157,6 +161,33 @@ export interface ICityPricingConfig {
   updatedAt: string;
   archivedAt?: string;
   auditIdentifier: string;
+}
+
+export interface IContactRequestDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  company: string;
+  volume: ContactRequestVolume;
+  context: ContactRequestContext;
+  message?: string;
+}
+
+export interface ICreatePromoCodeDto {
+  code: string;
+  percentOff?: number;
+  amountOff?: number;
+  currency?: string;
+  duration: CreatePromoCodeDuration;
+  durationInMonths?: number;
+  maxRedemptions?: number;
+  expiresAt?: string;
+  rules?: ICreatePromoCodeRuleDto[];
+}
+
+export interface ICreatePromoCodeRuleDto {
+  type: CreatePromoCodeRuleType;
+  value?: { [key: string]: unknown };
 }
 
 export interface IDeliveryPrestation {
@@ -613,6 +644,12 @@ export interface IPackageDimensionDto {
   volumetricWeight: number;
 }
 
+export interface IPilotProgramStatus {
+  active: boolean;
+  totalSlots: number;
+  takenSlots: number;
+}
+
 export interface IPlan {
   id: string;
   name: string;
@@ -626,6 +663,7 @@ export interface IPlan {
   monthlyPriceEuro?: number;
   annualPriceEuro?: number;
   isFeatured?: boolean;
+  ctaLabel?: string;
   planFeatures: IPlanFeature[];
 }
 
@@ -642,6 +680,7 @@ export interface IPlan2 {
   monthlyPriceEuro?: number;
   annualPriceEuro?: number;
   isFeatured?: boolean;
+  ctaLabel?: string;
   planFeatures: IPlanFeature2[];
 }
 
@@ -657,6 +696,7 @@ export interface IPlanDto {
   monthlyPriceEuro?: number;
   annualPriceEuro?: number;
   isFeatured?: boolean;
+  ctaLabel?: string;
   planFeatures?: IPlanFeatureDto[];
   visible: boolean;
   featured: boolean;
@@ -763,6 +803,34 @@ export interface IPrivateCustomerTenant {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string;
+}
+
+export interface IPromoCodeCouponDto {
+  percentOff?: number;
+  amountOff?: number;
+  currency?: string;
+  duration: CreatePromoCodeDuration;
+  durationInMonths?: number;
+}
+
+export interface IPromoCodeDto {
+  id: string;
+  code: string;
+  active: boolean;
+  maxRedemptions?: number;
+  timesRedeemed: number;
+  redemptionCount: number;
+  expiresAt?: string;
+  createdAt: string;
+  coupon: IPromoCodeCouponDto;
+  rules?: IPromoCodeRuleDto[];
+}
+
+export interface IPromoCodeRuleDto {
+  id: string;
+  type: string;
+  value: { [key: string]: unknown };
+  createdAt: string;
 }
 
 export interface IQuote {
@@ -1176,6 +1244,9 @@ export type get_admin_tenant_audit_logsResponse = IAuditLog[];
 export type get_admin_tenant_subscription_readResponse = ISubscription;
 export type get_admin_feature_readResponse = IFeature | IFeature[];
 export type get_admin_plan_readResponse = IPlan | IPlan[];
+export type get_admin_promo_code_readResponse = IPromoCodeDto[];
+export type post_admin_promo_code_createResponse = IPromoCodeDto;
+export type post_admin_promo_code_rule_createResponse = IPromoCodeDto;
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
 export type post_global_setting_createResponse = IGlobalSetting;
 export type post_stripe_customer_portalResponse = {
@@ -1232,6 +1303,10 @@ export type post_public_reset_passwordResponse = {
   message?: string;
 };
 export type get_public_plan_readResponse = IPlan[];
+export type post_public_contact_createResponse = {
+  message?: string;
+};
+export type get_public_pilot_program_readResponse = IPilotProgramStatus;
 export type post_chat_create_messageResponse = IChatMessage;
 export type get_chat_read_messagesResponse = IChatMessage[];
 export type get_chat_list_conversationsResponse = IChatMessage[];

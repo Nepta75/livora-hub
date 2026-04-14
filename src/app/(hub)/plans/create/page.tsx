@@ -21,6 +21,7 @@ const CREATE_DEFAULTS: PlanFormValues = {
   monthlyPriceEuro: null,
   annualPriceEuro: null,
   isFeatured: false,
+  ctaLabel: null,
 };
 
 export default function CreatePlanPage() {
@@ -50,6 +51,7 @@ export default function CreatePlanPage() {
         monthlyPriceEuro: values.monthlyPriceEuro ?? null,
         annualPriceEuro: values.annualPriceEuro ?? null,
         isFeatured: values.isFeatured ?? false,
+        ctaLabel: values.ctaLabel ?? null,
         planFeatures: buildPlanFeaturesPayload(features),
       });
       toast.success('Plan créé avec succès');
