@@ -45,3 +45,33 @@ Next.js 14 (App Router) + Tailwind + shadcn/ui + React Hook Form + Yup + TanStac
 
 ## Quality gates
 `yarn lint && yarn type-check`. See `/review` and `/commit` skills.
+
+## UI theme — action color palette
+
+Icon actions and status badges across the hub share a single palette defined
+in `src/lib/action-palette.ts` (`ACTION`, `STATUS_BADGE`, `CONFIRM_BUTTON`).
+Import these tokens rather than hand-picking Tailwind classes — this is how
+pages stay coherent as the hub grows.
+
+| Intent | Token | Tailwind | Use for |
+|---|---|---|---|
+| Neutral | `ACTION.neutral` | `text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100` | Edit, open dialog, navigate, manage |
+| Warning | `ACTION.warning` | `text-amber-600 hover:text-amber-700 hover:bg-amber-50` | Reversible deactivation (archive, disable) |
+| Success | `ACTION.success` | `text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50` | Reactivate, enable, confirm |
+| Destructive | `ACTION.destructive` | `text-red-600 hover:text-red-700 hover:bg-red-50` | Permanent delete |
+
+Rules:
+- **Archive ≠ Delete**: archive is reversible and uses the `warning` tone; hard delete uses `destructive` and must sit behind its own confirm dialog.
+- **Status badges** use `STATUS_BADGE.active` / `STATUS_BADGE.inactive` (pill-shaped via the base Badge component's `rounded-full`).
+- **Confirm dialogs** mirror the action tone — archive confirm uses `CONFIRM_BUTTON.warning`, delete uses shadcn `variant="destructive"`.
+- Do not introduce a new color scale without updating `action-palette.ts` and this section together.
+
+## Archive + delete pattern
+
+Resources that can be temporarily disabled AND permanently removed (e.g. promo codes) expose **three** mutations and **three** buttons:
+
+1. `archive` — `POST /{resource}/{id}/archive` → soft, reversible, flips `active=false`
+2. `reactivate` — `POST /{resource}/{id}/reactivate` → reverses archive
+3. `delete` — `DELETE /{resource}/{id}` → hard, removes DB row + external refs + provider-side objects
+
+Do not reuse the HTTP `DELETE` verb for a soft archive — a dedicated `/archive` endpoint keeps the semantics honest and lets the same verb always mean "irreversible".

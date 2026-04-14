@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { Users, Building2, Shield, LayoutDashboard, LogOut, X, CreditCard, Zap } from 'lucide-react';
+import { Users, Building2, Shield, LayoutDashboard, LogOut, X, CreditCard, Zap, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
@@ -14,6 +14,7 @@ const navItems = [
   { href: '/users', label: 'Utilisateurs', icon: Users, adminOnly: false },
   { href: '/tenants', label: 'Tenants', icon: Building2, adminOnly: true },
   { href: '/plans', label: 'Plans', icon: CreditCard, adminOnly: true },
+  { href: '/promo-codes', label: 'Codes promo', icon: Tag, adminOnly: true },
   { href: '/features', label: 'Features', icon: Zap, adminOnly: true },
   { href: '/roles', label: 'Rôles', icon: Shield, adminOnly: false },
 ];
