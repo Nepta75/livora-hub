@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Link from 'next/link';
@@ -58,14 +57,7 @@ import {
 import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, ScrollText, ChevronDown, ChevronRight, ClipboardList, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { IUser } from '@/types/generated/api-types';
-import {
-  useTenantSubscription,
-  useCreateTenantSubscription,
-  useUpdateTenantSubscription,
-  useDeleteTenantSubscription,
-  useAdminPlans,
-} from '@/hooks/api/plans/useAdminPlans';
-import type { CreateSubscriptionPayload } from '@/services/admin/plansService';
+import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
 
 const ACTION_LABELS: Record<string, string> = {
   CREATE: 'Création',
@@ -241,77 +233,45 @@ const STATUS_LABELS: Record<string, string> = {
   canceled: 'Annulé',
 };
 
-const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  active: 'default',
-  trialing: 'secondary',
-  past_due: 'destructive',
-  canceled: 'outline',
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  active: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-50',
+  trialing: 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-50',
+  past_due: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50',
+  canceled: 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-100',
 };
 
+function formatEuroCents(cents?: number | null): string {
+  if (cents === null || cents === undefined) return '—';
+  return (cents / 100).toLocaleString('fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+  });
+}
+
+function formatFrDate(iso?: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-FR');
+}
+
 function SubscriptionSection({ tenantId }: { tenantId: string }) {
-  const { data: subscription, isLoading, error } = useTenantSubscription(tenantId);
-  const { data: plans } = useAdminPlans();
-  const { userRoles } = useAuth();
-  const isAdmin = userRoles?.isAdmin ?? false;
+  const { data: subscription, isLoading } = useTenantSubscription(tenantId);
 
-  const createMutation = useCreateTenantSubscription(tenantId);
-  const updateMutation = useUpdateTenantSubscription(tenantId);
-  const deleteMutation = useDeleteTenantSubscription(tenantId);
-
-  const [editOpen, setEditOpen] = useState(false);
-  const [selectedPlanId, setSelectedPlanId] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('active');
-  const [selectedSource, setSelectedSource] = useState('manual');
-  const [trialEndsAt, setTrialEndsAt] = useState('');
-
-  const hasSubscription = !!subscription && !error;
-
-  function openEdit() {
-    if (subscription) {
-      setSelectedPlanId(subscription.plan?.id ?? '');
-      setSelectedStatus(subscription.status);
-      setSelectedSource(subscription.source);
-      setTrialEndsAt(subscription.trialEndsAt ? subscription.trialEndsAt.slice(0, 10) : '');
-    } else {
-      setSelectedPlanId('');
-      setSelectedStatus('trialing');
-      setSelectedSource('manual');
-      setTrialEndsAt('');
-    }
-    setEditOpen(true);
-  }
-
-  async function handleSave() {
-    const payload: CreateSubscriptionPayload = {
-      planId: selectedPlanId,
-      source: selectedSource,
-      status: selectedStatus,
-      trialEndsAt: trialEndsAt ? new Date(trialEndsAt).toISOString() : null,
-      allowOverage: false,
-    };
-    try {
-      if (hasSubscription) {
-        await updateMutation.mutateAsync(payload);
-        toast.success('Abonnement mis à jour.');
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success('Abonnement créé.');
-      }
-      setEditOpen(false);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
-    }
-  }
-
-  async function handleDelete() {
-    if (!confirm('Supprimer l\'abonnement de ce tenant ?')) return;
-    try {
-      await deleteMutation.mutateAsync();
-      toast.success('Abonnement supprimé.');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
-    }
-  }
+  const hasSubscription = !!subscription && !!subscription.id;
+  const status = subscription?.status ?? '';
+  const invoices = subscription?.recentInvoices ?? [];
+  const isOnLatestPrice = subscription?.isOnLatestPrice ?? null;
+  const planBasePricesTooltip = subscription
+    ? [
+        subscription.planMonthlyPriceEuroCents != null
+          ? `Mensuel ${formatEuroCents(subscription.planMonthlyPriceEuroCents)}`
+          : null,
+        subscription.planAnnualPriceEuroCents != null
+          ? `Annuel ${formatEuroCents(subscription.planAnnualPriceEuroCents)}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
 
   return (
     <Card>
@@ -319,126 +279,118 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
         <CardTitle className="text-base flex items-center gap-2">
           <CreditCard className="h-4 w-4 text-muted-foreground" />
           Abonnement
-          {isAdmin && (
-            <div className="ml-auto flex gap-2">
-              <Button size="sm" variant="outline" onClick={openEdit}>
-                {hasSubscription ? 'Modifier' : 'Créer'}
-              </Button>
-              {hasSubscription && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  onClick={handleDelete}
-                  disabled={deleteMutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Chargement...</p>
         ) : !hasSubscription ? (
-          <p className="text-sm text-muted-foreground italic">Aucun abonnement actif.</p>
+          <p className="text-sm text-muted-foreground italic">
+            Aucun abonnement actif pour ce tenant.
+          </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground text-xs mb-1">Plan</p>
-              <p className="font-semibold">{subscription.plan?.name ?? '—'}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs mb-1">Statut</p>
-              <Badge variant={STATUS_VARIANTS[subscription.status] ?? 'outline'}>
-                {STATUS_LABELS[subscription.status] ?? subscription.status}
-              </Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs mb-1">Source</p>
-              <Badge variant="secondary">{subscription.source}</Badge>
-            </div>
-            {subscription.trialEndsAt && (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground text-xs mb-1">Fin d&apos;essai</p>
-                <p>{new Date(subscription.trialEndsAt).toLocaleDateString('fr-FR')}</p>
+                <p className="text-muted-foreground text-xs mb-1">Plan</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {subscription.planId ? (
+                    <Link
+                      href={`/plans/${subscription.planId}`}
+                      className="font-semibold hover:underline"
+                    >
+                      {subscription.planName ?? '—'}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold">{subscription.planName ?? '—'}</span>
+                  )}
+                  {subscription.planType && (
+                    <Badge variant="outline" className="text-xs">
+                      {subscription.planType === 'custom' ? 'Custom' : 'Standard'}
+                    </Badge>
+                  )}
+                </div>
               </div>
-            )}
-            {subscription.currentPeriodEnd && (
               <div>
-                <p className="text-muted-foreground text-xs mb-1">Période jusqu&apos;au</p>
-                <p>{new Date(subscription.currentPeriodEnd).toLocaleDateString('fr-FR')}</p>
+                <p className="text-muted-foreground text-xs mb-1">Statut</p>
+                <Badge
+                  variant="outline"
+                  className={STATUS_BADGE_CLASS[status] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'}
+                >
+                  {STATUS_LABELS[status] ?? status}
+                </Badge>
               </div>
-            )}
-          </div>
+              {subscription.billingPeriod && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Période</p>
+                  <p>{subscription.billingPeriod === 'annual' ? 'Annuel' : 'Mensuel'}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-muted-foreground text-xs mb-1">Prix actuel</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium">{formatEuroCents(subscription.currentPriceEuroCents)}</p>
+                  {isOnLatestPrice === false && (
+                    <Badge
+                      variant="outline"
+                      className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 text-xs"
+                      title={
+                        planBasePricesTooltip
+                          ? `Prix actuel du plan — ${planBasePricesTooltip}`
+                          : 'Le prix du plan a été mis à jour depuis'
+                      }
+                    >
+                      Tarif différent du prix actuel du plan
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              {status === 'trialing' && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Essai</p>
+                  <p>Essai en cours</p>
+                </div>
+              )}
+              {subscription.startedAt && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Depuis</p>
+                  <p>{formatFrDate(subscription.startedAt)}</p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Factures récentes</h4>
+              {invoices.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">Aucune facture récente.</p>
+              ) : (
+                <div className="overflow-x-auto rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Montant</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Statut</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invoices.slice(0, 6).map(inv => (
+                        <TableRow key={inv.id ?? `${inv.paidAt}-${inv.amountPaidEuroCents}`}>
+                          <TableCell className="font-medium">
+                            {formatEuroCents(inv.amountPaidEuroCents)}
+                          </TableCell>
+                          <TableCell>{formatFrDate(inv.paidAt)}</TableCell>
+                          <TableCell className="text-muted-foreground">{inv.status ?? '—'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </CardContent>
-
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{hasSubscription ? 'Modifier l\'abonnement' : 'Créer un abonnement'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-2">
-              <Label>Plan</Label>
-              <Select value={selectedPlanId} onValueChange={(v) => setSelectedPlanId(v ?? '')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {plans?.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Statut</Label>
-              <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v ?? 'active')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Actif</SelectItem>
-                  <SelectItem value="trialing">Période d&apos;essai</SelectItem>
-                  <SelectItem value="past_due">Paiement en retard</SelectItem>
-                  <SelectItem value="canceled">Annulé</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Source</Label>
-              <Select value={selectedSource} onValueChange={(v) => setSelectedSource(v ?? 'manual')}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="manual">Manuel</SelectItem>
-                  <SelectItem value="stripe">Stripe</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Fin d&apos;essai (optionnel)</Label>
-              <Input
-                type="date"
-                value={trialEndsAt}
-                onChange={(e) => setTrialEndsAt(e.target.value)}
-              />
-            </div>
-            <Button
-              className="w-full"
-              onClick={handleSave}
-              disabled={!selectedPlanId || createMutation.isPending || updateMutation.isPending}
-            >
-              {createMutation.isPending || updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }

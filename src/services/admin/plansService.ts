@@ -1,5 +1,11 @@
 import { httpClient } from '@/services/http/httpClient';
-import type { IFeature, IPlan, ISubscription } from '@/types/generated/api-types';
+import type {
+  IFeature,
+  IPlan,
+  get_admin_tenant_subscription_readResponse,
+} from '@/types/generated/api-types';
+
+export type TenantSubscriptionRead = get_admin_tenant_subscription_readResponse;
 
 export interface CreatePlanPayload {
   name: string;
@@ -7,9 +13,6 @@ export interface CreatePlanPayload {
   isVisible: boolean;
   trialDays?: number | null;
   description?: string | null;
-  stripeProductId?: string | null;
-  stripeMonthlyPriceId?: string | null;
-  stripeAnnualPriceId?: string | null;
   monthlyPriceEuro?: number | null;
   annualPriceEuro?: number | null;
   isFeatured?: boolean;
@@ -27,16 +30,6 @@ export interface CreatePlanPayload {
 // planFeatures: null = skip features update; [] = remove all features.
 export type UpdatePlanPayload = CreatePlanPayload;
 
-export interface CreateSubscriptionPayload {
-  planId: string;
-  source: string;
-  status: string;
-  trialEndsAt?: string | null;
-  allowOverage?: boolean;
-}
-
-export type UpdateSubscriptionPayload = CreateSubscriptionPayload;
-
 export const plansService = {
   getAll: (token: string) => httpClient.get<IPlan[]>('/plan', { token }),
 
@@ -49,6 +42,9 @@ export const plansService = {
     httpClient.patch<IPlan>(`/plan/${id}`, data, { token }),
 
   delete: (id: string, token: string) => httpClient.delete(`/plan/${id}`, { token }),
+
+  duplicate: (id: string, token: string, name?: string) =>
+    httpClient.post<IPlan>(`/plan/${id}/duplicate`, name ? { name } : {}, { token }),
 };
 
 export const featuresService = {
@@ -57,14 +53,5 @@ export const featuresService = {
 
 export const subscriptionsService = {
   getByTenant: (tenantId: string, token: string) =>
-    httpClient.get<ISubscription>(`/tenant/${tenantId}/subscription`, { token }),
-
-  create: (tenantId: string, data: CreateSubscriptionPayload, token: string) =>
-    httpClient.post<ISubscription>(`/tenant/${tenantId}/subscription`, data, { token }),
-
-  update: (tenantId: string, data: UpdateSubscriptionPayload, token: string) =>
-    httpClient.patch<ISubscription>(`/tenant/${tenantId}/subscription`, data, { token }),
-
-  delete: (tenantId: string, token: string) =>
-    httpClient.delete(`/tenant/${tenantId}/subscription`, { token }),
+    httpClient.get<TenantSubscriptionRead>(`/tenant/${tenantId}/subscription`, { token }),
 };

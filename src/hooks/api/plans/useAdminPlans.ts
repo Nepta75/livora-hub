@@ -1,4 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import {
   plansService,
@@ -6,9 +8,8 @@ import {
   subscriptionsService,
   type CreatePlanPayload,
   type UpdatePlanPayload,
-  type CreateSubscriptionPayload,
-  type UpdateSubscriptionPayload,
 } from '@/services/admin/plansService';
+import type { IPlan } from '@/types/generated/api-types';
 
 export const PLANS_KEYS = {
   all: ['admin', 'plans'] as const,
@@ -79,6 +80,24 @@ export function useDeleteAdminPlan() {
   });
 }
 
+export function useDuplicateAdminPlan() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name?: string }) =>
+      plansService.duplicate(id, token, name),
+    onSuccess: (newPlan: IPlan) => {
+      void queryClient.invalidateQueries({ queryKey: PLANS_KEYS.all });
+      toast.success('Plan dupliqué');
+      if (newPlan?.id) {
+        router.push(`/plans/${newPlan.id}`);
+      }
+    },
+  });
+}
+
 export function useAdminFeatures() {
   const { token } = useAuth();
 
@@ -96,43 +115,5 @@ export function useTenantSubscription(tenantId: string) {
     queryFn: () => subscriptionsService.getByTenant(tenantId, token),
     enabled: !!tenantId,
     retry: false,
-  });
-}
-
-export function useCreateTenantSubscription(tenantId: string) {
-  const { token } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: CreateSubscriptionPayload) =>
-      subscriptionsService.create(tenantId, data, token),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEYS.byTenant(tenantId) });
-    },
-  });
-}
-
-export function useUpdateTenantSubscription(tenantId: string) {
-  const { token } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: UpdateSubscriptionPayload) =>
-      subscriptionsService.update(tenantId, data, token),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEYS.byTenant(tenantId) });
-    },
-  });
-}
-
-export function useDeleteTenantSubscription(tenantId: string) {
-  const { token } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => subscriptionsService.delete(tenantId, token),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEYS.byTenant(tenantId) });
-    },
   });
 }

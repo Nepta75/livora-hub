@@ -7,26 +7,49 @@ export const planSchema = yup.object({
     .string()
     .oneOf<PlanType>(['standard', 'custom'], 'Type invalide')
     .required('Type requis'),
-  isVisible: yup.boolean().required(),
+  isVisible: yup
+    .boolean()
+    .required()
+    .test(
+      'custom-never-visible',
+      'Un plan sur mesure ne peut pas être visible sur la landing',
+      function (value) {
+        const { type } = this.parent as { type?: PlanType };
+        return type !== 'custom' || value !== true;
+      }
+    ),
   trialDays: yup
     .number()
     .nullable()
     .min(1, 'Doit être >= 1')
     .transform((value, original) => (original === '' ? null : value)),
   description: yup.string().nullable(),
-  stripeProductId: yup.string().nullable(),
-  stripeMonthlyPriceId: yup.string().nullable(),
-  stripeAnnualPriceId: yup.string().nullable(),
   monthlyPriceEuro: yup
     .number()
     .nullable()
     .min(0, 'Doit être >= 0')
-    .transform((value, original) => (original === '' ? null : value)),
+    .transform((value, original) => (original === '' ? null : value))
+    .test(
+      'monthly-positive-if-set',
+      'Le prix mensuel doit être strictement supérieur à 0.',
+      function (value) {
+        if (value == null) return true;
+        return value > 0;
+      }
+    ),
   annualPriceEuro: yup
     .number()
     .nullable()
     .min(0, 'Doit être >= 0')
     .transform((value, original) => (original === '' ? null : value))
+    .test(
+      'annual-positive-if-set',
+      'Le prix annuel doit être strictement supérieur à 0.',
+      function (value) {
+        if (value == null) return true;
+        return value > 0;
+      }
+    )
     .test(
       'annual-lte-monthly',
       'Le prix annuel par mois doit être ≤ au prix mensuel',

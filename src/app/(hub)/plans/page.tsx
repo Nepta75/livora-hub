@@ -1,7 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useAdminPlans, useDeleteAdminPlan } from '@/hooks/api/plans/useAdminPlans';
+import {
+  useAdminPlans,
+  useDeleteAdminPlan,
+  useDuplicateAdminPlan,
+} from '@/hooks/api/plans/useAdminPlans';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,10 +25,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Trash2, ChevronDown, ChevronRight, Pencil, Plus } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronRight, Pencil, Plus, Copy } from 'lucide-react';
+import { ACTION } from '@/lib/action-palette';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import type { IPlan, IPlanFeature } from '@/types/generated/api-types';
+
+// Mirror of AdminPlanService::MAX_VISIBLE_STANDARD — backend is the source of truth
+// (409 Conflict on create/update beyond cap); this drives the list page UX only.
+// Custom plans are negotiated 1-to-1 per client, never shown on the landing, uncapped.
+const MAX_VISIBLE_STANDARD = 4;
 
 function PlanFeaturesPanel({ features }: { features: IPlanFeature[] }) {
   const limits = features.filter((f) => f.feature?.type === 'limit');
@@ -67,6 +77,7 @@ function PlanRow({ plan, isAdmin }: { plan: IPlan; isAdmin: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const deletePlan = useDeleteAdminPlan();
+  const duplicatePlan = useDuplicateAdminPlan();
 
   function handleDeleteConfirm() {
     deletePlan.mutate(plan.id, {
@@ -98,17 +109,37 @@ function PlanRow({ plan, isAdmin }: { plan: IPlan; isAdmin: boolean }) {
         <TableCell onClick={(e) => e.stopPropagation()}>
           {isAdmin && (
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" asChild>
-                <Link href={`/plans/${plan.id}`}>
+              <Button variant="ghost" size="icon" asChild className={ACTION.neutral}>
+                <Link href={`/plans/${plan.id}`} title="Modifier">
                   <Pencil className="h-4 w-4" />
                 </Link>
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-destructive hover:text-destructive"
+                className={ACTION.neutral}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  duplicatePlan.mutate(
+                    { id: plan.id },
+                    {
+                      onError: (err) =>
+                        toast.error(err instanceof Error ? err.message : 'Erreur'),
+                    }
+                  );
+                }}
+                disabled={duplicatePlan.isPending}
+                title="Dupliquer"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={ACTION.destructive}
                 onClick={() => setConfirmOpen(true)}
                 disabled={deletePlan.isPending}
+                title="Supprimer"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -160,12 +191,37 @@ function PlanTypeBadge({ type }: { type: string }) {
   );
 }
 
+function VisiblePlanCapBadges({ standard }: { standard: number }) {
+  const atCap = standard >= MAX_VISIBLE_STANDARD;
+
+  return (
+    <div className="mb-4 flex flex-wrap gap-2">
+      <div
+        className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${
+          atCap ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-border bg-muted/40'
+        }`}
+      >
+        <span className="text-muted-foreground">Plans standard visibles sur la landing</span>
+        <span className="font-mono font-semibold">
+          {standard}/{MAX_VISIBLE_STANDARD}
+        </span>
+        {atCap && <span className="text-xs font-medium">— limite atteinte</span>}
+      </div>
+      <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground">
+        Les plans sur mesure ne sont jamais affichés sur la landing.
+      </div>
+    </div>
+  );
+}
+
 export default function PlansPage() {
   const { data: plans, isLoading } = useAdminPlans();
   const { userRoles } = useAuth();
   const isAdmin = userRoles?.isAdmin ?? false;
 
   if (isLoading) return <p className="text-muted-foreground">Chargement...</p>;
+
+  const visibleStandard = plans?.filter((p) => p.isVisible && p.type === 'standard').length ?? 0;
 
   return (
     <div>
@@ -180,6 +236,8 @@ export default function PlansPage() {
           </Button>
         )}
       </div>
+
+      <VisiblePlanCapBadges standard={visibleStandard} />
 
       <div className="overflow-x-auto rounded-md border">
         <Table>

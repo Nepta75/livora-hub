@@ -22,13 +22,81 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import type { IPlanFeature } from '@/types/generated/api-types';
+
+// Stripe mode detection: NEXT_PUBLIC_STRIPE_MODE env var.
+// Dashboard URL pattern: https://dashboard.stripe.com/{mode}/{resource}/{id}
+// (mode is prefixed only for test; live omits the /test/ segment, but keeping
+// explicit segments works for both and matches what Stripe redirects handle.)
+// Fail loud in production if misconfigured — silently falling back to "test"
+// would send admins to the wrong Stripe dashboard in live builds.
+const STRIPE_MODE: 'live' | 'test' = (() => {
+  const mode = process.env.NEXT_PUBLIC_STRIPE_MODE;
+  if (mode === 'live' || mode === 'test') return mode;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'NEXT_PUBLIC_STRIPE_MODE must be "live" or "test" in production builds.',
+    );
+  }
+  return 'test'; // dev fallback
+})();
+
+function stripeDashboardUrl(resource: 'products' | 'prices', id: string): string {
+  const prefix = STRIPE_MODE === 'test' ? '/test' : '';
+  return `https://dashboard.stripe.com${prefix}/${resource}/${id}`;
+}
+
+function StripeReadOnlyField({
+  label,
+  id,
+  value,
+  resource,
+}: {
+  label: string;
+  id: string;
+  value: string | null | undefined;
+  resource: 'products' | 'prices';
+}) {
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id}>{label}</Label>
+      {value ? (
+        <div className="flex items-center gap-2 rounded-md border border-input bg-muted/40 px-3 py-2">
+          <span id={id} className="truncate font-mono text-sm text-muted-foreground">
+            {value}
+          </span>
+          <a
+            href={stripeDashboardUrl(resource, value)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto inline-flex h-6 w-6 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            title="Ouvrir dans Stripe"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      ) : (
+        <div
+          className="flex items-center rounded-md border border-dashed border-input bg-muted/20 px-3 py-2 text-sm italic text-muted-foreground"
+          title="Sera créé automatiquement après sauvegarde"
+        >
+          Non synchronisé
+        </div>
+      )}
+    </div>
+  );
+}
 
 export interface PlanFormProps {
   title: string;
   defaultValues: PlanFormValues;
   existingPlanFeatures?: IPlanFeature[];
+  stripeIds?: {
+    productId: string | null;
+    monthlyPriceId: string | null;
+    annualPriceId: string | null;
+  };
   onSubmit: (values: PlanFormValues, features: PlanFeatureState[]) => Promise<void>;
   isPending: boolean;
   submitLabel: string;
@@ -58,6 +126,7 @@ export function PlanForm({
   title,
   defaultValues,
   existingPlanFeatures,
+  stripeIds,
   onSubmit,
   isPending,
   submitLabel,
@@ -91,6 +160,37 @@ export function PlanForm({
   });
 
   const typeValue = watch('type');
+  const isCustom = typeValue === 'custom';
+  const stripeProductId = stripeIds?.productId ?? null;
+  const stripeMonthlyPriceId = stripeIds?.monthlyPriceId ?? null;
+  const stripeAnnualPriceId = stripeIds?.annualPriceId ?? null;
+
+  // Annual auto-fill: on first blur of an empty annual when monthly is set,
+  // mirror monthly into annual. Tracked per-mount to avoid re-filling if the
+  // user explicitly clears annual after the initial blur.
+  const annualAutoFilled = useRef(false);
+  const handleAnnualBlur = () => {
+    if (annualAutoFilled.current) return;
+    const annualRaw = watch('annualPriceEuro');
+    const monthlyRaw = watch('monthlyPriceEuro');
+    if ((annualRaw == null || Number.isNaN(annualRaw)) && monthlyRaw != null && !Number.isNaN(monthlyRaw)) {
+      setValue('annualPriceEuro', monthlyRaw, { shouldDirty: true, shouldValidate: true });
+      annualAutoFilled.current = true;
+    } else {
+      annualAutoFilled.current = true;
+    }
+  };
+
+  // Flipping to custom: reset landing-only fields so a dirty value from a prior
+  // standard edit doesn't get silently submitted (backend would 400 on isVisible=true
+  // for custom, and isFeatured/ctaLabel are meaningless for a non-public plan).
+  useEffect(() => {
+    if (isCustom) {
+      setValue('isVisible', false, { shouldDirty: true });
+      setValue('isFeatured', false, { shouldDirty: true });
+      setValue('ctaLabel', null, { shouldDirty: true });
+    }
+  }, [isCustom, setValue]);
 
   const handleFormSubmit = async (values: PlanFormValues) => {
     await onSubmit(values, planFeatures);
@@ -154,44 +254,31 @@ export function PlanForm({
               </Field>
             </div>
 
-            <Field
+            <StripeReadOnlyField
               label="Stripe Product ID"
               id="stripeProductId"
-              error={errors.stripeProductId?.message}
-            >
-              <Input
-                id="stripeProductId"
-                {...register('stripeProductId')}
-                placeholder="prod_xxx"
-                className="font-mono"
-              />
-            </Field>
+              value={stripeProductId}
+              resource="products"
+            />
 
-            <Field
+            <StripeReadOnlyField
               label="Stripe Price ID mensuel"
               id="stripeMonthlyPriceId"
-              error={errors.stripeMonthlyPriceId?.message}
-            >
-              <Input
-                id="stripeMonthlyPriceId"
-                {...register('stripeMonthlyPriceId')}
-                placeholder="price_xxx_monthly"
-                className="font-mono"
-              />
-            </Field>
+              value={stripeMonthlyPriceId}
+              resource="prices"
+            />
 
-            <Field
+            <StripeReadOnlyField
               label="Stripe Price ID annuel"
               id="stripeAnnualPriceId"
-              error={errors.stripeAnnualPriceId?.message}
-            >
-              <Input
-                id="stripeAnnualPriceId"
-                {...register('stripeAnnualPriceId')}
-                placeholder="price_xxx_annual"
-                className="font-mono"
-              />
-            </Field>
+              value={stripeAnnualPriceId}
+              resource="prices"
+            />
+
+            <div className="col-span-2 -mt-1 text-xs italic text-muted-foreground">
+              Les identifiants Stripe sont synchronisés automatiquement. Modifiez le prix ou le nom
+              du plan, Stripe suit.
+            </div>
 
             <Field
               label="Prix mensuel (€)"
@@ -216,46 +303,58 @@ export function PlanForm({
                 id="annualPriceEuro"
                 type="number"
                 min={0}
-                {...register('annualPriceEuro')}
+                {...register('annualPriceEuro', { onBlur: handleAnnualBlur })}
                 placeholder="Ex : 39"
               />
             </Field>
 
-            <div className="col-span-2">
-              <Field
-                label="Libellé du CTA (landing page)"
-                id="ctaLabel"
-                error={errors.ctaLabel?.message}
-              >
-                <Input
+            {!isCustom && (
+              <div className="col-span-2">
+                <Field
+                  label="Libellé du CTA (landing page)"
                   id="ctaLabel"
-                  {...register('ctaLabel')}
-                  placeholder="Ex : Démarrer l'essai — laisser vide pour le libellé par défaut"
-                />
-              </Field>
-            </div>
-
-            <div className="col-span-2 flex flex-wrap gap-6 pt-1">
-              <div className="flex items-center gap-2">
-                <input
-                  id="isVisible"
-                  type="checkbox"
-                  className="h-4 w-4"
-                  {...register('isVisible')}
-                />
-                <Label htmlFor="isVisible">Visible sur la landing page</Label>
+                  error={errors.ctaLabel?.message}
+                >
+                  <Input
+                    id="ctaLabel"
+                    {...register('ctaLabel')}
+                    placeholder="Ex : Démarrer l'essai — laisser vide pour le libellé par défaut"
+                  />
+                </Field>
               </div>
+            )}
 
-              <div className="flex items-center gap-2">
-                <input
-                  id="isFeatured"
-                  type="checkbox"
-                  className="h-4 w-4"
-                  {...register('isFeatured')}
-                />
-                <Label htmlFor="isFeatured">Mis en avant (badge &quot;populaire&quot;)</Label>
+            {!isCustom && (
+              <div className="col-span-2 flex flex-wrap gap-6 pt-1">
+                <div className="flex items-center gap-2">
+                  <input
+                    id="isVisible"
+                    type="checkbox"
+                    className="h-4 w-4"
+                    {...register('isVisible')}
+                  />
+                  <Label htmlFor="isVisible">Visible sur la landing page</Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    id="isFeatured"
+                    type="checkbox"
+                    className="h-4 w-4"
+                    {...register('isFeatured')}
+                  />
+                  <Label htmlFor="isFeatured">Mis en avant (badge &quot;populaire&quot;)</Label>
+                </div>
               </div>
-            </div>
+            )}
+
+            {isCustom && (
+              <div className="col-span-2 rounded-md border border-dashed border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+                Les plans sur mesure sont négociés au cas par cas et ne sont jamais affichés sur la
+                landing — les options &laquo;&nbsp;visible&nbsp;&raquo;, &laquo;&nbsp;mis en
+                avant&nbsp;&raquo; et le libellé de CTA sont masqués.
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -688,9 +688,6 @@ export interface IPlanDto {
   name: string;
   type: PlanType;
   isVisible?: boolean;
-  stripeProductId?: string;
-  stripeMonthlyPriceId?: string;
-  stripeAnnualPriceId?: string;
   trialDays?: number;
   description?: string;
   monthlyPriceEuro?: number;
@@ -1241,12 +1238,45 @@ export type post_admin_tenant_impersonateResponse = {
 };
 export type get_admin_tenant_impersonation_logsResponse = ImpersonationLog[];
 export type get_admin_tenant_audit_logsResponse = IAuditLog[];
-export type get_admin_tenant_subscription_readResponse = ISubscription;
+export type get_admin_tenant_subscription_readResponse = {
+  id?: string;
+  tenantId?: string;
+  planId?: string;
+  planName?: string;
+  planType?: string;
+  status?: string;
+  stripeSubscriptionId?: string;
+  startedAt?: string;
+  currentPriceEuroCents?: number;
+  planMonthlyPriceEuroCents?: number;
+  planAnnualPriceEuroCents?: number;
+  isOnLatestPrice?: boolean;
+  billingPeriod?: 'monthly' | 'annual';
+  recentInvoices?: {
+  id?: string;
+  amountPaidEuroCents?: number;
+  paidAt?: string;
+  status?: string;
+}[];
+};
 export type get_admin_feature_readResponse = IFeature | IFeature[];
 export type get_admin_plan_readResponse = IPlan | IPlan[];
+export type get_admin_plan_subscriptions_readResponse = {
+  id?: string;
+  tenantId?: string;
+  tenantName?: string;
+  status?: string;
+  stripeSubscriptionId?: string;
+  startedAt?: string;
+  endedAt?: string;
+  currentPriceEuroCents?: number;
+  isOnLatestPrice?: boolean;
+}[];
 export type get_admin_promo_code_readResponse = IPromoCodeDto[];
 export type post_admin_promo_code_createResponse = IPromoCodeDto;
 export type post_admin_promo_code_rule_createResponse = IPromoCodeDto;
+export type get_admin_audit_logs_readResponse = IAuditLog[];
+export type get_admin_audit_logs_entity_typesResponse = string[];
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
 export type post_global_setting_createResponse = IGlobalSetting;
 export type post_stripe_customer_portalResponse = {
