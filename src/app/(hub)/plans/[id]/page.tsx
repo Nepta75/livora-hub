@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,9 +24,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Users, ExternalLink, Copy } from 'lucide-react';
+import { Users, ExternalLink, Copy, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const STATUS_LABELS: Record<string, string> = {
   active: 'Actif',
@@ -159,13 +167,20 @@ function PlanSubscriptionsCard({ planId }: { planId: string }) {
   );
 }
 
+const ACTIVE_STATUSES = new Set(['active', 'trialing', 'past_due']);
+
 export default function EditPlanPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { userRoles } = useAuth();
   const { data: plan, isLoading: planLoading } = useAdminPlan(id ?? '');
+  const { data: subscriptions } = usePlanSubscriptions(id ?? '');
   const updateMutation = useUpdateAdminPlan(id ?? '');
   const duplicateMutation = useDuplicateAdminPlan();
+
+  const [pendingSubmit, setPendingSubmit] = useState<
+    { values: PlanFormValues; features: PlanFeatureState[] } | null
+  >(null);
 
   useEffect(() => {
     if (userRoles && !userRoles.isAdmin) {
@@ -178,7 +193,11 @@ export default function EditPlanPage() {
   if (planLoading) return <p className="text-muted-foreground">Chargement...</p>;
   if (!plan) return <p className="text-destructive">Plan introuvable.</p>;
 
-  const onSubmit = async (values: PlanFormValues, features: PlanFeatureState[]) => {
+  const activeCount = (subscriptions ?? []).filter((s) =>
+    ACTIVE_STATUSES.has(s.status ?? '')
+  ).length;
+
+  const persist = async (values: PlanFormValues, features: PlanFeatureState[]) => {
     try {
       await updateMutation.mutateAsync({
         name: values.name,
@@ -197,6 +216,19 @@ export default function EditPlanPage() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Une erreur est survenue.');
     }
+  };
+
+  const onSubmit = async (values: PlanFormValues, features: PlanFeatureState[]) => {
+    const priceChanged =
+      (values.monthlyPriceEuro ?? null) !== (plan.monthlyPriceEuro ?? null) ||
+      (values.annualPriceEuro ?? null) !== (plan.annualPriceEuro ?? null);
+
+    if (priceChanged && activeCount > 0) {
+      setPendingSubmit({ values, features });
+      return;
+    }
+
+    await persist(values, features);
   };
 
   const defaultValues: PlanFormValues = {
@@ -233,6 +265,21 @@ export default function EditPlanPage() {
           Dupliquer
         </Button>
       </div>
+      {activeCount > 0 && (
+        <div className="max-w-3xl flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium">
+              {activeCount} {activeCount > 1 ? 'tenants sont abonnés' : 'tenant est abonné'} à
+              ce plan.
+            </p>
+            <p className="mt-0.5 text-amber-800">
+              Les changements de prix ne s&rsquo;appliquent qu&rsquo;aux nouveaux abonnés. Les
+              tenants déjà abonnés gardent leur tarif (grandfathering).
+            </p>
+          </div>
+        </div>
+      )}
       <PlanForm
         key={id}
         title={`Modifier le plan — ${plan.name}`}
@@ -248,6 +295,41 @@ export default function EditPlanPage() {
         submitLabel="Enregistrer les modifications"
       />
       <PlanSubscriptionsCard planId={id} />
+
+      <Dialog
+        open={pendingSubmit !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingSubmit(null);
+        }}
+      >
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Confirmer le changement de prix</DialogTitle>
+            <DialogDescription>
+              {activeCount} {activeCount > 1 ? 'tenants sont abonnés' : 'tenant est abonné'}{' '}
+              à ce plan. Un nouveau Price Stripe sera créé et deviendra le tarif par défaut
+              pour les futurs abonnements. Les tenants déjà abonnés conserveront leur tarif
+              actuel (aucune migration automatique).
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingSubmit(null)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!pendingSubmit) return;
+                const snapshot = pendingSubmit;
+                setPendingSubmit(null);
+                await persist(snapshot.values, snapshot.features);
+              }}
+              disabled={updateMutation.isPending}
+            >
+              {updateMutation.isPending ? 'Enregistrement...' : 'Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
