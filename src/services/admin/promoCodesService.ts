@@ -3,6 +3,7 @@ import type {
   ICreatePromoCodeDto,
   ICreatePromoCodeRuleDto,
   IPromoCodeDto,
+  IUpdatePromoCodeDto,
 } from '@/types/generated/api-types';
 
 export const promoCodesService = {
@@ -10,6 +11,9 @@ export const promoCodesService = {
 
   create: (data: ICreatePromoCodeDto, token: string) =>
     httpClient.post<IPromoCodeDto>('/promo-code', data, { token }),
+
+  update: (promoCodeId: string, data: IUpdatePromoCodeDto, token: string) =>
+    httpClient.patch<IPromoCodeDto>(`/promo-code/${promoCodeId}`, data, { token }),
 
   archive: (promoCodeId: string, token: string) =>
     httpClient.post<IPromoCodeDto>(`/promo-code/${promoCodeId}/archive`, {}, { token }),

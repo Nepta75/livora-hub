@@ -1053,6 +1053,11 @@ export interface IUpdatePasswordDto {
   password: string;
 }
 
+export interface IUpdatePromoCodeDto {
+  maxRedemptions?: number | null;
+  expiresAt?: string | null;
+}
+
 export interface IUpdateUserDto {
   firstName: string;
   lastName: string;
@@ -1274,6 +1279,7 @@ export type get_admin_plan_subscriptions_readResponse = {
 }[];
 export type get_admin_promo_code_readResponse = IPromoCodeDto[];
 export type post_admin_promo_code_createResponse = IPromoCodeDto;
+export type patch_admin_promo_code_updateResponse = IPromoCodeDto;
 export type post_admin_promo_code_rule_createResponse = IPromoCodeDto;
 export type get_admin_audit_logs_readResponse = IAuditLog[];
 export type get_admin_audit_logs_entity_typesResponse = string[];

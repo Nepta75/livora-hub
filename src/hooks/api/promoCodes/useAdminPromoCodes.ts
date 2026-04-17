@@ -4,6 +4,7 @@ import { promoCodesService } from '@/services/admin/promoCodesService';
 import type {
   ICreatePromoCodeDto,
   ICreatePromoCodeRuleDto,
+  IUpdatePromoCodeDto,
 } from '@/types/generated/api-types';
 
 export const PROMO_CODES_KEYS = {
@@ -25,6 +26,19 @@ export function useCreateAdminPromoCode() {
 
   return useMutation({
     mutationFn: (data: ICreatePromoCodeDto) => promoCodesService.create(data, token),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: PROMO_CODES_KEYS.all });
+    },
+  });
+}
+
+export function useUpdateAdminPromoCode() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ promoCodeId, data }: { promoCodeId: string; data: IUpdatePromoCodeDto }) =>
+      promoCodesService.update(promoCodeId, data, token),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PROMO_CODES_KEYS.all });
     },

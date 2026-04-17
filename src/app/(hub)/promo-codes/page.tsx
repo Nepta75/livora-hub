@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Archive, Plus, RotateCcw, Settings2, Trash2 } from 'lucide-react';
+import { Archive, Pencil, Plus, RotateCcw, Settings2, Trash2 } from 'lucide-react';
 import {
   useAdminPromoCodes,
   useArchiveAdminPromoCode,
@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CreatePromoCodeDialog } from '@/components/promoCodes/CreatePromoCodeDialog';
+import { EditPromoCodeDialog } from '@/components/promoCodes/EditPromoCodeDialog';
 import { ManagePromoCodeRulesDialog } from '@/components/promoCodes/ManagePromoCodeRulesDialog';
 import { ACTION, CONFIRM_BUTTON, STATUS_BADGE } from '@/lib/action-palette';
 import type { IPromoCodeDto } from '@/types/generated/api-types';
@@ -65,10 +66,12 @@ function formatDate(iso?: string): string {
 function PromoCodeRow({
   promoCode,
   isAdmin,
+  onEdit,
   onManageRules,
 }: {
   promoCode: IPromoCodeDto;
   isAdmin: boolean;
+  onEdit: (promoCode: IPromoCodeDto) => void;
   onManageRules: (promoCode: IPromoCodeDto) => void;
 }) {
   const [archiveOpen, setArchiveOpen] = useState(false);
@@ -153,6 +156,17 @@ function PromoCodeRow({
         </TableCell>
         <TableCell>
           <div className="flex items-center justify-end gap-1">
+            {isAdmin && promoCode.active && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={ACTION.neutral}
+                onClick={() => onEdit(promoCode)}
+                title="Modifier"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
             {isAdmin && (
               <Button
                 variant="ghost"
@@ -268,6 +282,7 @@ export default function PromoCodesPage() {
   const { userRoles } = useAuth();
   const isAdmin = userRoles?.isAdmin ?? false;
   const [createOpen, setCreateOpen] = useState(false);
+  const [editFor, setEditFor] = useState<IPromoCodeDto | null>(null);
   const [rulesFor, setRulesFor] = useState<IPromoCodeDto | null>(null);
 
   // Keep the rules dialog's promo code in sync with the latest list refetch —
@@ -318,6 +333,7 @@ export default function PromoCodesPage() {
                   key={code.id}
                   promoCode={code}
                   isAdmin={isAdmin}
+                  onEdit={setEditFor}
                   onManageRules={setRulesFor}
                 />
               ))
@@ -333,6 +349,12 @@ export default function PromoCodesPage() {
       </div>
 
       <CreatePromoCodeDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <EditPromoCodeDialog
+        promoCode={editFor}
+        onOpenChange={(open) => {
+          if (!open) setEditFor(null);
+        }}
+      />
       <ManagePromoCodeRulesDialog
         promoCode={syncedRulesFor}
         onOpenChange={(open) => {
