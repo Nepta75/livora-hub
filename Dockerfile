@@ -18,7 +18,11 @@ COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 
 COPY . .
 
-COPY .env.${ENV} .env
+# Overwrite .env.production so Next.js picks the chosen env file.
+# Next.js NODE_ENV=production build reads .env.production with higher
+# precedence than .env, so copying only to .env leaves .env.production
+# in the image and its values win.
+COPY .env.${ENV} .env.production
 RUN yarn build
 
 FROM node:${NODE_VERSION}-slim AS production
@@ -31,7 +35,7 @@ ARG ENV=production
 
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/.next ./.next
-COPY --from=builder /usr/src/app/.env ./.env
+COPY --from=builder /usr/src/app/.env.production ./.env.production
 
 ENV NODE_ENV=production
 
