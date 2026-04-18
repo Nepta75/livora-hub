@@ -35,7 +35,7 @@ ARG ENV=production
 
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/.next ./.next
-COPY --from=builder /usr/src/app/.env.production ./.env.production
+COPY --from=builder /usr/src/app/.env.production ./.env
 
 ENV NODE_ENV=production
 
