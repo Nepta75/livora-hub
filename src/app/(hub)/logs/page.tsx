@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, ScrollText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -76,7 +76,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function LogsPage() {
+function LogsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { userRoles } = useAuth();
@@ -318,5 +318,13 @@ export default function LogsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function LogsPage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <LogsPageContent />
+    </Suspense>
   );
 }
