@@ -58,7 +58,7 @@ function formatDuration(code: IPromoCodeDto): string {
   }
 }
 
-function formatDate(iso?: string): string {
+function formatDate(iso?: string | null): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('fr-FR');
 }

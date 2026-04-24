@@ -155,8 +155,7 @@ function schemaToTypeScript(
         );
         // Remove unnecessary parentheses around types
         propType = propType.replace(/^\((.*)\)$/, '$1');
-        // Opt-in nullable: x-nullable-explicit vendor extension → add | null
-        if (propSchema['x-nullable-explicit'] && !propType.includes('null')) {
+        if (propSchema.nullable === true && !propType.includes('null')) {
           propType = `${propType} | null`;
         }
         return `  ${key}${isOptional ? '?' : ''}: ${propType};`;

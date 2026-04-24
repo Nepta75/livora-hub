@@ -37,13 +37,13 @@ export interface IActivateAccountDto {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
-  picture?: string;
+  secondaryPhoneNumber?: string | null;
+  picture?: string | null;
 }
 
 export interface IAddress {
   id: string;
-  tenant?: ITenant;
+  tenant?: ITenant | null;
   name: string;
   streetNumber: string;
   street: string;
@@ -51,21 +51,21 @@ export interface IAddress {
   city: string;
   country: string;
   type: string;
-  phoneNumber?: string;
-  secondaryPhoneNumber?: string;
-  additionalInformation?: string;
+  phoneNumber?: string | null;
+  secondaryPhoneNumber?: string | null;
+  additionalInformation?: string | null;
   latitude: number;
   longitude: number;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   fullAddress: string;
 }
 
 export interface IAddressDto {
-  phoneNumber?: string;
-  secondaryPhoneNumber?: string;
-  additionalInformation?: string;
+  phoneNumber?: string | null;
+  secondaryPhoneNumber?: string | null;
+  additionalInformation?: string | null;
   name: string;
   streetNumber: string;
   street: string;
@@ -98,20 +98,20 @@ export interface IAuditLog {
   entityType?: string;
   entityId?: string;
   userEmail?: string;
-  userId?: string;
-  tenantId?: string;
+  userId?: string | null;
+  tenantId?: string | null;
   isImpersonated?: boolean;
-  impersonatedByEmail?: string;
-  impersonatedByName?: string;
-  ip?: string;
+  impersonatedByEmail?: string | null;
+  impersonatedByName?: string | null;
+  ip?: string | null;
   createdAt?: string;
-  changes?: { [key: string]: unknown };
-  impersonationSessionId?: string;
+  changes?: { [key: string]: unknown } | null;
+  impersonationSessionId?: string | null;
 }
 
 export interface IBankDetail {
   id: string;
-  tenant?: ITenant;
+  tenant?: ITenant | null;
   bankLabel: string;
   bankName: string;
   iban: string;
@@ -121,7 +121,7 @@ export interface IBankDetail {
   accountHolderName: string;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -131,10 +131,10 @@ export interface IChatMessage {
   sender: IUser;
   recipient: IUser;
   content: string;
-  readAt?: string;
+  readAt?: string | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface IChatMessageDto {
@@ -147,19 +147,19 @@ export interface ICityPricing {
   city: string;
   postalCode: string;
   creditAmount: number;
-  cityPricingConfig?: ICityPricingConfig;
+  cityPricingConfig?: ICityPricingConfig | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface ICityPricingConfig {
   id: string;
   cityPricingList: ICityPricing[];
-  pricingConfig?: IPricingConfig;
+  pricingConfig?: IPricingConfig | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -170,18 +170,18 @@ export interface IContactRequestDto {
   company: string;
   volume: ContactRequestVolume;
   context: ContactRequestContext;
-  message?: string;
+  message?: string | null;
 }
 
 export interface ICreatePromoCodeDto {
   code: string;
-  percentOff?: number;
-  amountOff?: number;
-  currency?: string;
+  percentOff?: number | null;
+  amountOff?: number | null;
+  currency?: string | null;
   duration: CreatePromoCodeDuration;
-  durationInMonths?: number;
-  maxRedemptions?: number;
-  expiresAt?: string;
+  durationInMonths?: number | null;
+  maxRedemptions?: number | null;
+  expiresAt?: string | null;
   rules?: ICreatePromoCodeRuleDto[];
 }
 
@@ -194,7 +194,7 @@ export interface IDeliveryPrestation {
   id: string;
   tenant: ITenant;
   label: string;
-  description?: string;
+  description?: string | null;
   amount: number;
   pricingType: string;
   timeSlots: IDeliveryPrestationTimeSlot[];
@@ -202,14 +202,14 @@ export interface IDeliveryPrestation {
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
 export interface IDeliveryPrestationTimeSlot {
   deliveryPrestation: IDeliveryPrestation;
   id: string;
-  dayOfWeek?: string;
+  dayOfWeek?: string | null;
   startTime: string;
   endTime: string;
   validSlot: boolean;
@@ -219,24 +219,24 @@ export interface IDeliveryZone {
   id: string;
   tenant: ITenant;
   name: string;
-  color?: string;
-  description?: string;
+  color?: string | null;
+  description?: string | null;
   polygon?: unknown[];
-  center?: unknown[];
+  center?: unknown[] | null;
   priority?: number;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
 export interface IDeliveryZoneDto {
-  name: string;
-  color?: string;
-  description?: string;
+  name: string | null;
+  color?: string | null;
+  description?: string | null;
   polygon?: unknown[];
-  center?: unknown[];
+  center?: unknown[] | null;
   priority?: number;
   isActive?: boolean;
 }
@@ -245,10 +245,10 @@ export interface IDistancePricing {
   id: string;
   distance: number;
   creditAmount: number;
-  distancePricingConfig?: IDistancePricingConfig;
+  distancePricingConfig?: IDistancePricingConfig | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface IDistancePricingConfig {
@@ -260,7 +260,7 @@ export interface IDistancePricingConfig {
   pricingConfig: IPricingConfig[];
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -271,15 +271,15 @@ export interface IDriverSchedule {
   scheduledDate: string;
   status: string;
   scheduleType: string;
-  preferredZone?: IDeliveryZone;
+  preferredZone?: IDeliveryZone | null;
   excludedZones: IDeliveryZone[];
-  maxDeliveryRadiusKm?: number;
+  maxDeliveryRadiusKm?: number | null;
   timeSlots: IDriverScheduleTimeSlot[];
-  notes?: string;
+  notes?: string | null;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface IDriverScheduleDto {
@@ -287,20 +287,20 @@ export interface IDriverScheduleDto {
   scheduledDate: string;
   status: DriverScheduleStatus;
   scheduleType: DriverScheduleType;
-  preferredZoneId?: string;
+  preferredZoneId?: string | null;
   excludedZoneIds?: string[];
-  maxDeliveryRadiusKm?: number;
+  maxDeliveryRadiusKm?: number | null;
   timeSlots?: IDriverScheduleTimeSlotDto[];
-  notes?: string;
+  notes?: string | null;
   isActive?: boolean;
 }
 
 export interface IDriverScheduleTimeSlot {
   driverSchedule: IDriverSchedule;
   slotType: string;
-  description?: string;
+  description?: string | null;
   id: string;
-  dayOfWeek?: string;
+  dayOfWeek?: string | null;
   startTime: string;
   endTime: string;
   validSlot: boolean;
@@ -310,14 +310,14 @@ export interface IDriverScheduleTimeSlotDto {
   startTime: string;
   endTime: string;
   slotType: DriverScheduleTimeSlotType;
-  description?: string;
+  description?: string | null;
 }
 
 export interface IFeature {
   id: string;
   key: string;
   type: string;
-  description?: string;
+  description?: string | null;
 }
 
 export interface IFeature2 {
@@ -344,7 +344,7 @@ export interface IGlobalSetting {
   pricingType: string;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -383,8 +383,8 @@ export interface ImpersonationLog {
 export interface InviteUserDto {
   email: string;
   roles: InviteUserRoles[];
-  organizationId?: string;
-  privateCustomerId?: string;
+  organizationId?: string | null;
+  privateCustomerId?: string | null;
   customerRole: boolean;
 }
 
@@ -393,21 +393,21 @@ export interface Invoice {
   tenant: ITenant;
   customerType: string;
   customerId: string;
-  customerPhone?: string;
+  customerPhone?: string | null;
   tenantName: string;
   tenantAddress: string;
-  tenantPhone?: string;
+  tenantPhone?: string | null;
   tenantEmail: string;
-  tenantLogo?: string;
+  tenantLogo?: string | null;
   tenantSiretNumber: string;
   tenantVatNumber: string;
   tenantRCS: string;
   customerName: string;
   customerEmail: string;
   customerAddress: string;
-  customerLogo?: string;
-  customerSiretNumber?: string;
-  customerVatNumber?: string;
+  customerLogo?: string | null;
+  customerSiretNumber?: string | null;
+  customerVatNumber?: string | null;
   bankName: string;
   bankIban: string;
   bankBic: string;
@@ -416,8 +416,8 @@ export interface Invoice {
   bankAccountHolderName: string;
   invoiceNumber: string;
   dueDate: string;
-  sentDate?: string;
-  paymentDate?: string;
+  sentDate?: string | null;
+  paymentDate?: string | null;
   creditPrice: number;
   totalCredit?: number;
   subTotal: number;
@@ -425,17 +425,17 @@ export interface Invoice {
   status: string;
   orders: IOrder[];
   relanceCount?: number;
-  relancedAt?: string;
+  relancedAt?: string | null;
   totalWeight?: number;
-  deliveryPrestationLabel?: string;
+  deliveryPrestationLabel?: string | null;
   deliveryPrestationPrice?: number;
   weightPrice?: number;
   totalVolume?: number;
-  warehousePrice?: number;
+  warehousePrice?: number | null;
   adjustmentsTotal?: number;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -463,18 +463,18 @@ export interface IOrder {
   status: string;
   totalCredit: number;
   totalPrice?: number;
-  pricingConfig?: IPricingConfig;
-  customer?: IHistoryInterface;
-  invoice?: Invoice;
-  quote?: IQuote;
+  pricingConfig?: IPricingConfig | null;
+  customer?: IHistoryInterface | null;
+  invoice?: Invoice | null;
+  quote?: IQuote | null;
   pickupAsSoonAsPossible?: boolean;
   deliveryAsSoonAsPossible?: boolean;
-  warehouse?: IWarehouse;
-  warehouseRadius?: number;
+  warehouse?: IWarehouse | null;
+  warehouseRadius?: number | null;
   adjustments: IOrderAdjustment[];
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
   shortReference: string;
   pickupFormattedDate: string;
@@ -491,10 +491,10 @@ export interface IOrderAdjustment {
 }
 
 export interface IOrderAdjustmentDto {
-  id?: string;
+  id?: string | null;
   description: string;
   amountHt: number;
-  createdAt?: string;
+  createdAt?: string | null;
 }
 
 export interface IOrderDeliveryPoint {
@@ -516,14 +516,14 @@ export interface IOrderDto {
   deliveryDate: string;
   pickupAsSoonAsPossible?: boolean;
   deliveryAsSoonAsPossible?: boolean;
-  warehouseId?: string;
-  warehouseRadius?: number;
+  warehouseId?: string | null;
+  warehouseRadius?: number | null;
   adjustments?: IOrderAdjustmentDto[];
   pickupPoints: IOrderPickupPointDto[];
   deliveryPoints: IOrderDeliveryPointDto[];
   pricingConfigId: string;
   deliveryPrestationId: string;
-  pricingConfig?: IPricingConfig;
+  pricingConfig?: IPricingConfig | null;
 }
 
 export interface IOrderMandatoryDto {
@@ -531,7 +531,7 @@ export interface IOrderMandatoryDto {
   deliveryPoints?: IOrderDeliveryPointDto[];
   pricingConfigId: string;
   deliveryPrestationId: string;
-  pricingConfig?: IPricingConfig;
+  pricingConfig?: IPricingConfig | null;
 }
 
 export interface IOrderPickupPackageDimension {
@@ -541,7 +541,7 @@ export interface IOrderPickupPackageDimension {
   height: number;
   length: number;
   width: number;
-  description?: string;
+  description?: string | null;
 }
 
 export interface IOrderPickupPoint {
@@ -569,21 +569,21 @@ export interface IOrganization {
   id: string;
   tenantId: string;
   name: string;
-  logo?: string;
+  logo?: string | null;
   email: string;
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
+  secondaryPhoneNumber?: string | null;
   siretNumber: string;
   users: IUser[];
   addresses: IAddress[];
-  defaultBillingAddress?: IAddress;
-  defaultPickupAddress?: IAddress;
-  defaultDeliveryAddress?: IAddress;
+  defaultBillingAddress?: IAddress | null;
+  defaultPickupAddress?: IAddress | null;
+  defaultDeliveryAddress?: IAddress | null;
   creditPrice: number;
   vatNumber: string;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
   sirenNumber: string;
 }
@@ -596,12 +596,12 @@ export interface IOrganizationRef {
 
 export interface IOrganizationDto {
   name: string;
-  logo?: string;
+  logo?: string | null;
   email: string;
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
+  secondaryPhoneNumber?: string | null;
   siretNumber: string;
-  creditPrice?: number;
+  creditPrice?: number | null;
   vatNumber: string;
   defaultBillingAddress: IAddressDto;
   sirenNumber: string;
@@ -619,10 +619,10 @@ export interface IPackageCategory {
   height: number;
   length: number;
   width: number;
-  description?: string;
+  description?: string | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
   volume: number;
   volumetricWeight: number;
@@ -631,7 +631,7 @@ export interface IPackageCategory {
 export interface IPackageCategoryDto {
   label: string;
   dimensions: IPackageDimensionDto;
-  description?: string;
+  description?: string | null;
 }
 
 export interface IPackageDimensionDto {
@@ -639,7 +639,7 @@ export interface IPackageDimensionDto {
   height: number;
   length: number;
   width: number;
-  description?: string;
+  description?: string | null;
   volume: number;
   volumetricWeight: number;
 }
@@ -655,15 +655,15 @@ export interface IPlan {
   name: string;
   type: string;
   isVisible?: boolean;
-  stripeProductId?: string;
-  stripeMonthlyPriceId?: string;
-  stripeAnnualPriceId?: string;
-  trialDays?: number;
-  description?: string;
-  monthlyPriceEuro?: number;
-  annualPriceEuro?: number;
+  stripeProductId?: string | null;
+  stripeMonthlyPriceId?: string | null;
+  stripeAnnualPriceId?: string | null;
+  trialDays?: number | null;
+  description?: string | null;
+  monthlyPriceEuro?: number | null;
+  annualPriceEuro?: number | null;
   isFeatured?: boolean;
-  ctaLabel?: string;
+  ctaLabel?: string | null;
   planFeatures: IPlanFeature[];
 }
 
@@ -672,15 +672,15 @@ export interface IPlan2 {
   name: string;
   type: string;
   isVisible?: boolean;
-  stripeProductId?: string;
-  stripeMonthlyPriceId?: string;
-  stripeAnnualPriceId?: string;
-  trialDays?: number;
-  description?: string;
-  monthlyPriceEuro?: number;
-  annualPriceEuro?: number;
+  stripeProductId?: string | null;
+  stripeMonthlyPriceId?: string | null;
+  stripeAnnualPriceId?: string | null;
+  trialDays?: number | null;
+  description?: string | null;
+  monthlyPriceEuro?: number | null;
+  annualPriceEuro?: number | null;
   isFeatured?: boolean;
-  ctaLabel?: string;
+  ctaLabel?: string | null;
   planFeatures: IPlanFeature2[];
 }
 
@@ -688,59 +688,59 @@ export interface IPlanDto {
   name: string;
   type: PlanType;
   isVisible?: boolean;
-  trialDays?: number;
-  description?: string;
-  monthlyPriceEuro?: number;
-  annualPriceEuro?: number;
+  trialDays?: number | null;
+  description?: string | null;
+  monthlyPriceEuro?: number | null;
+  annualPriceEuro?: number | null;
   isFeatured?: boolean;
-  ctaLabel?: string;
-  planFeatures?: IPlanFeatureDto[];
+  ctaLabel?: string | null;
+  planFeatures?: IPlanFeatureDto[] | null;
   visible: boolean;
   featured: boolean;
 }
 
 export interface IPlanFeature {
   id: string;
-  feature?: IFeature2;
-  enabled?: boolean;
-  limitValue?: number;
+  feature?: IFeature2 | null;
+  enabled?: boolean | null;
+  limitValue?: number | null;
   overageEnabled?: boolean;
-  overagePriceEuro?: number;
+  overagePriceEuro?: number | null;
 }
 
 export interface IPlanFeature2 {
   id: string;
-  feature?: IFeature3;
-  enabled?: boolean;
-  limitValue?: number;
+  feature?: IFeature3 | null;
+  enabled?: boolean | null;
+  limitValue?: number | null;
   overageEnabled?: boolean;
-  overagePriceEuro?: number;
+  overagePriceEuro?: number | null;
 }
 
 export interface IPlanFeatureDto {
   featureKey: PlanFeatureKey;
-  enabled?: boolean;
-  limitValue?: number;
+  enabled?: boolean | null;
+  limitValue?: number | null;
   overageEnabled?: boolean;
-  overagePriceEuro?: number;
+  overagePriceEuro?: number | null;
 }
 
 export interface IPricingConfig {
   id: string;
   tenantId: string;
   label: string;
-  startingPoint?: IAddress;
-  distancePricingConfig?: IDistancePricingConfig;
-  cityPricingConfig?: ICityPricingConfig;
+  startingPoint?: IAddress | null;
+  distancePricingConfig?: IDistancePricingConfig | null;
+  cityPricingConfig?: ICityPricingConfig | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
 export interface IPricingSummaryDto {
   tripsSummary: ITripSummaryDto;
-  warehouse?: IWarehouse;
+  warehouse?: IWarehouse | null;
   deliveryPrestationLabel: string;
   deliveryPrestationPrice: number;
   weightPrice: number;
@@ -750,7 +750,7 @@ export interface IPricingSummaryDto {
   creditPrice: number;
   totalCredit: number;
   totalCreditPrice: number;
-  warehousePrice?: number;
+  warehousePrice?: number | null;
   tvaPrice: number;
   adjustmentsTotal?: number;
 }
@@ -763,16 +763,16 @@ export interface IPrivateCustomer {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
-  picture?: string;
+  secondaryPhoneNumber?: string | null;
+  picture?: string | null;
   addresses: IAddress[];
-  defaultBillingAddress?: IAddress;
-  defaultPickupAddress?: IAddress;
-  defaultDeliveryAddress?: IAddress;
+  defaultBillingAddress?: IAddress | null;
+  defaultPickupAddress?: IAddress | null;
+  defaultDeliveryAddress?: IAddress | null;
   creditPrice: number;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
   tenants: ITenant[];
 }
@@ -787,9 +787,9 @@ export interface IPrivateCustomerDto {
   lastName: string;
   email: string;
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
-  picture?: string;
-  creditPrice?: number;
+  secondaryPhoneNumber?: string | null;
+  picture?: string | null;
+  creditPrice?: number | null;
   defaultBillingAddress: IAddressDto;
 }
 
@@ -799,25 +799,25 @@ export interface IPrivateCustomerTenant {
   tenant: ITenant;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface IPromoCodeCouponDto {
-  percentOff?: number;
-  amountOff?: number;
-  currency?: string;
+  percentOff?: number | null;
+  amountOff?: number | null;
+  currency?: string | null;
   duration: CreatePromoCodeDuration;
-  durationInMonths?: number;
+  durationInMonths?: number | null;
 }
 
 export interface IPromoCodeDto {
   id: string;
   code: string;
   active: boolean;
-  maxRedemptions?: number;
+  maxRedemptions?: number | null;
   timesRedeemed: number;
   redemptionCount: number;
-  expiresAt?: string;
+  expiresAt?: string | null;
   createdAt: string;
   coupon: IPromoCodeCouponDto;
   rules?: IPromoCodeRuleDto[];
@@ -839,45 +839,45 @@ export interface IQuote {
   quoteVersions: IQuoteVersion[];
   quoteNumber: string;
   version?: number;
-  validUntil?: string;
-  otpCode?: string;
-  otpExpiry?: string;
+  validUntil?: string | null;
+  otpCode?: string | null;
+  otpExpiry?: string | null;
   otpAttempts?: number;
-  validatedAt?: string;
-  validatedIp?: string;
+  validatedAt?: string | null;
+  validatedIp?: string | null;
   relanceCount?: number;
-  relancedAt?: string;
+  relancedAt?: string | null;
   tenantName: string;
   tenantAddress: string;
-  tenantPhone?: string;
+  tenantPhone?: string | null;
   tenantEmail: string;
-  tenantLogo?: string;
+  tenantLogo?: string | null;
   tenantSiretNumber: string;
   tenantVatNumber: string;
   tenantRCS: string;
   customerName: string;
   customerEmail: string;
   customerAddress: string;
-  customerLogo?: string;
-  customerSiretNumber?: string;
-  customerVatNumber?: string;
+  customerLogo?: string | null;
+  customerSiretNumber?: string | null;
+  customerVatNumber?: string | null;
   creditPrice: number;
   totalCredit?: number;
   subTotal: number;
   totalPrice: number;
   status: string;
-  cancellationReason?: string;
-  sentDate?: string;
+  cancellationReason?: string | null;
+  sentDate?: string | null;
   totalWeight?: number;
-  deliveryPrestationLabel?: string;
+  deliveryPrestationLabel?: string | null;
   deliveryPrestationPrice?: number;
   weightPrice?: number;
   totalVolume?: number;
-  warehousePrice?: number;
+  warehousePrice?: number | null;
   adjustmentsTotal?: number;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -894,16 +894,16 @@ export interface IQuoteVersion {
   quoteNumber: string;
   tenantName: string;
   tenantAddress: string;
-  tenantPhone?: string;
+  tenantPhone?: string | null;
   tenantEmail: string;
   tenantSiretNumber: string;
   tenantVatNumber: string;
   tenantRCS: string;
   customerName: string;
   customerAddress: string;
-  customerLogo?: string;
-  customerSiretNumber?: string;
-  customerVatNumber?: string;
+  customerLogo?: string | null;
+  customerSiretNumber?: string | null;
+  customerVatNumber?: string | null;
   orders?: unknown[];
   creditPrice: number;
   totalCredit?: number;
@@ -912,21 +912,21 @@ export interface IQuoteVersion {
   totalWeight?: number;
   totalVolume?: number;
   weightPrice?: number;
-  warehousePrice?: number;
+  warehousePrice?: number | null;
   adjustmentsTotal?: number;
-  deliveryPrestationLabel?: string;
+  deliveryPrestationLabel?: string | null;
   deliveryPrestationPrice?: number;
-  sentDate?: string;
+  sentDate?: string | null;
   status: string;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
   sortedOrders: unknown[];
 }
 
 export interface IReadWarehouseOrderDto {
-  id?: string;
+  id?: string | null;
   latitude: number;
   longitude: number;
   radius?: number;
@@ -947,7 +947,7 @@ export interface IStoragePricing {
   storagePricingTiers: IStoragePricingTier[];
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface IStoragePricingTier {
@@ -955,23 +955,23 @@ export interface IStoragePricingTier {
   tenant: ITenant;
   storagePricing: IStoragePricing;
   minDays: number;
-  maxDays?: number;
+  maxDays?: number | null;
   price: number;
-  maximumPriceCap?: number;
+  maximumPriceCap?: number | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface ISubscription {
   id: string;
-  tenant?: ITenant3;
-  plan?: IPlan2;
+  tenant?: ITenant3 | null;
+  plan?: IPlan2 | null;
   source: string;
   status: string;
-  trialEndsAt?: string;
-  currentPeriodEnd?: string;
-  canceledAt?: string;
+  trialEndsAt?: string | null;
+  currentPeriodEnd?: string | null;
+  canceledAt?: string | null;
   allowOverage?: boolean;
   active: boolean;
 }
@@ -980,9 +980,9 @@ export interface ISubscriptionDto {
   planId: string;
   source: SubscriptionSource;
   status: SubscriptionStatus;
-  trialEndsAt?: string;
-  stripeCustomerId?: string;
-  stripeSubscriptionId?: string;
+  trialEndsAt?: string | null;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
   allowOverage?: boolean;
 }
 
@@ -991,21 +991,21 @@ export interface ITenant {
   privateCustomer?: IPrivateCustomer[];
   id: string;
   apiKey: string;
-  tenantAdminUser?: IUser;
+  tenantAdminUser?: IUser | null;
   name: string;
-  logo?: string;
+  logo?: string | null;
   email: string;
   userTenants: IUserTenantRead[];
   privateCustomerTenants: IPrivateCustomerTenant[];
   bankDetails: IBankDetail[];
   siretNumber: string;
   rcsCity: string;
-  address?: IAddress;
+  address?: IAddress | null;
   vatNumber: string;
-  defaultBankDetail?: IBankDetail;
+  defaultBankDetail?: IBankDetail | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
   sirenNumber: string;
   users: IUser[];
@@ -1039,8 +1039,8 @@ export interface ITripDto {
   startingPoint: IAddressMandatoryDto;
   destination: IAddressMandatoryDto;
   distance: number;
-  tripCreditAmount?: number;
-  cityPricing?: ICityPricing;
+  tripCreditAmount?: number | null;
+  cityPricing?: ICityPricing | null;
 }
 
 export interface ITripSummaryDto {
@@ -1064,10 +1064,10 @@ export interface IUpdateUserDto {
   email: string;
   roles: string[];
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
-  picture?: string;
-  organizationId?: string;
-  privateCustomerId?: string;
+  secondaryPhoneNumber?: string | null;
+  picture?: string | null;
+  organizationId?: string | null;
+  privateCustomerId?: string | null;
   customerRole: boolean;
 }
 
@@ -1075,31 +1075,31 @@ export interface IUser {
   tenant?: ITenant;
   id: string;
   email: string;
-  password?: string;
-  invitationToken?: string;
-  invitationTokenExpiresAt?: string;
-  passwordResetToken?: string;
-  passwordResetTokenExpiresAt?: string;
+  password?: string | null;
+  invitationToken?: string | null;
+  invitationTokenExpiresAt?: string | null;
+  passwordResetToken?: string | null;
+  passwordResetTokenExpiresAt?: string | null;
   isAccountActivated?: boolean;
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
-  picture?: string;
+  secondaryPhoneNumber?: string | null;
+  picture?: string | null;
   userTenants: IUserTenantRead[];
-  organization?: IOrganization;
-  privateCustomer?: IPrivateCustomer;
-  ssoProvider?: string;
-  ssoExternalId?: string;
-  currentTenantId?: string;
+  organization?: IOrganization | null;
+  privateCustomer?: IPrivateCustomer | null;
+  ssoProvider?: string | null;
+  ssoExternalId?: string | null;
+  currentTenantId?: string | null;
   roles?: string[];
   impersonated?: boolean;
-  impersonatedByEmail?: string;
-  impersonatedByName?: string;
-  impersonationSessionId?: string;
+  impersonatedByEmail?: string | null;
+  impersonatedByName?: string | null;
+  impersonationSessionId?: string | null;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   userIdentifier: string;
   accountActivated: boolean;
   invitationTokenValid: boolean;
@@ -1108,7 +1108,7 @@ export interface IUser {
   admin: boolean;
   auditIdentifier: string;
   userName: string;
-  salt?: string;
+  salt?: string | null;
 }
 
 export interface IUserRead {
@@ -1119,14 +1119,14 @@ export interface IUserRead {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  secondaryPhoneNumber?: string;
-  picture?: string;
+  secondaryPhoneNumber?: string | null;
+  picture?: string | null;
   userTenants: IUserTenant[];
-  organization?: IOrganizationRef;
-  privateCustomer?: IPrivateCustomerRef;
-  ssoProvider?: string;
-  ssoExternalId?: string;
-  currentTenantId?: string;
+  organization?: IOrganizationRef | null;
+  privateCustomer?: IPrivateCustomerRef | null;
+  ssoProvider?: string | null;
+  ssoExternalId?: string | null;
+  currentTenantId?: string | null;
   roles?: string[];
 }
 
@@ -1140,7 +1140,7 @@ export interface IUserTenantRead {
   tenant: ITenant;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -1149,21 +1149,21 @@ export interface IVehicle {
   tenant: ITenant;
   label: string;
   vehicleType: string;
-  description?: string;
+  description?: string | null;
   volumeCapacity: number;
   weightCapacity: number;
   isRefrigerated?: boolean;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
 export interface IVehicleDto {
   label: string;
   vehicleType: VehicleType;
-  description?: string;
+  description?: string | null;
   volumeCapacity: number;
   weightCapacity: number;
   isRefrigerated?: boolean;
@@ -1175,10 +1175,10 @@ export interface IVehicleDto {
 export interface IWarehouse {
   id: string;
   tenant: ITenant;
-  address?: IAddress;
+  address?: IAddress | null;
   label: string;
   timeSlots: IWarehouseTimeSlot[];
-  storagePricing?: IStoragePricing;
+  storagePricing?: IStoragePricing | null;
   volumeCapacity: number;
   currentVolume?: number;
   weightCapacity: number;
@@ -1187,7 +1187,7 @@ export interface IWarehouse {
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
   auditIdentifier: string;
 }
 
@@ -1208,7 +1208,7 @@ export interface IWarehouseDto {
 export interface IWarehouseTimeSlot {
   warehouse: IWarehouse;
   id: string;
-  dayOfWeek?: string;
+  dayOfWeek?: string | null;
   startTime: string;
   endTime: string;
   validSlot: boolean;
@@ -1223,7 +1223,7 @@ export interface IWeightPricingTier {
   pricingType?: string;
   createdAt: string;
   updatedAt: string;
-  archivedAt?: string;
+  archivedAt?: string | null;
 }
 
 export interface IWeightPricingTierDto {
@@ -1244,24 +1244,24 @@ export type post_admin_tenant_impersonateResponse = {
 export type get_admin_tenant_impersonation_logsResponse = ImpersonationLog[];
 export type get_admin_tenant_audit_logsResponse = IAuditLog[];
 export type get_admin_tenant_subscription_readResponse = {
-  id?: string;
+  id?: string | null;
   tenantId?: string;
-  planId?: string;
-  planName?: string;
-  planType?: string;
-  status?: string;
-  stripeSubscriptionId?: string;
-  startedAt?: string;
-  currentPriceEuroCents?: number;
-  planMonthlyPriceEuroCents?: number;
-  planAnnualPriceEuroCents?: number;
-  isOnLatestPrice?: boolean;
-  billingPeriod?: 'monthly' | 'annual';
+  planId?: string | null;
+  planName?: string | null;
+  planType?: string | null;
+  status?: string | null;
+  stripeSubscriptionId?: string | null;
+  startedAt?: string | null;
+  currentPriceEuroCents?: number | null;
+  planMonthlyPriceEuroCents?: number | null;
+  planAnnualPriceEuroCents?: number | null;
+  isOnLatestPrice?: boolean | null;
+  billingPeriod?: 'monthly' | 'annual' | null;
   recentInvoices?: {
   id?: string;
   amountPaidEuroCents?: number;
-  paidAt?: string;
-  status?: string;
+  paidAt?: string | null;
+  status?: string | null;
 }[];
 };
 export type get_admin_feature_readResponse = IFeature | IFeature[];
@@ -1271,11 +1271,11 @@ export type get_admin_plan_subscriptions_readResponse = {
   tenantId?: string;
   tenantName?: string;
   status?: string;
-  stripeSubscriptionId?: string;
-  startedAt?: string;
-  endedAt?: string;
-  currentPriceEuroCents?: number;
-  isOnLatestPrice?: boolean;
+  stripeSubscriptionId?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  currentPriceEuroCents?: number | null;
+  isOnLatestPrice?: boolean | null;
 }[];
 export type get_admin_promo_code_readResponse = IPromoCodeDto[];
 export type post_admin_promo_code_createResponse = IPromoCodeDto;
