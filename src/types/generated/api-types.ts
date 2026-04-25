@@ -26,7 +26,7 @@ export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
 export type SubscriptionSource = "stripe" | "manual";
-export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled";
+export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 export type VehicleType = "bike" | "cargo_bike" | "scooter" | "motorbike" | "car" | "van" | "truck" | "electric_van" | "electric_bike" | "pedestrian";
 export type WeightPricingTierType = "fixed" | "per_kg";
@@ -1022,6 +1022,10 @@ export interface ISubscriptionInvoice {
   customerVatNumber?: string | null;
   customerEmail: string;
   lines: ISubscriptionInvoiceLine[];
+  taxBreakdowns: ISubscriptionInvoiceTaxBreakdown[];
+  automaticTaxEnabled?: boolean;
+  automaticTaxStatus?: string | null;
+  issuerVatRegime: string;
 }
 
 export interface ISubscriptionInvoiceLine {
@@ -1033,6 +1037,18 @@ export interface ISubscriptionInvoiceLine {
   type: string;
   periodStart?: string | null;
   periodEnd?: string | null;
+  taxAmount?: number;
+}
+
+export interface ISubscriptionInvoiceTaxBreakdown {
+  id: string;
+  ratePct: string;
+  jurisdiction?: string | null;
+  country?: string | null;
+  taxableAmount: number;
+  taxAmount: number;
+  inclusive?: boolean;
+  taxabilityReason?: string | null;
 }
 
 export interface ITenant {
@@ -1293,6 +1309,14 @@ export interface IWeightPricingTierDto {
 export type get_audit_log_readResponse = IAuditLog[];
 export type get_audit_log_entity_typesResponse = string[];
 export type post_hub_register_confirmResponse = IHubUser;
+export type post_public_registerResponse = {
+  checkoutUrl?: string;
+  subscriptionId?: string;
+  resumeToken?: string;
+};
+export type post_public_register_finalizeResponse = {
+  token?: string;
+};
 export type post_admin_tenant_impersonateResponse = {
   token?: string;
 };
