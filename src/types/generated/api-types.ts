@@ -27,6 +27,7 @@ export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month
 export type PlanType = "standard" | "custom";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
+export type TenantRegisterPlanBillingPeriod = "monthly" | "annual";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 export type VehicleType = "bike" | "cargo_bike" | "scooter" | "motorbike" | "car" | "van" | "truck" | "electric_van" | "electric_bike" | "pedestrian";
 export type WeightPricingTierType = "fixed" | "per_kg";
@@ -934,6 +935,10 @@ export interface IReadWarehouseOrderDto {
   daysInWarehouse?: number;
 }
 
+export interface IRegisterFinalizeDto {
+  sessionId?: string;
+}
+
 export interface IResetPasswordDto {
   token: string;
   password: string;
@@ -1098,6 +1103,43 @@ export interface ITenant5 {
   user?: IUser;
   privateCustomer?: IPrivateCustomer[];
   name: string;
+}
+
+export interface ITenantRegisterAddressDto {
+  streetNumber?: string;
+  street?: string;
+  postalCode?: string;
+  city?: string;
+  country?: string;
+}
+
+export interface ITenantRegisterCompanyDto {
+  name?: string;
+  siret?: string;
+  vatNumber?: string;
+  rcsCity?: string;
+  address: ITenantRegisterAddressDto;
+}
+
+export interface ITenantRegisterDto {
+  company: ITenantRegisterCompanyDto;
+  user: ITenantRegisterUserDto;
+  plan: ITenantRegisterPlanDto;
+  promoCode?: string | null;
+  acceptedTermsAt?: string;
+  turnstileToken?: string;
+}
+
+export interface ITenantRegisterPlanDto {
+  slug?: string;
+  billingPeriod?: TenantRegisterPlanBillingPeriod;
+}
+
+export interface ITenantRegisterUserDto {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  password?: string;
 }
 
 export interface ITimeSlotDto {
@@ -1335,7 +1377,7 @@ export type get_admin_tenant_subscription_readResponse = {
   planMonthlyPriceEuroCents?: number | null;
   planAnnualPriceEuroCents?: number | null;
   isOnLatestPrice?: boolean | null;
-  billingPeriod?: 'monthly' | 'annual' | null;
+  billingPeriod?: TenantRegisterPlanBillingPeriod | null;
   recentInvoices?: {
   id?: string;
   amountPaidEuroCents?: number;
