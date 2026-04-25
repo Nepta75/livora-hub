@@ -1,7 +1,27 @@
 import { httpClient } from '@/services/http/httpClient';
-import type { AuditLogAction, IAuditLog, ImpersonationLog, ITenant, IUser } from '@/types/generated/api-types';
+import type {
+  AuditLogAction,
+  IAuditLog,
+  ImpersonationLog,
+  ISubscriptionInvoice,
+  ITenant,
+  IUser,
+  get_admin_tenant_subscription_invoice_readResponse,
+} from '@/types/generated/api-types';
 
-export type { IAuditLog, ImpersonationLog };
+export type { IAuditLog, ImpersonationLog, ISubscriptionInvoice };
+
+export interface TenantSubscriptionInvoiceFilters {
+  search?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface TenantSubscriptionInvoicePagination {
+  limit?: number;
+  offset?: number;
+}
 
 export interface TenantAuditLogFilters {
   impersonationSessionId?: string;
@@ -109,4 +129,29 @@ export const tenantsService = {
       { token },
     );
   },
+
+  getSubscriptionInvoices: (
+    tenantId: string,
+    filters: TenantSubscriptionInvoiceFilters,
+    token: string,
+    pagination?: TenantSubscriptionInvoicePagination,
+  ) => {
+    const query = new URLSearchParams();
+    Object.entries({ ...filters, ...pagination }).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, String(value));
+      }
+    });
+    const qs = query.toString();
+    return httpClient.get<get_admin_tenant_subscription_invoice_readResponse>(
+      `/tenant/${tenantId}/subscription-invoice${qs ? `?${qs}` : ''}`,
+      { token },
+    );
+  },
+
+  downloadSubscriptionInvoicePdf: (tenantId: string, invoiceId: string, token: string) =>
+    httpClient.get<Blob>(
+      `/tenant/${tenantId}/subscription-invoice/${invoiceId}/pdf`,
+      { token, responseType: 'blob' },
+    ),
 };

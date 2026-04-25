@@ -965,7 +965,7 @@ export interface IStoragePricingTier {
 
 export interface ISubscription {
   id: string;
-  tenant?: ITenant3 | null;
+  tenant?: ITenant4 | null;
   plan?: IPlan2 | null;
   source: string;
   status: string;
@@ -976,6 +976,10 @@ export interface ISubscription {
   active: boolean;
 }
 
+export interface ISubscription2 {
+  id: string;
+}
+
 export interface ISubscriptionDto {
   planId: string;
   source: SubscriptionSource;
@@ -984,6 +988,51 @@ export interface ISubscriptionDto {
   stripeCustomerId?: string | null;
   stripeSubscriptionId?: string | null;
   allowOverage?: boolean;
+}
+
+export interface ISubscriptionInvoice {
+  id: string;
+  tenant: ITenant3;
+  subscription?: ISubscription2 | null;
+  invoiceNumber: string;
+  status: string;
+  currency: string;
+  subtotal: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  total: number;
+  amountPaid?: number;
+  amountDue?: number;
+  periodStart: string;
+  periodEnd: string;
+  issuedAt: string;
+  dueAt?: string | null;
+  paidAt?: string | null;
+  voidedAt?: string | null;
+  provider: string;
+  issuerLegalName: string;
+  issuerLegalAddress: string;
+  issuerSiret: string;
+  issuerVatNumber: string;
+  issuerRcs: string;
+  issuerCapital: string;
+  customerName: string;
+  customerAddress: string;
+  customerSiret?: string | null;
+  customerVatNumber?: string | null;
+  customerEmail: string;
+  lines: ISubscriptionInvoiceLine[];
+}
+
+export interface ISubscriptionInvoiceLine {
+  id: string;
+  description: string;
+  quantity?: number;
+  unitAmount?: number | null;
+  amount: number;
+  type: string;
+  periodStart?: string | null;
+  periodEnd?: string | null;
 }
 
 export interface ITenant {
@@ -1024,6 +1073,12 @@ export interface ITenant3 {
 }
 
 export interface ITenant4 {
+  user?: IUser;
+  privateCustomer?: IPrivateCustomer[];
+  id: string;
+}
+
+export interface ITenant5 {
   user?: IUser;
   privateCustomer?: IPrivateCustomer[];
   name: string;
@@ -1263,6 +1318,10 @@ export type get_admin_tenant_subscription_readResponse = {
   paidAt?: string | null;
   status?: string | null;
 }[];
+};
+export type get_admin_tenant_subscription_invoice_readResponse = {
+  data?: ISubscriptionInvoice[];
+  total?: number;
 };
 export type get_admin_feature_readResponse = IFeature | IFeature[];
 export type get_admin_plan_readResponse = IPlan | IPlan[];

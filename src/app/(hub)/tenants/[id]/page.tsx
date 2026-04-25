@@ -58,6 +58,7 @@ import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, S
 import { Badge } from '@/components/ui/badge';
 import type { IUser } from '@/types/generated/api-types';
 import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
+import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
 
 const ACTION_LABELS: Record<string, string> = {
   CREATE: 'Création',
@@ -852,6 +853,8 @@ export default function TenantDetailPage() {
       </div>
 
       <SubscriptionSection tenantId={id} />
+
+      <SubscriptionInvoicesSection tenantId={id} />
 
       {impersonationLogs && impersonationLogs.length > 0 && (
         <Card>

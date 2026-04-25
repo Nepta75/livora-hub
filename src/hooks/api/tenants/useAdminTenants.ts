@@ -8,9 +8,11 @@ import {
   type InviteTenantUserPayload,
   type TenantAuditLogFilters,
   type TenantAuditLogPagination,
+  type TenantSubscriptionInvoiceFilters,
   type UpdateTenantPayload,
   type UpdateTenantUserPayload,
 } from '@/services/admin/tenantsService';
+import type { get_admin_tenant_subscription_invoice_readResponse } from '@/types/generated/api-types';
 
 export const TENANTS_KEYS = {
   all: ['admin', 'tenants'] as const,
@@ -19,6 +21,11 @@ export const TENANTS_KEYS = {
   impersonationLogs: (id: string) => ['admin', 'tenants', id, 'impersonation-logs'] as const,
   auditLogs: (id: string, filters?: TenantAuditLogFilters) =>
     ['admin', 'tenants', id, 'audit-logs', filters] as const,
+  subscriptionInvoices: (
+    id: string,
+    filters?: TenantSubscriptionInvoiceFilters,
+    page?: number,
+  ) => ['admin', 'tenants', id, 'subscription-invoices', filters, page] as const,
 };
 
 export function useAdminTenants() {
@@ -143,5 +150,45 @@ export function useAdminTenantAuditLogs(
     queryKey: TENANTS_KEYS.auditLogs(tenantId, filters),
     queryFn: () => tenantsService.getAuditLogs(tenantId, filters, token, pagination),
     enabled: enabled && !!tenantId,
+  });
+}
+
+export const TENANT_SUBSCRIPTION_INVOICES_PAGE_SIZE = 25;
+
+export function useAdminTenantSubscriptionInvoices(
+  tenantId: string,
+  filters: TenantSubscriptionInvoiceFilters = {},
+  page = 0,
+  enabled = true,
+) {
+  const { token } = useAuth();
+
+  return useQuery<get_admin_tenant_subscription_invoice_readResponse>({
+    queryKey: TENANTS_KEYS.subscriptionInvoices(tenantId, filters, page),
+    queryFn: () =>
+      tenantsService.getSubscriptionInvoices(tenantId, filters, token, {
+        limit: TENANT_SUBSCRIPTION_INVOICES_PAGE_SIZE,
+        offset: page * TENANT_SUBSCRIPTION_INVOICES_PAGE_SIZE,
+      }),
+    enabled: enabled && !!tenantId,
+    placeholderData: prev => prev,
+  });
+}
+
+export function useDownloadAdminTenantSubscriptionInvoice(tenantId: string) {
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ invoiceId, invoiceNumber }: { invoiceId: string; invoiceNumber: string }) => {
+      const blob = await tenantsService.downloadSubscriptionInvoicePdf(tenantId, invoiceId, token);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    },
   });
 }
