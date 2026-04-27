@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Check, Package, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, Check, Package, Plus, Trash2 } from 'lucide-react';
 import { useAdminPlans } from '@/hooks/api/plans/useAdminPlans';
 import { ACTION } from '@/lib/action-palette';
 import { cn } from '@/lib/utils';
@@ -56,6 +56,21 @@ export function PromoCodeRulesEditor({
   const [error, setError] = useState<string | null>(null);
 
   const { data: plans } = useAdminPlans();
+
+  // Plans without a Stripe product id can't be referenced by an
+  // ELIGIBLE_PLAN_IDS rule: the backend mirrors the rule into the Stripe
+  // Coupon's `applies_to.products`, and the Stripe sync would fail loudly
+  // (`promo_unsynced_plan`). Filter them out of the picker so the admin
+  // can't create a code that's guaranteed to 500 on creation.
+  const selectablePlans = useMemo(
+    () => (plans ?? []).filter((plan) => Boolean(plan.stripeProductId)),
+    [plans],
+  );
+
+  const unsyncedPlanCount = useMemo(
+    () => (plans ?? []).filter((plan) => !plan.stripeProductId).length,
+    [plans],
+  );
 
   const planNameById = useMemo(() => {
     const map: Record<string, string> = {};
@@ -185,35 +200,50 @@ export function PromoCodeRulesEditor({
         {ruleType === 'ELIGIBLE_PLAN_IDS' && (
           <div className="space-y-1.5">
             <Label>Plans</Label>
-            {plans && plans.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {plans.map((plan) => {
-                  const selected = selectedPlanIds.includes(plan.id);
-                  return (
-                    <button
-                      key={plan.id}
-                      type="button"
-                      onClick={() => togglePlan(plan.id)}
-                      className={cn(
-                        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors',
-                        selected
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-input bg-background hover:bg-muted',
-                      )}
-                    >
-                      {selected ? (
-                        <Check className="h-3 w-3" />
-                      ) : (
-                        <Package className="h-3 w-3" />
-                      )}
-                      <span>{plan.name}</span>
-                      <span className="text-muted-foreground">· {plan.type}</span>
-                    </button>
-                  );
-                })}
-              </div>
+            {selectablePlans.length > 0 ? (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {selectablePlans.map((plan) => {
+                    const selected = selectedPlanIds.includes(plan.id);
+                    return (
+                      <button
+                        key={plan.id}
+                        type="button"
+                        onClick={() => togglePlan(plan.id)}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors',
+                          selected
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-input bg-background hover:bg-muted',
+                        )}
+                      >
+                        {selected ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <Package className="h-3 w-3" />
+                        )}
+                        <span>{plan.name}</span>
+                        <span className="text-muted-foreground">· {plan.type}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {unsyncedPlanCount > 0 && (
+                  <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                    <AlertTriangle className="h-3 w-3 mt-0.5 text-amber-600 shrink-0" />
+                    <span>
+                      {unsyncedPlanCount} plan(s) masqué(s) car non synchronisé(s) avec
+                      Stripe (aucun <code>stripeProductId</code>). Synchronise le plan avant
+                      de pouvoir l’associer à un code promo.
+                    </span>
+                  </p>
+                )}
+              </>
             ) : (
-              <p className="text-xs text-muted-foreground">Aucun plan disponible.</p>
+              <p className="text-xs text-muted-foreground">
+                Aucun plan synchronisé avec Stripe. Synchronise au moins un plan avant
+                d’ajouter cette règle.
+              </p>
             )}
           </div>
         )}

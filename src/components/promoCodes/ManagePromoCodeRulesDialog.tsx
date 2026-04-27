@@ -1,10 +1,12 @@
 'use client';
 
+import { AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useAddPromoCodeRule,
   useRemovePromoCodeRule,
 } from '@/hooks/api/promoCodes/useAdminPromoCodes';
+import { mapPromoCodeError } from '@/services/admin/promoCodesService';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -51,7 +53,7 @@ export function ManagePromoCodeRulesDialog({
       await addMutation.mutateAsync(rule);
       toast.success('Règle ajoutée');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur');
+      toast.error(mapPromoCodeError(error));
     }
   }
 
@@ -60,7 +62,7 @@ export function ManagePromoCodeRulesDialog({
       await removeMutation.mutateAsync(ruleId);
       toast.success('Règle supprimée');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur');
+      toast.error(mapPromoCodeError(error));
     }
   }
 
@@ -77,6 +79,19 @@ export function ManagePromoCodeRulesDialog({
             soit utilisable.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-medium">Attention — la modification ne resynchronise pas Stripe.</p>
+            <p>
+              Ajouter ou retirer une règle ici met à jour la base, mais le coupon Stripe garde
+              son <code>applies_to</code> d&rsquo;origine. Pour que la nouvelle restriction soit
+              appliquée aussi sur la page Stripe Checkout, exécute{' '}
+              <code>php bin/console livora:promo:resync-stripe</code> ou recrée le code.
+            </p>
+          </div>
+        </div>
 
         <PromoCodeRulesEditor
           rules={rules}

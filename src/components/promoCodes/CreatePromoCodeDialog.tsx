@@ -5,6 +5,7 @@ import { useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'sonner';
 import { useCreateAdminPromoCode } from '@/hooks/api/promoCodes/useAdminPromoCodes';
+import { mapPromoCodeError } from '@/services/admin/promoCodesService';
 import {
   promoCodeSchema,
   type PromoCodeFormValues,
@@ -151,7 +152,7 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
       toast.success(`Code "${payload.code}" créé`);
       onOpenChange(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur à la création');
+      toast.error(mapPromoCodeError(error));
     }
   };
 
