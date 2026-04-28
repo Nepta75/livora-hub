@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useCreateAdminPromoCode } from '@/hooks/api/promoCodes/useAdminPromoCodes';
 import { mapPromoCodeError } from '@/services/admin/promoCodesService';
 import {
+  BILLING_PERIODS,
   promoCodeSchema,
   type PromoCodeFormValues,
 } from '@/validators/promoCodes/validator';
@@ -48,6 +49,12 @@ const DEFAULTS: PromoCodeFormValues = {
   durationInMonths: null,
   maxRedemptions: null,
   expiresAt: null,
+  applicableBillingPeriods: null,
+};
+
+const BILLING_PERIOD_LABEL: Record<(typeof BILLING_PERIODS)[number], string> = {
+  monthly: 'Mensuel',
+  annual: 'Annuel',
 };
 
 function Field({
@@ -95,6 +102,7 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
 
   const discountType = watch('discountType');
   const duration = watch('duration');
+  const applicableBillingPeriods = watch('applicableBillingPeriods') ?? [];
 
   useEffect(() => {
     if (!open) {
@@ -136,6 +144,9 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
       ...(values.maxRedemptions != null ? { maxRedemptions: values.maxRedemptions } : {}),
       ...(values.expiresAt
         ? { expiresAt: new Date(values.expiresAt).toISOString() }
+        : {}),
+      ...(values.applicableBillingPeriods && values.applicableBillingPeriods.length > 0
+        ? { applicableBillingPeriods: values.applicableBillingPeriods }
         : {}),
       ...(draftRules.length > 0
         ? {
@@ -295,6 +306,43 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
               <Input id="expiresAt" type="date" {...register('expiresAt')} />
             </Field>
           </div>
+
+          <Field
+            label="Périodicités acceptées"
+            id="applicableBillingPeriods"
+            error={errors.applicableBillingPeriods?.message as string | undefined}
+          >
+            <div className="flex flex-wrap gap-2">
+              {BILLING_PERIODS.map((period) => {
+                const checked = applicableBillingPeriods.includes(period);
+                return (
+                  <Button
+                    key={period}
+                    type="button"
+                    size="sm"
+                    variant={checked ? 'default' : 'outline'}
+                    onClick={() => {
+                      const next = checked
+                        ? applicableBillingPeriods.filter((p) => p !== period)
+                        : [...applicableBillingPeriods, period];
+                      setValue(
+                        'applicableBillingPeriods',
+                        next.length > 0 ? next : null,
+                        { shouldValidate: true, shouldDirty: true },
+                      );
+                    }}
+                  >
+                    {BILLING_PERIOD_LABEL[period]}
+                  </Button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Aucune sélection = toutes périodicités acceptées. Restreindre est requis pour
+              les coupons « répété sur X mois » qui doivent rester en mensuel — Stripe
+              applique sinon la remise sur la totalité de la première facture annuelle.
+            </p>
+          </Field>
 
           <Separator />
 

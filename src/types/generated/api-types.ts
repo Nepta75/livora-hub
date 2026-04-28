@@ -25,9 +25,9 @@ export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DE
 export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
+export type PromoCodeApplicableBillingPeriods = "monthly" | "annual";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
-export type TenantRegisterPlanBillingPeriod = "monthly" | "annual";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 export type VehicleType = "bike" | "cargo_bike" | "scooter" | "motorbike" | "car" | "van" | "truck" | "electric_van" | "electric_bike" | "pedestrian";
 export type WeightPricingTierType = "fixed" | "per_kg";
@@ -184,6 +184,7 @@ export interface ICreatePromoCodeDto {
   maxRedemptions?: number | null;
   expiresAt?: string | null;
   rules?: ICreatePromoCodeRuleDto[];
+  applicableBillingPeriods?: string[] | null;
 }
 
 export interface ICreatePromoCodeRuleDto {
@@ -822,6 +823,7 @@ export interface IPromoCodeDto {
   createdAt: string;
   coupon: IPromoCodeCouponDto;
   rules?: IPromoCodeRuleDto[];
+  applicableBillingPeriods?: PromoCodeApplicableBillingPeriods[] | null;
 }
 
 export interface IPromoCodeRuleDto {
@@ -1132,7 +1134,7 @@ export interface ITenantRegisterDto {
 
 export interface ITenantRegisterPlanDto {
   slug?: string;
-  billingPeriod?: TenantRegisterPlanBillingPeriod;
+  billingPeriod?: PromoCodeApplicableBillingPeriods;
 }
 
 export interface ITenantRegisterUserDto {
@@ -1377,7 +1379,7 @@ export type get_admin_tenant_subscription_readResponse = {
   planMonthlyPriceEuroCents?: number | null;
   planAnnualPriceEuroCents?: number | null;
   isOnLatestPrice?: boolean | null;
-  billingPeriod?: TenantRegisterPlanBillingPeriod | null;
+  billingPeriod?: PromoCodeApplicableBillingPeriods | null;
   recentInvoices?: {
   id?: string;
   amountPaidEuroCents?: number;

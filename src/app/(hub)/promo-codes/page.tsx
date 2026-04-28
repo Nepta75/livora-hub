@@ -63,6 +63,16 @@ function formatDate(iso?: string | null): string {
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
+const BILLING_PERIOD_LABEL: Record<string, string> = {
+  monthly: 'Mensuel',
+  annual: 'Annuel',
+};
+
+function formatBillingPeriods(periods: IPromoCodeDto['applicableBillingPeriods']): string {
+  if (!periods || periods.length === 0) return 'Toutes';
+  return periods.map((p) => BILLING_PERIOD_LABEL[p] ?? p).join(' + ');
+}
+
 function PromoCodeRow({
   promoCode,
   isAdmin,
@@ -128,6 +138,7 @@ function PromoCodeRow({
         <TableCell className="font-mono font-semibold">{promoCode.code}</TableCell>
         <TableCell>{formatDiscount(promoCode)}</TableCell>
         <TableCell>{formatDuration(promoCode)}</TableCell>
+        <TableCell className="text-sm">{formatBillingPeriods(promoCode.applicableBillingPeriods)}</TableCell>
         <TableCell>
           <div className="flex flex-col leading-tight">
             <span>{redemptions}</span>
@@ -318,6 +329,7 @@ export default function PromoCodesPage() {
               <TableHead>Code</TableHead>
               <TableHead>Réduction</TableHead>
               <TableHead>Durée</TableHead>
+              <TableHead>Périodicité</TableHead>
               <TableHead>Redemptions</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead>Expire</TableHead>
@@ -339,7 +351,7 @@ export default function PromoCodesPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                   Aucun code promo
                 </TableCell>
               </TableRow>

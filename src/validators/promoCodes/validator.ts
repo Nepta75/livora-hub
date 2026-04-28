@@ -1,5 +1,10 @@
 import * as yup from 'yup';
-import type { CreatePromoCodeDuration } from '@/types/generated/api-types';
+import type {
+  CreatePromoCodeDuration,
+  PromoCodeApplicableBillingPeriods,
+} from '@/types/generated/api-types';
+
+export const BILLING_PERIODS = ['monthly', 'annual'] as const satisfies readonly PromoCodeApplicableBillingPeriods[];
 
 const nullableInt = () =>
   yup
@@ -62,6 +67,17 @@ export const promoCodeSchema = yup.object({
     .string()
     .nullable()
     .transform((value, original) => (original === '' ? null : value)),
+  // null = no restriction (any period accepted). A non-null array narrows
+  // the promo to the listed periods only — required for `repeating` coupons
+  // applied in annual mode, which Stripe would otherwise expand to the full
+  // first annual invoice.
+  applicableBillingPeriods: yup
+    .array()
+    .of(yup.string().oneOf<PromoCodeApplicableBillingPeriods>(BILLING_PERIODS).required())
+    .nullable()
+    .transform((value: unknown) =>
+      Array.isArray(value) && value.length === 0 ? null : value,
+    ),
 });
 
 export type PromoCodeFormValues = yup.InferType<typeof promoCodeSchema>;
