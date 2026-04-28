@@ -19,6 +19,16 @@ import {
 } from '@/components/ui/dialog';
 import type { IPromoCodeDto, IUpdatePromoCodeDto } from '@/types/generated/api-types';
 
+const BILLING_PERIOD_LABEL: Record<string, string> = {
+  monthly: 'Mensuel',
+  annual: 'Annuel',
+};
+
+function formatBillingPeriods(periods: IPromoCodeDto['applicableBillingPeriods']): string {
+  if (!periods || periods.length === 0) return 'Toutes';
+  return periods.map((p) => BILLING_PERIOD_LABEL[p] ?? p).join(' + ');
+}
+
 const editPromoCodeSchema = yup.object({
   maxRedemptions: yup
     .number()
@@ -150,6 +160,16 @@ export function EditPromoCodeDialog({ promoCode, onOpenChange }: EditPromoCodeDi
             {errors.expiresAt && (
               <p className="text-sm text-destructive">{errors.expiresAt.message}</p>
             )}
+          </div>
+
+          <div className="space-y-1">
+            <Label>Périodicités acceptées</Label>
+            <p className="text-sm font-medium">
+              {formatBillingPeriods(promoCode?.applicableBillingPeriods)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Lecture seule — figé à la création (contrainte Stripe sur la durée du coupon).
+            </p>
           </div>
 
           <DialogFooter>
