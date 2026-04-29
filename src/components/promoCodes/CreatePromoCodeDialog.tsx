@@ -110,7 +110,7 @@ function Section({
           )}
         </div>
       </header>
-      <div className="space-y-3 pl-7">{children}</div>
+      <div className="space-y-3">{children}</div>
     </section>
   );
 }
