@@ -16,7 +16,7 @@ export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE";
 export type ContactRequestContext = "founding-setup" | "enterprise" | "demo";
 export type ContactRequestVolume = "1-50" | "50-200" | "200-500" | "500+";
 export type CreatePromoCodeDuration = "once" | "repeating" | "forever";
-export type CreatePromoCodeRuleType = "ELIGIBLE_PLAN_IDS";
+export type CreatePromoCodeRuleType = "ELIGIBLE_PLAN_IDS" | "ELIGIBLE_TENANT_IDS";
 export type DriverScheduleStatus = "planned" | "active" | "completed" | "cancelled";
 export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" | "unavailable";
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
@@ -91,6 +91,10 @@ export interface IAddressMandatoryDto {
   longitude: number;
   type: AddressMandatoryType;
   fullAddress: string;
+}
+
+export interface IApplyPromoCodeDto {
+  code?: string;
 }
 
 export interface IAuditLog {
@@ -1460,6 +1464,11 @@ export type get_driver_schedule_readResponse = IDriverSchedule[] | IDriverSchedu
 export type post_delivery_zone_createResponse = IDeliveryZone;
 export type get_delivery_zone_readResponse = IDeliveryZone[] | IDeliveryZone;
 export type get_subscription_readResponse = ISubscription;
+export type get_subscription_active_discountResponse = {
+  couponRef?: string | null;
+  label?: string | null;
+  expiresAt?: string | null;
+};
 export type post_public_activate_accountResponse = {
   token?: string;
   message?: string;
