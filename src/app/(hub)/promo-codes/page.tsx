@@ -35,7 +35,9 @@ import { ACTION, CONFIRM_BUTTON, STATUS_BADGE } from '@/lib/action-palette';
 import type { IPromoCodeDto } from '@/types/generated/api-types';
 
 function formatDiscount(code: IPromoCodeDto): string {
+  if (code.type === 'trial') return 'Essai gratuit';
   const { coupon } = code;
+  if (!coupon) return '—';
   if (coupon.percentOff != null) return `-${coupon.percentOff}%`;
   if (coupon.amountOff != null) {
     const currency = (coupon.currency ?? 'eur').toUpperCase();
@@ -46,16 +48,21 @@ function formatDiscount(code: IPromoCodeDto): string {
 }
 
 function formatDuration(code: IPromoCodeDto): string {
-  switch (code.coupon.duration) {
+  if (code.type === 'trial') return `${code.trialDays ?? '?'} jours`;
+  switch (code.coupon?.duration) {
     case 'once':
       return 'Une fois';
     case 'forever':
       return 'Permanent';
     case 'repeating':
-      return `${code.coupon.durationInMonths ?? '?'} mois`;
+      return `${code.coupon?.durationInMonths ?? '?'} mois`;
     default:
       return '—';
   }
+}
+
+function formatType(code: IPromoCodeDto): string {
+  return code.type === 'trial' ? 'Essai' : 'Réduction';
 }
 
 function formatDate(iso?: string | null): string {
@@ -136,6 +143,11 @@ function PromoCodeRow({
     <>
       <TableRow>
         <TableCell className="font-mono font-semibold">{promoCode.code}</TableCell>
+        <TableCell>
+          <Badge variant={promoCode.type === 'trial' ? 'default' : 'outline'}>
+            {formatType(promoCode)}
+          </Badge>
+        </TableCell>
         <TableCell>{formatDiscount(promoCode)}</TableCell>
         <TableCell>{formatDuration(promoCode)}</TableCell>
         <TableCell className="text-sm">{formatBillingPeriods(promoCode.applicableBillingPeriods)}</TableCell>
@@ -327,6 +339,7 @@ export default function PromoCodesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Code</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Réduction</TableHead>
               <TableHead>Durée</TableHead>
               <TableHead>Périodicité</TableHead>
@@ -351,7 +364,7 @@ export default function PromoCodesPage() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                   Aucun code promo
                 </TableCell>
               </TableRow>

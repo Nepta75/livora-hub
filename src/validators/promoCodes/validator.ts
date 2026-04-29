@@ -2,9 +2,12 @@ import * as yup from 'yup';
 import type {
   CreatePromoCodeDuration,
   PromoCodeApplicableBillingPeriods,
+  PromoCodeType,
 } from '@/types/generated/api-types';
 
 export const BILLING_PERIODS = ['monthly', 'annual'] as const satisfies readonly PromoCodeApplicableBillingPeriods[];
+
+export const PROMO_TYPES = ['discount', 'trial'] as const satisfies readonly PromoCodeType[];
 
 const nullableInt = () =>
   yup
@@ -23,29 +26,47 @@ export const promoCodeSchema = yup.object({
       /^[A-Z0-9_-]{3,40}$/,
       '3-40 caractères, uniquement A-Z, 0-9, tiret et underscore'
     ),
+  type: yup
+    .string()
+    .oneOf<PromoCodeType>(PROMO_TYPES, 'Type de promo invalide')
+    .required('Type de promo requis'),
+  // Trial: applies via Stripe trial_period_days, no Coupon. Required when
+  // type=trial, must stay null otherwise (the backend rejects otherwise).
+  trialDays: nullableInt()
+    .min(1, 'Doit être >= 1')
+    .max(365, 'Doit être <= 365')
+    .when('type', {
+      is: 'trial',
+      then: (s) => s.required('Nombre de jours requis pour un essai'),
+      otherwise: (s) => s.test('must-be-null', 'Doit être vide pour une réduction', (v) => v == null),
+    }),
   discountType: yup
     .string()
     .oneOf<DiscountType>(['percent', 'amount'], 'Type de réduction invalide')
-    .required('Type de réduction requis'),
+    .when('type', {
+      is: 'discount',
+      then: (s) => s.required('Type de réduction requis'),
+      otherwise: (s) => s.notRequired(),
+    }),
   percentOff: nullableInt()
     .min(1, 'Doit être >= 1')
     .max(100, 'Doit être <= 100')
-    .when('discountType', {
-      is: 'percent',
+    .when(['type', 'discountType'], {
+      is: (type: PromoCodeType, discountType: DiscountType) => 'discount' === type && 'percent' === discountType,
       then: (s) => s.required('Pourcentage requis'),
     }),
   amountOff: nullableInt()
     .min(1, 'Doit être >= 1')
-    .when('discountType', {
-      is: 'amount',
+    .when(['type', 'discountType'], {
+      is: (type: PromoCodeType, discountType: DiscountType) => 'discount' === type && 'amount' === discountType,
       then: (s) => s.required('Montant requis'),
     }),
   currency: yup
     .string()
     .nullable()
     .transform((value, original) => (original === '' ? null : value))
-    .when('discountType', {
-      is: 'amount',
+    .when(['type', 'discountType'], {
+      is: (type: PromoCodeType, discountType: DiscountType) => 'discount' === type && 'amount' === discountType,
       then: (s) =>
         s
           .required('Devise requise')
@@ -53,13 +74,18 @@ export const promoCodeSchema = yup.object({
     }),
   duration: yup
     .string()
-    .oneOf<CreatePromoCodeDuration>(['once', 'repeating', 'forever'], 'Durée invalide')
-    .required('Durée requise'),
+    .nullable()
+    .oneOf<CreatePromoCodeDuration | null>(['once', 'repeating', 'forever', null], 'Durée invalide')
+    .when('type', {
+      is: 'discount',
+      then: (s) => s.required('Durée requise'),
+    }),
   durationInMonths: nullableInt()
     .min(1, 'Doit être >= 1')
     .max(36, 'Doit être <= 36')
-    .when('duration', {
-      is: 'repeating',
+    .when(['type', 'duration'], {
+      is: (type: PromoCodeType, duration: CreatePromoCodeDuration | null) =>
+        'discount' === type && 'repeating' === duration,
       then: (s) => s.required('Nombre de mois requis'),
     }),
   maxRedemptions: nullableInt().min(1, 'Doit être >= 1'),
@@ -68,9 +94,8 @@ export const promoCodeSchema = yup.object({
     .nullable()
     .transform((value, original) => (original === '' ? null : value)),
   // null = no restriction (any period accepted). A non-null array narrows
-  // the promo to the listed periods only — required for `repeating` coupons
-  // applied in annual mode, which Stripe would otherwise expand to the full
-  // first annual invoice.
+  // the promo to the listed periods only — useful for discount codes whose
+  // semantics break in a given mode (legacy use case before trial codes).
   applicableBillingPeriods: yup
     .array()
     .of(yup.string().oneOf<PromoCodeApplicableBillingPeriods>(BILLING_PERIODS).required())

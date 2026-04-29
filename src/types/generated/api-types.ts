@@ -26,6 +26,7 @@ export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
 export type PromoCodeApplicableBillingPeriods = "monthly" | "annual";
+export type PromoCodeType = "discount" | "trial";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
@@ -176,10 +177,12 @@ export interface IContactRequestDto {
 
 export interface ICreatePromoCodeDto {
   code: string;
+  type?: PromoCodeType;
+  trialDays?: number | null;
   percentOff?: number | null;
   amountOff?: number | null;
   currency?: string | null;
-  duration: CreatePromoCodeDuration;
+  duration?: CreatePromoCodeDuration | null;
   durationInMonths?: number | null;
   maxRedemptions?: number | null;
   expiresAt?: string | null;
@@ -808,20 +811,22 @@ export interface IPromoCodeCouponDto {
   percentOff?: number | null;
   amountOff?: number | null;
   currency?: string | null;
-  duration: CreatePromoCodeDuration;
+  duration?: CreatePromoCodeDuration | null;
   durationInMonths?: number | null;
 }
 
 export interface IPromoCodeDto {
   id: string;
   code: string;
+  type: PromoCodeType;
   active: boolean;
   maxRedemptions?: number | null;
   timesRedeemed: number;
   redemptionCount: number;
   expiresAt?: string | null;
   createdAt: string;
-  coupon: IPromoCodeCouponDto;
+  coupon?: IPromoCodeCouponDto | null;
+  trialDays?: number | null;
   rules?: IPromoCodeRuleDto[];
   applicableBillingPeriods?: PromoCodeApplicableBillingPeriods[] | null;
 }

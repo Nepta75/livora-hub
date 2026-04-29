@@ -163,12 +163,21 @@ export function EditPromoCodeDialog({ promoCode, onOpenChange }: EditPromoCodeDi
           </div>
 
           <div className="space-y-1">
+            <Label>Type</Label>
+            <p className="text-sm font-medium">
+              {promoCode?.type === 'trial'
+                ? `Essai gratuit · ${promoCode.trialDays ?? '?'} jours`
+                : 'Réduction (coupon Stripe)'}
+            </p>
+          </div>
+
+          <div className="space-y-1">
             <Label>Périodicités acceptées</Label>
             <p className="text-sm font-medium">
               {formatBillingPeriods(promoCode?.applicableBillingPeriods)}
             </p>
             <p className="text-xs text-muted-foreground">
-              Lecture seule — figé à la création (contrainte Stripe sur la durée du coupon).
+              Lecture seule — figé à la création.
             </p>
           </div>
 

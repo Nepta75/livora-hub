@@ -41,6 +41,8 @@ import type {
 
 const DEFAULTS: PromoCodeFormValues = {
   code: '',
+  type: 'discount',
+  trialDays: null,
   discountType: 'percent',
   percentOff: null,
   amountOff: null,
@@ -100,9 +102,11 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
     defaultValues: DEFAULTS,
   });
 
+  const promoType = watch('type');
   const discountType = watch('discountType');
   const duration = watch('duration');
   const applicableBillingPeriods = watch('applicableBillingPeriods') ?? [];
+  const isTrial = promoType === 'trial';
 
   useEffect(() => {
     if (!open) {
@@ -129,18 +133,21 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
   }
 
   const onSubmit = async (values: PromoCodeFormValues) => {
-    const payload: ICreatePromoCodeDto = {
+    const baseRules = draftRules.length > 0
+      ? {
+          rules: draftRules.map((r) => ({
+            type: r.type as ICreatePromoCodeRuleDto['type'],
+            value: r.value,
+          })),
+        }
+      : {};
+
+    const baseShared: Pick<ICreatePromoCodeDto, 'code' | 'type'> = {
       code: values.code.toUpperCase(),
-      duration: values.duration,
-      ...(values.discountType === 'percent'
-        ? { percentOff: values.percentOff ?? undefined }
-        : {
-            amountOff: values.amountOff ?? undefined,
-            currency: values.currency?.toLowerCase(),
-          }),
-      ...(values.duration === 'repeating'
-        ? { durationInMonths: values.durationInMonths ?? undefined }
-        : {}),
+      type: values.type,
+    };
+
+    const baseLifecycle = {
       ...(values.maxRedemptions != null ? { maxRedemptions: values.maxRedemptions } : {}),
       ...(values.expiresAt
         ? { expiresAt: new Date(values.expiresAt).toISOString() }
@@ -148,15 +155,30 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
       ...(values.applicableBillingPeriods && values.applicableBillingPeriods.length > 0
         ? { applicableBillingPeriods: values.applicableBillingPeriods }
         : {}),
-      ...(draftRules.length > 0
-        ? {
-            rules: draftRules.map((r) => ({
-              type: r.type as ICreatePromoCodeRuleDto['type'],
-              value: r.value,
-            })),
-          }
-        : {}),
     };
+
+    const payload: ICreatePromoCodeDto = values.type === 'trial'
+      ? {
+          ...baseShared,
+          trialDays: values.trialDays ?? undefined,
+          ...baseLifecycle,
+          ...baseRules,
+        }
+      : {
+          ...baseShared,
+          duration: values.duration ?? undefined,
+          ...(values.discountType === 'percent'
+            ? { percentOff: values.percentOff ?? undefined }
+            : {
+                amountOff: values.amountOff ?? undefined,
+                currency: values.currency?.toLowerCase(),
+              }),
+          ...(values.duration === 'repeating'
+            ? { durationInMonths: values.durationInMonths ?? undefined }
+            : {}),
+          ...baseLifecycle,
+          ...baseRules,
+        };
 
     try {
       await createMutation.mutateAsync(payload);
@@ -173,7 +195,8 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
         <DialogHeader>
           <DialogTitle>Nouveau code promo</DialogTitle>
           <DialogDescription>
-            Crée un coupon Stripe + un promotion code avec le libellé saisi.
+            Crée un coupon Stripe (réduction) ou applique un essai gratuit (sans coupon Stripe,
+            via trial_period_days — pattern canonique pour « X jours offerts »).
           </DialogDescription>
         </DialogHeader>
 
@@ -188,104 +211,151 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field
-              label="Type de réduction"
-              id="discountType"
-              error={errors.discountType?.message}
+          <Field label="Type de promo" id="type" error={errors.type?.message}>
+            <Select
+              value={promoType}
+              onValueChange={(v) =>
+                setValue('type', v as PromoCodeFormValues['type'], {
+                  shouldValidate: true,
+                })
+              }
             >
-              <Select
-                value={discountType}
-                onValueChange={(v) =>
-                  setValue('discountType', v as PromoCodeFormValues['discountType'], {
-                    shouldValidate: true,
-                  })
-                }
-              >
-                <SelectTrigger id="discountType">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percent">Pourcentage (%)</SelectItem>
-                  <SelectItem value="amount">Montant fixe</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
+              <SelectTrigger id="type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="trial">Essai gratuit (X jours offerts)</SelectItem>
+                <SelectItem value="discount">Réduction (% ou montant fixe)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {isTrial
+                ? 'Les essais utilisent trial_period_days de Stripe. Marche identiquement en mensuel et annuel — pas de coupon créé.'
+                : 'Les réductions créent un coupon Stripe. Pour « X mois 100% offerts » utilise plutôt « Essai gratuit ».'}
+            </p>
+          </Field>
 
-            {discountType === 'percent' ? (
-              <Field label="% de réduction" id="percentOff" error={errors.percentOff?.message}>
-                <Input
-                  id="percentOff"
-                  type="number"
-                  min={1}
-                  max={100}
-                  {...register('percentOff')}
-                  placeholder="Ex : 50"
-                />
-              </Field>
-            ) : (
-              <Field label="Montant" id="amountOff" error={errors.amountOff?.message}>
-                <Input
-                  id="amountOff"
-                  type="number"
-                  min={1}
-                  {...register('amountOff')}
-                  placeholder="Unité mineure (ex: 5000 = 50€)"
-                />
-              </Field>
-            )}
-          </div>
-
-          {discountType === 'amount' && (
-            <Field label="Devise (ISO 4217)" id="currency" error={errors.currency?.message}>
+          {isTrial ? (
+            <Field
+              label="Durée d'essai (jours)"
+              id="trialDays"
+              error={errors.trialDays?.message}
+            >
               <Input
-                id="currency"
-                {...register('currency')}
-                placeholder="eur"
-                className="font-mono"
-                maxLength={3}
+                id="trialDays"
+                type="number"
+                min={1}
+                max={365}
+                {...register('trialDays')}
+                placeholder="Ex : 90"
               />
+              <p className="text-xs text-muted-foreground">
+                Le pilote ne sera pas facturé pendant cette période. Premier prélèvement à
+                l&rsquo;issue, au tarif (mensuel ou annuel) choisi à l&rsquo;inscription.
+              </p>
             </Field>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <Field
+                  label="Type de réduction"
+                  id="discountType"
+                  error={errors.discountType?.message}
+                >
+                  <Select
+                    value={discountType}
+                    onValueChange={(v) =>
+                      setValue('discountType', v as PromoCodeFormValues['discountType'], {
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <SelectTrigger id="discountType">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percent">Pourcentage (%)</SelectItem>
+                      <SelectItem value="amount">Montant fixe</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                {discountType === 'percent' ? (
+                  <Field label="% de réduction" id="percentOff" error={errors.percentOff?.message}>
+                    <Input
+                      id="percentOff"
+                      type="number"
+                      min={1}
+                      max={100}
+                      {...register('percentOff')}
+                      placeholder="Ex : 50"
+                    />
+                  </Field>
+                ) : (
+                  <Field label="Montant" id="amountOff" error={errors.amountOff?.message}>
+                    <Input
+                      id="amountOff"
+                      type="number"
+                      min={1}
+                      {...register('amountOff')}
+                      placeholder="Unité mineure (ex: 5000 = 50€)"
+                    />
+                  </Field>
+                )}
+              </div>
+
+              {discountType === 'amount' && (
+                <Field label="Devise (ISO 4217)" id="currency" error={errors.currency?.message}>
+                  <Input
+                    id="currency"
+                    {...register('currency')}
+                    placeholder="eur"
+                    className="font-mono"
+                    maxLength={3}
+                  />
+                </Field>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Durée" id="duration" error={errors.duration?.message}>
+                  <Select
+                    value={duration ?? 'once'}
+                    onValueChange={(v) =>
+                      setValue('duration', v as PromoCodeFormValues['duration'], {
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <SelectTrigger id="duration">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="once">Une fois</SelectItem>
+                      <SelectItem value="repeating">Répété sur X mois</SelectItem>
+                      <SelectItem value="forever">Permanent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+
+                {duration === 'repeating' && (
+                  <Field
+                    label="Nombre de mois"
+                    id="durationInMonths"
+                    error={errors.durationInMonths?.message}
+                  >
+                    <Input
+                      id="durationInMonths"
+                      type="number"
+                      min={1}
+                      max={36}
+                      {...register('durationInMonths')}
+                      placeholder="Ex : 3"
+                    />
+                  </Field>
+                )}
+              </div>
+            </>
           )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Durée" id="duration" error={errors.duration?.message}>
-              <Select
-                value={duration}
-                onValueChange={(v) =>
-                  setValue('duration', v as PromoCodeFormValues['duration'], {
-                    shouldValidate: true,
-                  })
-                }
-              >
-                <SelectTrigger id="duration">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="once">Une fois</SelectItem>
-                  <SelectItem value="repeating">Répété sur X mois</SelectItem>
-                  <SelectItem value="forever">Permanent</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-
-            {duration === 'repeating' && (
-              <Field
-                label="Nombre de mois"
-                id="durationInMonths"
-                error={errors.durationInMonths?.message}
-              >
-                <Input
-                  id="durationInMonths"
-                  type="number"
-                  min={1}
-                  max={36}
-                  {...register('durationInMonths')}
-                  placeholder="Ex : 3"
-                />
-              </Field>
-            )}
-          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <Field
@@ -338,9 +408,9 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
               })}
             </div>
             <p className="text-xs text-muted-foreground">
-              Aucune sélection = toutes périodicités acceptées. Restreindre est requis pour
-              les coupons « répété sur X mois » qui doivent rester en mensuel — Stripe
-              applique sinon la remise sur la totalité de la première facture annuelle.
+              Aucune sélection = toutes périodicités acceptées. À utiliser surtout pour
+              limiter une réduction à un cycle précis (ex : Black Friday mensuel only).
+              Inutile pour un essai gratuit qui marche partout par construction.
             </p>
           </Field>
 
