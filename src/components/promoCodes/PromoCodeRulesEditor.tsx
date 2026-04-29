@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { AlertTriangle, Building2, Check, Package, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, Building2, Check, Package, Plus, Search, Trash2 } from 'lucide-react';
 import { useAdminPlans } from '@/hooks/api/plans/useAdminPlans';
 import { useAdminTenants } from '@/hooks/api/tenants/useAdminTenants';
 import { ACTION } from '@/lib/action-palette';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -60,6 +61,7 @@ export function PromoCodeRulesEditor({
   const [ruleType, setRuleType] = useState<CreatePromoCodeRuleType>('ELIGIBLE_PLAN_IDS');
   const [selectedPlanIds, setSelectedPlanIds] = useState<string[]>([]);
   const [selectedTenantIds, setSelectedTenantIds] = useState<string[]>([]);
+  const [tenantSearch, setTenantSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const { data: plans } = useAdminPlans();
@@ -101,6 +103,26 @@ export function PromoCodeRulesEditor({
     [tenants],
   );
 
+  // Selected tenants always render at the top regardless of the search query,
+  // so the operator never loses sight of what's already in their picklist.
+  // Below them, unselected tenants matching the search show in a scrollable
+  // list — handles "we have ~hundreds of tenants and a name in mind" cleanly.
+  const filteredTenants = useMemo(() => {
+    const query = tenantSearch.trim().toLowerCase();
+    if ('' === query) return sortedTenants;
+    return sortedTenants.filter((t) => t.name.toLowerCase().includes(query));
+  }, [sortedTenants, tenantSearch]);
+
+  const selectedTenantsList = useMemo(
+    () => sortedTenants.filter((t) => selectedTenantIds.includes(t.id)),
+    [sortedTenants, selectedTenantIds],
+  );
+
+  const unselectedFilteredTenants = useMemo(
+    () => filteredTenants.filter((t) => !selectedTenantIds.includes(t.id)),
+    [filteredTenants, selectedTenantIds],
+  );
+
   function togglePlan(planId: string) {
     setSelectedPlanIds((prev) =>
       prev.includes(planId) ? prev.filter((id) => id !== planId) : [...prev, planId],
@@ -133,6 +155,7 @@ export function PromoCodeRulesEditor({
     await onAdd({ type: ruleType, value });
     setSelectedPlanIds([]);
     setSelectedTenantIds([]);
+    setTenantSearch('');
   }
 
   return (
@@ -232,6 +255,7 @@ export function PromoCodeRulesEditor({
               setRuleType(v as CreatePromoCodeRuleType);
               setSelectedPlanIds([]);
               setSelectedTenantIds([]);
+              setTenantSearch('');
               setError(null);
             }}
           >
@@ -254,36 +278,73 @@ export function PromoCodeRulesEditor({
         </div>
 
         {ruleType === 'ELIGIBLE_TENANT_IDS' && (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label>Tenants</Label>
-            {sortedTenants.length > 0 ? (
-              <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto p-1">
-                {sortedTenants.map((tenant) => {
-                  const selected = selectedTenantIds.includes(tenant.id);
-                  return (
-                    <button
-                      key={tenant.id}
-                      type="button"
-                      onClick={() => toggleTenant(tenant.id)}
-                      className={cn(
-                        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors',
-                        selected
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-input bg-background hover:bg-muted',
-                      )}
-                    >
-                      {selected ? (
-                        <Check className="h-3 w-3" />
-                      ) : (
-                        <Building2 className="h-3 w-3" />
-                      )}
-                      <span>{tenant.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
+            {sortedTenants.length === 0 ? (
               <p className="text-xs text-muted-foreground">Aucun tenant disponible.</p>
+            ) : (
+              <>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    type="text"
+                    value={tenantSearch}
+                    onChange={(e) => setTenantSearch(e.target.value)}
+                    placeholder="Rechercher un tenant…"
+                    className="pl-9"
+                  />
+                </div>
+
+                {selectedTenantsList.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Sélectionnés ({selectedTenantsList.length})
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedTenantsList.map((tenant) => (
+                        <button
+                          key={tenant.id}
+                          type="button"
+                          onClick={() => toggleTenant(tenant.id)}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary/10 px-3 py-1 text-xs text-primary"
+                        >
+                          <Check className="h-3 w-3" />
+                          <span>{tenant.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {tenantSearch.trim() === ''
+                      ? `Tous les tenants (${unselectedFilteredTenants.length})`
+                      : `Résultats (${unselectedFilteredTenants.length})`}
+                  </p>
+                  {unselectedFilteredTenants.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic">
+                      {tenantSearch.trim() === ''
+                        ? 'Tous les tenants sont sélectionnés.'
+                        : 'Aucun tenant ne correspond à la recherche.'}
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-1">
+                      {unselectedFilteredTenants.map((tenant) => (
+                        <button
+                          key={tenant.id}
+                          type="button"
+                          onClick={() => toggleTenant(tenant.id)}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-input bg-background px-3 py-1 text-xs hover:bg-muted transition-colors"
+                        >
+                          <Building2 className="h-3 w-3" />
+                          <span>{tenant.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         )}

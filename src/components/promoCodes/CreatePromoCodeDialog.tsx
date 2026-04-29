@@ -100,9 +100,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border bg-card/40 p-4 space-y-4">
-      <header className="flex items-start gap-3">
-        <div className="rounded-md bg-primary/10 p-2 text-primary">{icon}</div>
+    <section className="space-y-3">
+      <header className="flex items-center gap-2.5">
+        <span className="text-primary">{icon}</span>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold leading-tight">{title}</h3>
           {description && (
@@ -110,7 +110,7 @@ function Section({
           )}
         </div>
       </header>
-      <div className="space-y-3">{children}</div>
+      <div className="space-y-3 pl-7">{children}</div>
     </section>
   );
 }
@@ -269,7 +269,7 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-3xl max-h-[92vh] overflow-y-auto">
         <DialogHeader className="space-y-2">
           <DialogTitle className="text-xl">Nouveau code promo</DialogTitle>
           <DialogDescription>
@@ -278,7 +278,7 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* ── Section 1: Identité ───────────────────────────────────────── */}
           <Section
             icon={<Tag className="h-4 w-4" />}
