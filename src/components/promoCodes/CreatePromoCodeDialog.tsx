@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'sonner';
+import { CalendarClock, Gift, Hash, Percent, Tag, Users } from 'lucide-react';
 import { useCreateAdminPromoCode } from '@/hooks/api/promoCodes/useAdminPromoCodes';
 import { mapPromoCodeError } from '@/services/admin/promoCodesService';
 import {
@@ -11,10 +12,10 @@ import {
   promoCodeSchema,
   type PromoCodeFormValues,
 } from '@/validators/promoCodes/validator';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -63,19 +64,91 @@ function Field({
   label,
   id,
   error,
+  hint,
   children,
 }: {
   label: string;
   id: string;
   error?: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <Label htmlFor={id}>{label}</Label>
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-xs font-medium text-muted-foreground">
+        {label}
+      </Label>
       {children}
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error ? (
+        <p className="text-xs text-destructive">{error}</p>
+      ) : hint ? (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      ) : null}
     </div>
+  );
+}
+
+function Section({
+  icon,
+  title,
+  description,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-lg border bg-card/40 p-4 space-y-4">
+      <header className="flex items-start gap-3">
+        <div className="rounded-md bg-primary/10 p-2 text-primary">{icon}</div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold leading-tight">{title}</h3>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+          )}
+        </div>
+      </header>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
+function TypeCard({
+  icon,
+  title,
+  description,
+  selected,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={cn(
+        'group flex flex-col gap-1.5 rounded-lg border-2 p-4 text-left transition-all',
+        selected
+          ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+          : 'border-input hover:border-primary/50 hover:bg-muted/50',
+      )}
+    >
+      <div className={cn(
+        'flex h-9 w-9 items-center justify-center rounded-md',
+        selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+      )}>
+        {icon}
+      </div>
+      <div className="font-semibold text-sm">{title}</div>
+      <div className="text-xs text-muted-foreground leading-snug">{description}</div>
+    </button>
   );
 }
 
@@ -157,6 +230,11 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
         : {}),
     };
 
+    // Backend expects amount_off in the smallest currency unit (cents for EUR).
+    // We let the operator type euros to remove the "5000 = 50€" footgun, then
+    // convert here at the boundary.
+    const amountOffInCents = values.amountOff != null ? Math.round(values.amountOff * 100) : null;
+
     const payload: ICreatePromoCodeDto = values.type === 'trial'
       ? {
           ...baseShared,
@@ -170,7 +248,7 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
           ...(values.discountType === 'percent'
             ? { percentOff: values.percentOff ?? undefined }
             : {
-                amountOff: values.amountOff ?? undefined,
+                amountOff: amountOffInCents ?? undefined,
                 currency: values.currency?.toLowerCase(),
               }),
           ...(values.duration === 'repeating'
@@ -191,247 +269,303 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Nouveau code promo</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
+        <DialogHeader className="space-y-2">
+          <DialogTitle className="text-xl">Nouveau code promo</DialogTitle>
           <DialogDescription>
-            Crée un coupon Stripe (réduction) ou applique un essai gratuit (sans coupon Stripe,
-            via trial_period_days — pattern canonique pour « X jours offerts »).
+            Crée une réduction (coupon Stripe) ou un essai gratuit (
+            <code className="text-xs">trial_period_days</code>, sans coupon).
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Field label="Code" id="code" error={errors.code?.message}>
-            <Input
-              id="code"
-              {...register('code')}
-              placeholder="PILOTE"
-              className="font-mono uppercase"
-              autoComplete="off"
-            />
-          </Field>
-
-          <Field label="Type de promo" id="type" error={errors.type?.message}>
-            <Select
-              value={promoType}
-              onValueChange={(v) =>
-                setValue('type', v as PromoCodeFormValues['type'], {
-                  shouldValidate: true,
-                })
-              }
-            >
-              <SelectTrigger id="type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="trial">Essai gratuit (X jours offerts)</SelectItem>
-                <SelectItem value="discount">Réduction (% ou montant fixe)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              {isTrial
-                ? 'Les essais utilisent trial_period_days de Stripe. Marche identiquement en mensuel et annuel — pas de coupon créé.'
-                : 'Les réductions créent un coupon Stripe. Pour « X mois 100% offerts » utilise plutôt « Essai gratuit ».'}
-            </p>
-          </Field>
-
-          {isTrial ? (
-            <Field
-              label="Durée d'essai (jours)"
-              id="trialDays"
-              error={errors.trialDays?.message}
-            >
-              <Input
-                id="trialDays"
-                type="number"
-                min={1}
-                max={365}
-                {...register('trialDays')}
-                placeholder="Ex : 90"
-              />
-              <p className="text-xs text-muted-foreground">
-                Le pilote ne sera pas facturé pendant cette période. Premier prélèvement à
-                l&rsquo;issue, au tarif (mensuel ou annuel) choisi à l&rsquo;inscription.
-              </p>
-            </Field>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <Field
-                  label="Type de réduction"
-                  id="discountType"
-                  error={errors.discountType?.message}
-                >
-                  <Select
-                    value={discountType}
-                    onValueChange={(v) =>
-                      setValue('discountType', v as PromoCodeFormValues['discountType'], {
-                        shouldValidate: true,
-                      })
-                    }
-                  >
-                    <SelectTrigger id="discountType">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="percent">Pourcentage (%)</SelectItem>
-                      <SelectItem value="amount">Montant fixe</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-
-                {discountType === 'percent' ? (
-                  <Field label="% de réduction" id="percentOff" error={errors.percentOff?.message}>
-                    <Input
-                      id="percentOff"
-                      type="number"
-                      min={1}
-                      max={100}
-                      {...register('percentOff')}
-                      placeholder="Ex : 50"
-                    />
-                  </Field>
-                ) : (
-                  <Field label="Montant" id="amountOff" error={errors.amountOff?.message}>
-                    <Input
-                      id="amountOff"
-                      type="number"
-                      min={1}
-                      {...register('amountOff')}
-                      placeholder="Unité mineure (ex: 5000 = 50€)"
-                    />
-                  </Field>
-                )}
-              </div>
-
-              {discountType === 'amount' && (
-                <Field label="Devise (ISO 4217)" id="currency" error={errors.currency?.message}>
-                  <Input
-                    id="currency"
-                    {...register('currency')}
-                    placeholder="eur"
-                    className="font-mono"
-                    maxLength={3}
-                  />
-                </Field>
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Durée" id="duration" error={errors.duration?.message}>
-                  <Select
-                    value={duration ?? 'once'}
-                    onValueChange={(v) =>
-                      setValue('duration', v as PromoCodeFormValues['duration'], {
-                        shouldValidate: true,
-                      })
-                    }
-                  >
-                    <SelectTrigger id="duration">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="once">Une fois</SelectItem>
-                      <SelectItem value="repeating">Répété sur X mois</SelectItem>
-                      <SelectItem value="forever">Permanent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-
-                {duration === 'repeating' && (
-                  <Field
-                    label="Nombre de mois"
-                    id="durationInMonths"
-                    error={errors.durationInMonths?.message}
-                  >
-                    <Input
-                      id="durationInMonths"
-                      type="number"
-                      min={1}
-                      max={36}
-                      {...register('durationInMonths')}
-                      placeholder="Ex : 3"
-                    />
-                  </Field>
-                )}
-              </div>
-            </>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field
-              label="Redemptions max"
-              id="maxRedemptions"
-              error={errors.maxRedemptions?.message}
-            >
-              <Input
-                id="maxRedemptions"
-                type="number"
-                min={1}
-                {...register('maxRedemptions')}
-                placeholder="Illimité si vide"
-              />
-            </Field>
-
-            <Field label="Expire le" id="expiresAt" error={errors.expiresAt?.message}>
-              <Input id="expiresAt" type="date" {...register('expiresAt')} />
-            </Field>
-          </div>
-
-          <Field
-            label="Périodicités acceptées"
-            id="applicableBillingPeriods"
-            error={errors.applicableBillingPeriods?.message as string | undefined}
+          {/* ── Section 1: Identité ───────────────────────────────────────── */}
+          <Section
+            icon={<Tag className="h-4 w-4" />}
+            title="Identité"
+            description="Le code que les clients tapent à l'inscription ou sur leur compte."
           >
-            <div className="flex flex-wrap gap-2">
-              {BILLING_PERIODS.map((period) => {
-                const checked = applicableBillingPeriods.includes(period);
-                return (
-                  <Button
-                    key={period}
-                    type="button"
-                    size="sm"
-                    variant={checked ? 'default' : 'outline'}
-                    onClick={() => {
-                      const next = checked
-                        ? applicableBillingPeriods.filter((p) => p !== period)
-                        : [...applicableBillingPeriods, period];
-                      setValue(
-                        'applicableBillingPeriods',
-                        next.length > 0 ? next : null,
-                        { shouldValidate: true, shouldDirty: true },
-                      );
-                    }}
-                  >
-                    {BILLING_PERIOD_LABEL[period]}
-                  </Button>
-                );
-              })}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Aucune sélection = toutes périodicités acceptées. À utiliser surtout pour
-              limiter une réduction à un cycle précis (ex : Black Friday mensuel only).
-              Inutile pour un essai gratuit qui marche partout par construction.
-            </p>
-          </Field>
+            <Field
+              label="Code"
+              id="code"
+              error={errors.code?.message}
+              hint="3-40 caractères, A-Z, 0-9, tiret et underscore."
+            >
+              <Input
+                id="code"
+                {...register('code')}
+                placeholder="BIENVENUE2026"
+                className="font-mono uppercase tracking-wider text-base"
+                autoComplete="off"
+              />
+            </Field>
 
-          <Separator />
-
-          <div className="space-y-2">
             <div>
-              <h3 className="text-sm font-semibold">Règles d&rsquo;éligibilité</h3>
-              <p className="text-xs text-muted-foreground">
-                Optionnel. Le code est utilisable par tous les tenants si aucune règle n&rsquo;est
-                définie. Les règles sont créées en même temps que le code (atomique — annulation
-                complète si la création échoue).
-              </p>
+              <Label className="text-xs font-medium text-muted-foreground">Type</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1.5">
+                <TypeCard
+                  icon={<Gift className="h-4 w-4" />}
+                  title="Essai gratuit"
+                  description="X jours offerts. Marche en mensuel et annuel."
+                  selected={isTrial}
+                  onClick={() => setValue('type', 'trial', { shouldValidate: true })}
+                />
+                <TypeCard
+                  icon={<Percent className="h-4 w-4" />}
+                  title="Réduction"
+                  description="% ou montant fixe via coupon Stripe."
+                  selected={!isTrial}
+                  onClick={() => setValue('type', 'discount', { shouldValidate: true })}
+                />
+              </div>
             </div>
+          </Section>
+
+          {/* ── Section 2: Avantage ───────────────────────────────────────── */}
+          <Section
+            icon={isTrial ? <Gift className="h-4 w-4" /> : <Percent className="h-4 w-4" />}
+            title="Avantage"
+            description={
+              isTrial
+                ? 'Pas de prélèvement pendant la période. Premier paiement à la fin.'
+                : 'La réduction s\'applique au prochain cycle de facturation.'
+            }
+          >
+            {isTrial ? (
+              <Field
+                label="Durée d'essai (jours)"
+                id="trialDays"
+                error={errors.trialDays?.message}
+                hint="Ex: 14, 30, 90."
+              >
+                <Input
+                  id="trialDays"
+                  type="number"
+                  min={1}
+                  max={365}
+                  {...register('trialDays')}
+                  placeholder="90"
+                />
+              </Field>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field
+                    label="Type de réduction"
+                    id="discountType"
+                    error={errors.discountType?.message}
+                  >
+                    <Select
+                      value={discountType}
+                      onValueChange={(v) =>
+                        setValue('discountType', v as PromoCodeFormValues['discountType'], {
+                          shouldValidate: true,
+                        })
+                      }
+                    >
+                      <SelectTrigger id="discountType">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="percent">Pourcentage (%)</SelectItem>
+                        <SelectItem value="amount">Montant fixe (€)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  {discountType === 'percent' ? (
+                    <Field
+                      label="Pourcentage"
+                      id="percentOff"
+                      error={errors.percentOff?.message}
+                    >
+                      <div className="relative">
+                        <Input
+                          id="percentOff"
+                          type="number"
+                          min={1}
+                          max={100}
+                          {...register('percentOff')}
+                          placeholder="50"
+                          className="pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                          %
+                        </span>
+                      </div>
+                    </Field>
+                  ) : (
+                    <Field
+                      label="Montant"
+                      id="amountOff"
+                      error={errors.amountOff?.message}
+                    >
+                      <div className="relative">
+                        <Input
+                          id="amountOff"
+                          type="number"
+                          min={1}
+                          step="0.01"
+                          {...register('amountOff')}
+                          placeholder="50"
+                          className="pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                          €
+                        </span>
+                      </div>
+                    </Field>
+                  )}
+                </div>
+
+                {discountType === 'amount' && (
+                  <Field label="Devise (ISO 4217)" id="currency" error={errors.currency?.message}>
+                    <Input
+                      id="currency"
+                      {...register('currency')}
+                      placeholder="eur"
+                      className="font-mono"
+                      maxLength={3}
+                    />
+                  </Field>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field
+                    label="Récurrence"
+                    id="duration"
+                    error={errors.duration?.message}
+                    hint={
+                      duration === 'forever'
+                        ? 'Appliqué à chaque facture, à vie.'
+                        : duration === 'repeating'
+                        ? 'Appliqué pendant N mois consécutifs.'
+                        : 'Une seule facture concernée.'
+                    }
+                  >
+                    <Select
+                      value={duration ?? 'once'}
+                      onValueChange={(v) =>
+                        setValue('duration', v as PromoCodeFormValues['duration'], {
+                          shouldValidate: true,
+                        })
+                      }
+                    >
+                      <SelectTrigger id="duration">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="once">Une fois</SelectItem>
+                        <SelectItem value="repeating">Plusieurs mois</SelectItem>
+                        <SelectItem value="forever">Permanent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  {duration === 'repeating' && (
+                    <Field
+                      label="Nombre de mois"
+                      id="durationInMonths"
+                      error={errors.durationInMonths?.message}
+                    >
+                      <Input
+                        id="durationInMonths"
+                        type="number"
+                        min={1}
+                        max={36}
+                        {...register('durationInMonths')}
+                        placeholder="3"
+                      />
+                    </Field>
+                  )}
+                </div>
+              </>
+            )}
+          </Section>
+
+          {/* ── Section 3: Limites ────────────────────────────────────────── */}
+          <Section
+            icon={<CalendarClock className="h-4 w-4" />}
+            title="Limites"
+            description="Optionnel. Tout vide = code illimité dans le temps et en usage."
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field
+                label="Utilisations max"
+                id="maxRedemptions"
+                error={errors.maxRedemptions?.message}
+                hint="Ex: 100 pilotes."
+              >
+                <div className="relative">
+                  <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    id="maxRedemptions"
+                    type="number"
+                    min={1}
+                    {...register('maxRedemptions')}
+                    placeholder="Illimité"
+                    className="pl-9"
+                  />
+                </div>
+              </Field>
+
+              <Field
+                label="Expire le"
+                id="expiresAt"
+                error={errors.expiresAt?.message}
+                hint="Vide = jamais."
+              >
+                <Input id="expiresAt" type="date" {...register('expiresAt')} />
+              </Field>
+            </div>
+
+            <Field
+              label="Périodicités acceptées"
+              id="applicableBillingPeriods"
+              error={errors.applicableBillingPeriods?.message as string | undefined}
+              hint="Vide = mensuel et annuel acceptés."
+            >
+              <div className="flex flex-wrap gap-2">
+                {BILLING_PERIODS.map((period) => {
+                  const checked = applicableBillingPeriods.includes(period);
+                  return (
+                    <Button
+                      key={period}
+                      type="button"
+                      size="sm"
+                      variant={checked ? 'default' : 'outline'}
+                      onClick={() => {
+                        const next = checked
+                          ? applicableBillingPeriods.filter((p) => p !== period)
+                          : [...applicableBillingPeriods, period];
+                        setValue(
+                          'applicableBillingPeriods',
+                          next.length > 0 ? next : null,
+                          { shouldValidate: true, shouldDirty: true },
+                        );
+                      }}
+                    >
+                      {BILLING_PERIOD_LABEL[period]}
+                    </Button>
+                  );
+                })}
+              </div>
+            </Field>
+          </Section>
+
+          {/* ── Section 4: Règles d'éligibilité ───────────────────────────── */}
+          <Section
+            icon={<Users className="h-4 w-4" />}
+            title="Règles d'éligibilité"
+            description="Optionnel. Sans règle, le code est utilisable par tous les tenants."
+          >
             <PromoCodeRulesEditor
               rules={draftRules}
               onAdd={handleAddRule}
               onRemove={handleRemoveRule}
               isBusy={createMutation.isPending}
             />
-          </div>
+          </Section>
 
           <DialogFooter>
             <Button
@@ -443,7 +577,7 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
               Annuler
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Création...' : 'Créer'}
+              {createMutation.isPending ? 'Création...' : 'Créer le code'}
             </Button>
           </DialogFooter>
         </form>
