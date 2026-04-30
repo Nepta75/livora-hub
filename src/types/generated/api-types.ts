@@ -93,6 +93,11 @@ export interface IAddressMandatoryDto {
   fullAddress: string;
 }
 
+export interface IAdminReplacePromoCodeDto {
+  code?: string;
+  reason?: string;
+}
+
 export interface IApplyPromoCodeDto {
   code?: string;
 }
@@ -955,6 +960,10 @@ export interface IResetPasswordDto {
   password: string;
 }
 
+export interface ISetDefaultPaymentMethodDto {
+  paymentMethodId?: string;
+}
+
 export interface IStoragePricing {
   id: string;
   tenant: ITenant;
@@ -988,7 +997,9 @@ export interface ISubscription {
   trialEndsAt?: string | null;
   currentPeriodEnd?: string | null;
   canceledAt?: string | null;
+  cancelAtPeriodEnd?: boolean;
   allowOverage?: boolean;
+  billingPeriod?: string | null;
   active: boolean;
 }
 
@@ -1467,7 +1478,36 @@ export type get_subscription_readResponse = ISubscription;
 export type get_subscription_active_discountResponse = {
   couponRef?: string | null;
   label?: string | null;
+  code?: string | null;
   expiresAt?: string | null;
+};
+export type get_subscription_usageResponse = {
+  limits?: {
+  featureKey?: string;
+  limitValue?: number | null;
+  overageEnabled?: boolean;
+  overagePriceEuro?: number | null;
+}[];
+  overages?: {
+  featureKey?: string;
+  baseLimit?: number;
+  actualUsage?: number;
+  overageUnits?: number;
+  overagePricePerUnit?: number;
+  totalAmountEuro?: number;
+}[];
+  totalOverageEuro?: number;
+  periodStart?: string;
+  periodEnd?: string;
+};
+export type get_subscription_payment_methodResponse = {
+  brand?: string | null;
+  last4?: string | null;
+  expMonth?: number | null;
+  expYear?: number | null;
+};
+export type post_subscription_setup_intentResponse = {
+  clientSecret?: string;
 };
 export type post_public_activate_accountResponse = {
   token?: string;
