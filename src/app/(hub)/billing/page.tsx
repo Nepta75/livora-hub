@@ -2,9 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useAdminBillingOverview } from '@/hooks/api/billing/useAdminBillingOverview';
+import { toast } from 'sonner';
+import {
+  useAdminBillingOverview,
+  useAdminBillingPendingRecords,
+  useRunBillingCron,
+} from '@/hooks/api/billing/useAdminBillingOverview';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Table,
   TableBody,
@@ -15,7 +22,7 @@ import {
 } from '@/components/ui/table';
 import { STATUS_BADGE } from '@/lib/action-palette';
 import { featureLabel } from '@/lib/feature-labels';
-import { ArrowDownUp, ArrowDown, ArrowUp } from 'lucide-react';
+import { ArrowDownUp, ArrowDown, ArrowUp, AlertTriangle, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BillingOverviewRow } from '@/services/admin/billingOverviewService';
 
@@ -182,6 +189,8 @@ export default function BillingOverviewPage() {
         </p>
       </div>
 
+      <PendingRecordsBanner />
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
         <SummaryCard label="Tenants en dépassement" value={overLimitCount} tone="danger" />
         <SummaryCard label="Tenants proches limite" value={approachingCount} tone="warning" />
@@ -302,6 +311,98 @@ export default function BillingOverviewPage() {
       </div>
     </div>
   );
+}
+
+function PendingRecordsBanner() {
+  const { userRoles } = useAuth();
+  const { data: pending, isLoading } = useAdminBillingPendingRecords();
+  const runCron = useRunBillingCron();
+
+  // Hide entirely while we don't know yet — avoids a flash of "0 pending"
+  // followed by the real banner.
+  if (isLoading) return null;
+
+  const records = pending ?? [];
+  if (records.length === 0) return null;
+
+  const total = records.reduce((sum, r) => sum + (r.totalAmountEuro ?? 0), 0);
+  const oldestDays = records.reduce((max, r) => Math.max(max, r.daysOverdue ?? 0), 0);
+
+  const handleRun = () => {
+    runCron.mutate(undefined, {
+      onSuccess: (result) => {
+        const billed = result.billed ?? 0;
+        const errors = result.errors ?? 0;
+        if (errors > 0) {
+          toast.warning(`Cron lancé — ${billed} facturé(s), ${errors} erreur(s). Vérifier les logs.`);
+        } else if (billed === 0) {
+          toast.info('Cron lancé — aucun enregistrement éligible (verrou ou records dans la fenêtre de grâce).');
+        } else {
+          toast.success(`Cron lancé — ${billed} enregistrement(s) facturé(s).`);
+        }
+      },
+      onError: (err) => {
+        toast.error(err instanceof Error ? err.message : 'Échec du lancement du cron.');
+      },
+    });
+  };
+
+  return (
+    <Alert className="mb-6 border-amber-200 bg-amber-50 text-amber-900">
+      <AlertTriangle className="h-4 w-4" />
+      <AlertTitle className="font-semibold">
+        {records.length} enregistrement{records.length > 1 ? 's' : ''} en attente de facturation —{' '}
+        {formatEuro(total)}
+      </AlertTitle>
+      <AlertDescription className="text-amber-900/90">
+        <p className="mb-2">
+          {oldestDays > 0
+            ? `Le plus ancien aurait dû être facturé il y a ${oldestDays} jour${oldestDays > 1 ? 's' : ''}. `
+            : `Tous prêts à être facturés. `}
+          Le cron quotidien (03:30) les traitera automatiquement, ou tu peux lancer maintenant.
+        </p>
+        <details className="mb-3">
+          <summary className="cursor-pointer text-sm underline-offset-2 hover:underline">
+            Voir le détail ({records.length})
+          </summary>
+          <ul className="mt-2 space-y-1 text-xs">
+            {records.slice(0, 10).map((r) => (
+              <li key={r.recordId} className="flex justify-between gap-4">
+                <span>
+                  <strong>{r.tenantName}</strong> — {featureLabel(r.featureKey)} (devait être
+                  facturé le {formatDateLocal(r.shouldHaveBeenBilledOn)})
+                </span>
+                <span className="font-mono">{formatEuro(r.totalAmountEuro)}</span>
+              </li>
+            ))}
+            {records.length > 10 && (
+              <li className="text-muted-foreground italic">…et {records.length - 10} autres</li>
+            )}
+          </ul>
+        </details>
+        {userRoles?.isAdmin && (
+          <Button
+            size="sm"
+            onClick={handleRun}
+            disabled={runCron.isPending}
+            className="bg-amber-600 hover:bg-amber-700 text-white"
+          >
+            <Play className="h-3.5 w-3.5 mr-2" />
+            {runCron.isPending ? 'Lancement...' : 'Lancer le cron maintenant'}
+          </Button>
+        )}
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function formatDateLocal(iso: string | undefined): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
 function SummaryCard({

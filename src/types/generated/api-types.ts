@@ -1438,6 +1438,25 @@ export type get_admin_billing_overviewResponse = {
   status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit';
   topOverageFeature?: string | null;
 }[];
+export type get_admin_billing_pending_recordsResponse = {
+  recordId?: string;
+  tenantId?: string;
+  tenantName?: string;
+  planName?: string;
+  billingPeriod?: PromoCodeApplicableBillingPeriods | null;
+  featureKey?: string;
+  periodStart?: string;
+  periodEnd?: string;
+  shouldHaveBeenBilledOn?: string;
+  daysOverdue?: number;
+  overageUnits?: number;
+  totalAmountEuro?: number;
+}[];
+export type post_admin_billing_run_cronResponse = {
+  billed?: number;
+  skipped?: number;
+  errors?: number;
+};
 export type get_admin_audit_logs_readResponse = IAuditLog[];
 export type get_admin_audit_logs_entity_typesResponse = string[];
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
