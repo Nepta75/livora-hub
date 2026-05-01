@@ -1428,6 +1428,16 @@ export type get_admin_promo_code_readResponse = IPromoCodeDto[];
 export type post_admin_promo_code_createResponse = IPromoCodeDto;
 export type patch_admin_promo_code_updateResponse = IPromoCodeDto;
 export type post_admin_promo_code_rule_createResponse = IPromoCodeDto;
+export type get_admin_billing_overviewResponse = {
+  tenantId?: string;
+  tenantName?: string;
+  planName?: string;
+  billingPeriod?: PromoCodeApplicableBillingPeriods | null;
+  nextInvoiceDate?: string;
+  projectedTotalOverageEuro?: number;
+  status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit';
+  topOverageFeature?: string | null;
+}[];
 export type get_admin_audit_logs_readResponse = IAuditLog[];
 export type get_admin_audit_logs_entity_typesResponse = string[];
 export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
@@ -1482,8 +1492,21 @@ export type get_subscription_active_discountResponse = {
   expiresAt?: string | null;
 };
 export type get_subscription_usageResponse = {
+  periodStart?: string;
+  periodEnd?: string;
+  nextInvoiceDate?: string;
+  projectedTotalOverageEuro?: number;
+  totalOverageEuro?: number;
   limits?: {
   featureKey?: string;
+  limit?: number;
+  currentUsage?: number | null;
+  percentUsed?: number | null;
+  status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit' | 'unlimited' | 'unknown';
+  allowOverage?: boolean;
+  overagePricePerUnit?: number | null;
+  overageUnits?: number;
+  projectedOverageEuro?: number;
   limitValue?: number | null;
   overageEnabled?: boolean;
   overagePriceEuro?: number | null;
@@ -1496,9 +1519,6 @@ export type get_subscription_usageResponse = {
   overagePricePerUnit?: number;
   totalAmountEuro?: number;
 }[];
-  totalOverageEuro?: number;
-  periodStart?: string;
-  periodEnd?: string;
 };
 export type get_subscription_payment_methodResponse = {
   brand?: string | null;
