@@ -15,7 +15,7 @@ const navItems = [
   { href: '/tenants', label: 'Tenants', icon: Building2, adminOnly: true },
   { href: '/plans', label: 'Plans', icon: CreditCard, adminOnly: true },
   { href: '/promo-codes', label: 'Codes promo', icon: Tag, adminOnly: true },
-  { href: '/billing', label: 'Facturation', icon: Receipt, adminOnly: true },
+  { href: '/billing', label: 'Facturation', icon: Receipt, adminOnly: false },
   { href: '/features', label: 'Features', icon: Zap, adminOnly: true },
   { href: '/logs', label: 'Logs', icon: ScrollText, adminOnly: true },
   { href: '/roles', label: 'Rôles', icon: Shield, adminOnly: false },

@@ -89,15 +89,19 @@ function SortHeader({
   const Icon = !active ? ArrowDownUp : currentDir === 'asc' ? ArrowUp : ArrowDown;
 
   return (
-    <TableHead className={cn('cursor-pointer select-none', align === 'right' && 'text-right')}>
+    <TableHead
+      className={cn(align === 'right' && 'text-right')}
+      aria-sort={!active ? 'none' : currentDir === 'asc' ? 'ascending' : 'descending'}
+    >
       <button
         type="button"
         onClick={() => onClick(thisKey)}
         className={cn(
-          'inline-flex items-center gap-1 font-semibold',
+          'inline-flex items-center gap-1 font-semibold cursor-pointer select-none',
           align === 'right' && 'flex-row-reverse',
           active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
         )}
+        aria-label={`Trier par ${label}${active ? (currentDir === 'asc' ? ' (croissant)' : ' (décroissant)') : ''}`}
       >
         {label}
         <Icon className="h-3.5 w-3.5" />
@@ -136,8 +140,16 @@ export default function BillingOverviewPage() {
           return direction * (a.planName ?? '').localeCompare(b.planName ?? '', 'fr');
         case 'projected':
           return direction * ((a.projectedTotalOverageEuro ?? 0) - (b.projectedTotalOverageEuro ?? 0));
-        case 'nextInvoice':
-          return direction * ((a.nextInvoiceDate ?? '') > (b.nextInvoiceDate ?? '') ? 1 : -1);
+        case 'nextInvoice': {
+          // Compare numerically so equal/empty dates produce 0 (stable order)
+          // and missing values fall consistently to the end regardless of dir.
+          const aTs = a.nextInvoiceDate ? Date.parse(a.nextInvoiceDate) : NaN;
+          const bTs = b.nextInvoiceDate ? Date.parse(b.nextInvoiceDate) : NaN;
+          if (Number.isNaN(aTs) && Number.isNaN(bTs)) return 0;
+          if (Number.isNaN(aTs)) return 1;
+          if (Number.isNaN(bTs)) return -1;
+          return direction * (aTs - bTs);
+        }
         case 'status':
           return direction * ((STATUS_RANK[a.status ?? ''] ?? 0) - (STATUS_RANK[b.status ?? ''] ?? 0));
         default:
@@ -176,17 +188,26 @@ export default function BillingOverviewPage() {
         <SummaryCard label="Total projeté" value={formatEuro(totalProjected)} tone="info" />
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {(['all', 'over_limit', 'approaching', 'on_track'] as const).map((s) => (
-          <Button
-            key={s}
-            variant={statusFilter === s ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStatusFilter(s)}
-          >
-            {s === 'all' ? 'Tous' : (STATUS_LABEL[s] ?? s)}
-          </Button>
-        ))}
+      <div className="mb-4 flex flex-wrap gap-2" role="radiogroup" aria-label="Filtrer par statut">
+        {(['all', 'over_limit', 'approaching', 'on_track'] as const).map((s) => {
+          const active = statusFilter === s;
+          return (
+            <Button
+              key={s}
+              variant={active ? 'default' : 'outline'}
+              size="sm"
+              role="radio"
+              aria-checked={active}
+              onClick={() => {
+                // Clicking the active non-`all` pill resets to `all` so the
+                // user can clear a filter without hunting for the "Tous" pill.
+                setStatusFilter(active && s !== 'all' ? 'all' : s);
+              }}
+            >
+              {s === 'all' ? 'Tous' : (STATUS_LABEL[s] ?? s)}
+            </Button>
+          );
+        })}
       </div>
 
       <div className="overflow-x-auto rounded-md border">
@@ -292,15 +313,10 @@ function SummaryCard({
   value: number | string;
   tone: 'danger' | 'warning' | 'info';
 }) {
-  const toneClass =
-    tone === 'danger'
-      ? 'border-red-200 bg-red-50 text-red-900'
-      : tone === 'warning'
-        ? 'border-amber-200 bg-amber-50 text-amber-900'
-        : 'border-sky-200 bg-sky-50 text-sky-900';
-
+  // Reuse the central palette so a tone change in action-palette.ts
+  // automatically propagates to this card.
   return (
-    <div className={cn('rounded-md border p-4', toneClass)}>
+    <div className={cn('rounded-md border p-4', STATUS_BADGE[tone])}>
       <p className="text-xs uppercase tracking-wide opacity-70">{label}</p>
       <p className="text-2xl font-semibold mt-1">{value}</p>
     </div>

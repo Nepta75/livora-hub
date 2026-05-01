@@ -62,7 +62,7 @@ pages stay coherent as the hub grows.
 
 Rules:
 - **Archive ≠ Delete**: archive is reversible and uses the `warning` tone; hard delete uses `destructive` and must sit behind its own confirm dialog.
-- **Status badges** use `STATUS_BADGE.active` / `STATUS_BADGE.inactive` (pill-shaped via the base Badge component's `rounded-full`).
+- **Status badges** use `STATUS_BADGE.active` (emerald) / `STATUS_BADGE.inactive` (zinc) / `STATUS_BADGE.warning` (amber, "approaching limit") / `STATUS_BADGE.danger` (red, "over limit / failed billing") / `STATUS_BADGE.info` (sky), pill-shaped via the base Badge component's `rounded-full`.
 - **Confirm dialogs** mirror the action tone — archive confirm uses `CONFIRM_BUTTON.warning`, delete uses shadcn `variant="destructive"`.
 - Do not introduce a new color scale without updating `action-palette.ts` and this section together.
 
