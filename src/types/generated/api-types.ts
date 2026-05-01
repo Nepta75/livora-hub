@@ -1456,6 +1456,7 @@ export type post_admin_billing_run_cronResponse = {
   billed?: number;
   skipped?: number;
   errors?: number;
+  lockHeld?: boolean | null;
 };
 export type get_admin_audit_logs_readResponse = IAuditLog[];
 export type get_admin_audit_logs_entity_typesResponse = string[];

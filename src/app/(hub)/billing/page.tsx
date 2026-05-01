@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { STATUS_BADGE } from '@/lib/action-palette';
+import { CONFIRM_BUTTON, STATUS_BADGE } from '@/lib/action-palette';
 import { featureLabel } from '@/lib/feature-labels';
 import { ArrowDownUp, ArrowDown, ArrowUp, AlertTriangle, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -331,12 +331,16 @@ function PendingRecordsBanner() {
   const handleRun = () => {
     runCron.mutate(undefined, {
       onSuccess: (result) => {
+        if (result.lockHeld) {
+          toast.warning('Une exécution est déjà en cours. Réessayer dans quelques secondes.');
+          return;
+        }
         const billed = result.billed ?? 0;
         const errors = result.errors ?? 0;
         if (errors > 0) {
           toast.warning(`Cron lancé — ${billed} facturé(s), ${errors} erreur(s). Vérifier les logs.`);
         } else if (billed === 0) {
-          toast.info('Cron lancé — aucun enregistrement éligible (verrou ou records dans la fenêtre de grâce).');
+          toast.info('Cron lancé — aucun enregistrement dans la fenêtre éligible.');
         } else {
           toast.success(`Cron lancé — ${billed} enregistrement(s) facturé(s).`);
         }
@@ -348,13 +352,13 @@ function PendingRecordsBanner() {
   };
 
   return (
-    <Alert className="mb-6 border-amber-200 bg-amber-50 text-amber-900">
+    <Alert className={cn('mb-6', STATUS_BADGE.warning)}>
       <AlertTriangle className="h-4 w-4" />
       <AlertTitle className="font-semibold">
         {records.length} enregistrement{records.length > 1 ? 's' : ''} en attente de facturation —{' '}
         {formatEuro(total)}
       </AlertTitle>
-      <AlertDescription className="text-amber-900/90">
+      <AlertDescription className="opacity-90">
         <p className="mb-2">
           {oldestDays > 0
             ? `Le plus ancien aurait dû être facturé il y a ${oldestDays} jour${oldestDays > 1 ? 's' : ''}. `
@@ -370,7 +374,7 @@ function PendingRecordsBanner() {
               <li key={r.recordId} className="flex justify-between gap-4">
                 <span>
                   <strong>{r.tenantName}</strong> — {featureLabel(r.featureKey)} (devait être
-                  facturé le {formatDateLocal(r.shouldHaveBeenBilledOn)})
+                  facturé le {formatDate(r.shouldHaveBeenBilledOn)})
                 </span>
                 <span className="font-mono">{formatEuro(r.totalAmountEuro)}</span>
               </li>
@@ -385,7 +389,7 @@ function PendingRecordsBanner() {
             size="sm"
             onClick={handleRun}
             disabled={runCron.isPending}
-            className="bg-amber-600 hover:bg-amber-700 text-white"
+            className={CONFIRM_BUTTON.warning}
           >
             <Play className="h-3.5 w-3.5 mr-2" />
             {runCron.isPending ? 'Lancement...' : 'Lancer le cron maintenant'}
@@ -394,15 +398,6 @@ function PendingRecordsBanner() {
       </AlertDescription>
     </Alert>
   );
-}
-
-function formatDateLocal(iso: string | undefined): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
 }
 
 function SummaryCard({
