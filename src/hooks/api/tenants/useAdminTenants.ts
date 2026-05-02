@@ -12,7 +12,7 @@ import {
   type UpdateTenantPayload,
   type UpdateTenantUserPayload,
 } from '@/services/admin/tenantsService';
-import type { get_admin_tenant_subscription_invoice_readResponse } from '@/types/generated/api-types';
+import type { GetAdminTenantSubscriptionInvoiceReadResponse } from '@/types/generated/api-types';
 
 export const TENANTS_KEYS = {
   all: ['admin', 'tenants'] as const,
@@ -163,7 +163,7 @@ export function useAdminTenantSubscriptionInvoices(
 ) {
   const { token } = useAuth();
 
-  return useQuery<get_admin_tenant_subscription_invoice_readResponse>({
+  return useQuery<GetAdminTenantSubscriptionInvoiceReadResponse>({
     queryKey: TENANTS_KEYS.subscriptionInvoices(tenantId, filters, page),
     queryFn: () =>
       tenantsService.getSubscriptionInvoices(tenantId, filters, token, {

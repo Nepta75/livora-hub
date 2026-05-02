@@ -1,8 +1,7 @@
 import { ArrowDown, ArrowUp, Check, X } from 'lucide-react';
-import type {
-  PlanVersionDiff,
-  PlanVersionDiffEntry,
-} from '@/services/admin/planVersionsService';
+import type { PlanVersionDiff } from '@/services/admin/planVersionsService';
+
+type PlanVersionDiffEntry = NonNullable<PlanVersionDiff['favorableChanges']>[number];
 import { Badge } from '@/components/ui/badge';
 
 const FEATURE_LABELS: Record<string, string> = {

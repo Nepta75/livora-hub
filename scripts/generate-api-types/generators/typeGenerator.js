@@ -132,6 +132,14 @@ function generateApiResponseTypes(paths, schemas, enumSchemas, inlineEnums) {
       let operationId =
         operation.operationId || `${method}_${path.replace(/\//g, '_').replace(/[{}]/g, '')}`;
       operationId = operationId.replace(/\./g, '_');
+      // Snake-case operationId → PascalCase TypeScript type name. Generated
+      // type ends up as e.g. `GetAdminPlanVersionReadResponse` instead of
+      // `get_admin_plan_version_readResponse`, matching TS convention.
+      const typeName = operationId
+        .split('_')
+        .filter(Boolean)
+        .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+        .join('');
       const responses = operation.responses || {};
       const successResponse = responses['200'] || responses['201'] || responses['204'];
 
@@ -156,7 +164,7 @@ function generateApiResponseTypes(paths, schemas, enumSchemas, inlineEnums) {
               `I${to}`,
             );
           });
-          output += `export type ${operationId}Response = ${responseType};\n`;
+          output += `export type ${typeName}Response = ${responseType};\n`;
         }
       }
     });

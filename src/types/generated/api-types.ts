@@ -767,6 +767,22 @@ export interface IPlanVersion {
   versionNumber: number;
 }
 
+export interface IPlanVersionDiff {
+  favorableChanges: {
+  field: string;
+  from: unknown | null;
+  to: unknown | null;
+}[];
+  unfavorableChanges: {
+  field: string;
+  from: unknown | null;
+  to: unknown | null;
+}[];
+  isFavorable: boolean;
+  isUnfavorable: boolean;
+  hasChanges: boolean;
+}
+
 export interface IPricingConfig {
   id: string;
   tenantId: string;
@@ -1405,23 +1421,23 @@ export interface IWeightPricingTierDto {
 
 
 // API Response Types
-export type get_audit_log_readResponse = IAuditLog[];
-export type get_audit_log_entity_typesResponse = string[];
-export type post_hub_register_confirmResponse = IHubUser;
-export type post_public_registerResponse = {
+export type GetAuditLogReadResponse = IAuditLog[];
+export type GetAuditLogEntityTypesResponse = string[];
+export type PostHubRegisterConfirmResponse = IHubUser;
+export type PostPublicRegisterResponse = {
   checkoutUrl?: string;
   subscriptionId?: string;
   resumeToken?: string;
 };
-export type post_public_register_finalizeResponse = {
+export type PostPublicRegisterFinalizeResponse = {
   token?: string;
 };
-export type post_admin_tenant_impersonateResponse = {
+export type PostAdminTenantImpersonateResponse = {
   token?: string;
 };
-export type get_admin_tenant_impersonation_logsResponse = ImpersonationLog[];
-export type get_admin_tenant_audit_logsResponse = IAuditLog[];
-export type get_admin_tenant_subscription_readResponse = {
+export type GetAdminTenantImpersonationLogsResponse = ImpersonationLog[];
+export type GetAdminTenantAuditLogsResponse = IAuditLog[];
+export type GetAdminTenantSubscriptionReadResponse = {
   id?: string | null;
   tenantId?: string;
   planId?: string | null;
@@ -1451,13 +1467,13 @@ export type get_admin_tenant_subscription_readResponse = {
   versionNumber?: number;
 } | null;
 };
-export type get_admin_tenant_subscription_invoice_readResponse = {
+export type GetAdminTenantSubscriptionInvoiceReadResponse = {
   data?: ISubscriptionInvoice[];
   total?: number;
 };
-export type get_admin_feature_readResponse = IFeature | IFeature[];
-export type get_admin_plan_readResponse = IPlan | IPlan[];
-export type get_admin_plan_subscriptions_readResponse = {
+export type GetAdminFeatureReadResponse = IFeature | IFeature[];
+export type GetAdminPlanReadResponse = IPlan | IPlan[];
+export type GetAdminPlanSubscriptionsReadResponse = {
   id?: string;
   tenantId?: string;
   tenantName?: string;
@@ -1468,25 +1484,76 @@ export type get_admin_plan_subscriptions_readResponse = {
   currentPriceEuroCents?: number | null;
   isOnLatestPrice?: boolean | null;
 }[];
-export type get_admin_plan_versions_readResponse = {
-  id?: string;
-  versionNumber?: number;
-  isFrozen?: boolean;
-  tenantCount?: number;
-  monthlyPriceEuro?: number | null;
-  annualPriceEuro?: number | null;
-  trialDays?: number | null;
-  description?: string | null;
-  ctaLabel?: string | null;
-  changeReason?: string | null;
-  createdAt?: string | null;
-  diffVsPrevious?: { [key: string]: unknown } | null;
+export type GetAdminPlanVersionsReadResponse = {
+  id: string;
+  versionNumber: number;
+  isFrozen: boolean;
+  tenantCount: number;
+  monthlyPriceEuro: number | null;
+  annualPriceEuro: number | null;
+  trialDays: number | null;
+  description: string | null;
+  ctaLabel: string | null;
+  changeReason: string | null;
+  createdAt: string | null;
+  diffVsPrevious: IPlanVersionDiff | null;
 }[];
-export type get_admin_promo_code_readResponse = IPromoCodeDto[];
-export type post_admin_promo_code_createResponse = IPromoCodeDto;
-export type patch_admin_promo_code_updateResponse = IPromoCodeDto;
-export type post_admin_promo_code_rule_createResponse = IPromoCodeDto;
-export type get_admin_billing_overviewResponse = {
+export type GetAdminPlanVersionReadResponse = {
+  id: string;
+  planId: string;
+  planName: string;
+  versionNumber: number;
+  isFrozen: boolean;
+  tenantCount: number;
+  monthlyPriceEuro: number | null;
+  annualPriceEuro: number | null;
+  trialDays: number | null;
+  description: string | null;
+  ctaLabel: string | null;
+  changeReason: string | null;
+  createdAt: string | null;
+  features: {
+  featureKey: string;
+  enabled: boolean | null;
+  limitValue: number | null;
+  overageEnabled: boolean;
+  overagePriceEuro: number | null;
+}[];
+};
+export type GetAdminPlanVersionTenantsReadResponse = {
+  data: {
+  subscriptionId: string;
+  tenantId: string;
+  tenantName: string;
+  status: string;
+  createdAt: string | null;
+}[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+export type PostAdminPlanVersionMigrateCohortResponse = {
+  succeeded: {
+  subscriptionId: string;
+  fromVersionId: string;
+  toVersionId: string;
+}[];
+  failed: {
+  subscriptionId: string;
+  reason: string;
+}[];
+};
+export type PostAdminSubscriptionMigrateVersionResponse = {
+  subscriptionId: string;
+  fromVersionId: string;
+  toVersionId: string;
+  diff: IPlanVersionDiff;
+};
+export type GetAdminPromoCodeReadResponse = IPromoCodeDto[];
+export type PostAdminPromoCodeCreateResponse = IPromoCodeDto;
+export type PatchAdminPromoCodeUpdateResponse = IPromoCodeDto;
+export type PostAdminPromoCodeRuleCreateResponse = IPromoCodeDto;
+export type GetAdminBillingOverviewResponse = {
   tenantId?: string;
   tenantName?: string;
   planName?: string;
@@ -1496,7 +1563,7 @@ export type get_admin_billing_overviewResponse = {
   status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit';
   topOverageFeature?: string | null;
 }[];
-export type get_admin_billing_pending_recordsResponse = {
+export type GetAdminBillingPendingRecordsResponse = {
   recordId?: string;
   tenantId?: string;
   tenantName?: string;
@@ -1510,59 +1577,59 @@ export type get_admin_billing_pending_recordsResponse = {
   overageUnits?: number;
   totalAmountEuro?: number;
 }[];
-export type post_admin_billing_run_cronResponse = {
+export type PostAdminBillingRunCronResponse = {
   billed?: number;
   skipped?: number;
   errors?: number;
   lockHeld?: boolean | null;
 };
-export type get_admin_audit_logs_readResponse = IAuditLog[];
-export type get_admin_audit_logs_entity_typesResponse = string[];
-export type get_global_setting_readResponse = IGlobalSetting[] | IGlobalSetting;
-export type post_global_setting_createResponse = IGlobalSetting;
-export type post_stripe_customer_portalResponse = {
+export type GetAdminAuditLogsReadResponse = IAuditLog[];
+export type GetAdminAuditLogsEntityTypesResponse = string[];
+export type GetGlobalSettingReadResponse = IGlobalSetting[] | IGlobalSetting;
+export type PostGlobalSettingCreateResponse = IGlobalSetting;
+export type PostStripeCustomerPortalResponse = {
   url?: string;
 };
-export type post_organization_createResponse = IOrganization;
-export type post_user_inviteResponse = {
+export type PostOrganizationCreateResponse = IOrganization;
+export type PostUserInviteResponse = {
   user?: IUserRead;
   message?: string;
 };
-export type get_user_get_tenantsResponse = ITenant[];
-export type patch_user_switch_tenantResponse = {
+export type GetUserGetTenantsResponse = ITenant[];
+export type PatchUserSwitchTenantResponse = {
   token?: string;
 };
-export type post_user_resend_invitationResponse = {
+export type PostUserResendInvitationResponse = {
   message?: string;
 };
-export type post_private_customer_createResponse = IPrivateCustomer;
-export type get_private_customer_readResponse = (IPrivateCustomer | {
+export type PostPrivateCustomerCreateResponse = IPrivateCustomer;
+export type GetPrivateCustomerReadResponse = (IPrivateCustomer | {
   data?: IPrivateCustomer[];
   total?: number;
 });
-export type post_order_createResponse = IOrder;
-export type post_order_calculate_tripResponse = ITripSummaryDto;
-export type post_order_calculate_pricingResponse = IPricingSummaryDto;
-export type post_invoice_createResponse = Invoice;
-export type post_quote_createResponse = IQuote;
-export type post_package_category_createResponse = IPackageCategory;
-export type get_package_category_readResponse = (IPackageCategory | {
+export type PostOrderCreateResponse = IOrder;
+export type PostOrderCalculateTripResponse = ITripSummaryDto;
+export type PostOrderCalculatePricingResponse = IPricingSummaryDto;
+export type PostInvoiceCreateResponse = Invoice;
+export type PostQuoteCreateResponse = IQuote;
+export type PostPackageCategoryCreateResponse = IPackageCategory;
+export type GetPackageCategoryReadResponse = (IPackageCategory | {
   data?: IPackageCategory[];
   total?: number;
 });
-export type post_weight_pricing_tier_createResponse = IWeightPricingTier;
-export type get_weight_pricing_tier_readResponse = (IWeightPricingTier | {
+export type PostWeightPricingTierCreateResponse = IWeightPricingTier;
+export type GetWeightPricingTierReadResponse = (IWeightPricingTier | {
   data?: IWeightPricingTier[];
   total?: number;
 });
-export type post_vehicle_createResponse = IVehicle;
-export type post_warehouse_createResponse = IWarehouse;
-export type post_warehouse_order_readResponse = IOrderWarehouseResponseDto[];
-export type post_driver_schedule_createResponse = IDriverSchedule;
-export type get_driver_schedule_readResponse = IDriverSchedule[] | IDriverSchedule;
-export type post_delivery_zone_createResponse = IDeliveryZone;
-export type get_delivery_zone_readResponse = IDeliveryZone[] | IDeliveryZone;
-export type get_subscription_readResponse = ISubscription & {
+export type PostVehicleCreateResponse = IVehicle;
+export type PostWarehouseCreateResponse = IWarehouse;
+export type PostWarehouseOrderReadResponse = IOrderWarehouseResponseDto[];
+export type PostDriverScheduleCreateResponse = IDriverSchedule;
+export type GetDriverScheduleReadResponse = IDriverSchedule[] | IDriverSchedule;
+export type PostDeliveryZoneCreateResponse = IDeliveryZone;
+export type GetDeliveryZoneReadResponse = IDeliveryZone[] | IDeliveryZone;
+export type GetSubscriptionReadResponse = ISubscription & {
   planLatestVersion?: {
   id?: string;
   versionNumber?: number;
@@ -1577,13 +1644,13 @@ export type get_subscription_readResponse = ISubscription & {
   overagePriceEuro?: number | null;
 }[];
 };
-export type get_subscription_active_discountResponse = {
+export type GetSubscriptionActiveDiscountResponse = {
   couponRef?: string | null;
   label?: string | null;
   code?: string | null;
   expiresAt?: string | null;
 };
-export type get_subscription_usageResponse = {
+export type GetSubscriptionUsageResponse = {
   periodStart?: string;
   periodEnd?: string;
   nextInvoiceDate?: string;
@@ -1612,31 +1679,31 @@ export type get_subscription_usageResponse = {
   totalAmountEuro?: number;
 }[];
 };
-export type get_subscription_payment_methodResponse = {
+export type GetSubscriptionPaymentMethodResponse = {
   brand?: string | null;
   last4?: string | null;
   expMonth?: number | null;
   expYear?: number | null;
 };
-export type post_subscription_setup_intentResponse = {
+export type PostSubscriptionSetupIntentResponse = {
   clientSecret?: string;
 };
-export type post_public_activate_accountResponse = {
+export type PostPublicActivateAccountResponse = {
   token?: string;
   message?: string;
 };
-export type post_public_forgot_passwordResponse = {
+export type PostPublicForgotPasswordResponse = {
   message?: string;
 };
-export type post_public_reset_passwordResponse = {
+export type PostPublicResetPasswordResponse = {
   message?: string;
 };
-export type get_public_plan_readResponse = IPlan[];
-export type post_public_contact_createResponse = {
+export type GetPublicPlanReadResponse = IPlan[];
+export type PostPublicContactCreateResponse = {
   message?: string;
 };
-export type get_public_pilot_program_readResponse = IPilotProgramStatus;
-export type post_chat_create_messageResponse = IChatMessage;
-export type get_chat_read_messagesResponse = IChatMessage[];
-export type get_chat_list_conversationsResponse = IChatMessage[];
-export type get_chat_list_tenant_usersResponse = IUser[];
+export type GetPublicPilotProgramReadResponse = IPilotProgramStatus;
+export type PostChatCreateMessageResponse = IChatMessage;
+export type GetChatReadMessagesResponse = IChatMessage[];
+export type GetChatListConversationsResponse = IChatMessage[];
+export type GetChatListTenantUsersResponse = IUser[];

@@ -1,11 +1,11 @@
 import { httpClient } from '@/services/http/httpClient';
-import type { get_admin_plan_subscriptions_readResponse } from '@/types/generated/api-types';
+import type { GetAdminPlanSubscriptionsReadResponse } from '@/types/generated/api-types';
 
-export type PlanSubscriptionRow = get_admin_plan_subscriptions_readResponse[number];
+export type PlanSubscriptionRow = GetAdminPlanSubscriptionsReadResponse[number];
 
 export const planSubscriptionsService = {
   getByPlan: (planId: string, token: string) =>
-    httpClient.get<get_admin_plan_subscriptions_readResponse>(
+    httpClient.get<GetAdminPlanSubscriptionsReadResponse>(
       `/plan/${planId}/subscriptions`,
       { token },
     ),

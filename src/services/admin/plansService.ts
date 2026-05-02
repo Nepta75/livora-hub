@@ -2,10 +2,10 @@ import { httpClient } from '@/services/http/httpClient';
 import type {
   IFeature,
   IPlan,
-  get_admin_tenant_subscription_readResponse,
+  GetAdminTenantSubscriptionReadResponse,
 } from '@/types/generated/api-types';
 
-export type TenantSubscriptionRead = get_admin_tenant_subscription_readResponse;
+export type TenantSubscriptionRead = GetAdminTenantSubscriptionReadResponse;
 
 export interface CreatePlanPayload {
   name: string;

@@ -6,7 +6,7 @@ import type {
   ISubscriptionInvoice,
   ITenant,
   IUser,
-  get_admin_tenant_subscription_invoice_readResponse,
+  GetAdminTenantSubscriptionInvoiceReadResponse,
 } from '@/types/generated/api-types';
 
 export type { IAuditLog, ImpersonationLog, ISubscriptionInvoice };
@@ -143,7 +143,7 @@ export const tenantsService = {
       }
     });
     const qs = query.toString();
-    return httpClient.get<get_admin_tenant_subscription_invoice_readResponse>(
+    return httpClient.get<GetAdminTenantSubscriptionInvoiceReadResponse>(
       `/tenant/${tenantId}/subscription-invoice${qs ? `?${qs}` : ''}`,
       { token },
     );
