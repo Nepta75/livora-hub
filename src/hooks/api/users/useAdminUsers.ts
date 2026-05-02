@@ -1,6 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { usersService, type CreateUserPayload, type UpdateUserPayload, type UpdatePasswordPayload, type UpdateRolesPayload } from '@/services/admin/usersService';
+import { usersService } from '@/services/admin/usersService';
+import type {
+  IHubUserDto,
+  IUpdateHubUserDto,
+  IUpdateHubUserRolesDto,
+  IUpdatePasswordDto,
+} from '@/types/generated/api-types';
 
 export const USERS_KEYS = {
   all: ['admin', 'users'] as const,
@@ -31,7 +37,7 @@ export function useCreateAdminUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateUserPayload) => usersService.create(data, token),
+    mutationFn: (data: IHubUserDto) => usersService.create(data, token),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: USERS_KEYS.all });
     },
@@ -43,7 +49,7 @@ export function useUpdateAdminUser(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateUserPayload) => usersService.update(id, data, token),
+    mutationFn: (data: IUpdateHubUserDto) => usersService.update(id, data, token),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: USERS_KEYS.all });
       void queryClient.invalidateQueries({ queryKey: USERS_KEYS.detail(id) });
@@ -55,7 +61,7 @@ export function useUpdateAdminUserPassword(id: string) {
   const { token } = useAuth();
 
   return useMutation({
-    mutationFn: (data: UpdatePasswordPayload) => usersService.updatePassword(id, data, token),
+    mutationFn: (data: IUpdatePasswordDto) => usersService.updatePassword(id, data, token),
   });
 }
 
@@ -64,7 +70,7 @@ export function useUpdateAdminUserRoles(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateRolesPayload) => usersService.updateRoles(id, data, token),
+    mutationFn: (data: IUpdateHubUserRolesDto) => usersService.updateRoles(id, data, token),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: USERS_KEYS.all });
       void queryClient.invalidateQueries({ queryKey: USERS_KEYS.detail(id) });

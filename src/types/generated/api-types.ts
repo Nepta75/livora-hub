@@ -1235,6 +1235,10 @@ export interface IUpdateHubUserDto {
   email: string;
 }
 
+export interface IUpdateHubUserRolesDto {
+  roles: HubUserRoles[];
+}
+
 export interface IUpdatePasswordDto {
   password: string;
 }

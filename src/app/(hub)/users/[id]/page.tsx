@@ -17,6 +17,7 @@ import {
   type UpdatePasswordFormValues,
 } from '@/validators/users/validator';
 import { HUB_ROLES } from '@/constants/roles';
+import type { HubUserRoles } from '@/types/generated/api-types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,7 +77,7 @@ export default function EditUserPage() {
     }
   };
 
-  const onUpdateRole = async (role: string | null) => {
+  const onUpdateRole = async (role: HubUserRoles | null) => {
     if (!role) return;
     try {
       await updateRolesMutation.mutateAsync({ roles: [role] });
@@ -149,7 +150,7 @@ export default function EditUserPage() {
         <CardContent className="space-y-3">
           <Select
             defaultValue={currentRole}
-            onValueChange={onUpdateRole}
+            onValueChange={(value) => onUpdateRole((value as HubUserRoles) ?? null)}
             disabled={updateRolesMutation.isPending}
           >
             <SelectTrigger>
