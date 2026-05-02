@@ -58,6 +58,7 @@ import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, S
 import { Badge } from '@/components/ui/badge';
 import type { IUser } from '@/types/generated/api-types';
 import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
+import { MigrateSubscriptionDialog } from '@/components/plans/MigrateSubscriptionDialog';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
 
 const ACTION_LABELS: Record<string, string> = {
@@ -256,8 +257,19 @@ function formatFrDate(iso?: string | null): string {
 
 function SubscriptionSection({ tenantId }: { tenantId: string }) {
   const { data: subscription, isLoading } = useTenantSubscription(tenantId);
+  const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
 
   const hasSubscription = !!subscription && !!subscription.id;
+  // The fields below are returned by the backend (cf. AdminSubscriptionEnrichmentService)
+  // but the generated TS types haven't been regenerated yet — coerce locally.
+  const planVersion = (subscription as unknown as {
+    planVersion?: { id: string; versionNumber: number; signedAt: string | null } | null;
+  } | undefined)?.planVersion ?? null;
+  const planLatestVersion = (subscription as unknown as {
+    planLatestVersion?: { id: string; versionNumber: number } | null;
+  } | undefined)?.planLatestVersion ?? null;
+  const isOnLatestVersion =
+    planVersion && planLatestVersion ? planVersion.id === planLatestVersion.id : null;
   const status = subscription?.status ?? '';
   const invoices = subscription?.recentInvoices ?? [];
   const isOnLatestPrice = subscription?.isOnLatestPrice ?? null;
@@ -358,7 +370,45 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                   <p>{formatFrDate(subscription.startedAt)}</p>
                 </div>
               )}
+              {planVersion && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Version du plan</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="secondary" className="font-mono">
+                      v{planVersion.versionNumber}
+                    </Badge>
+                    {isOnLatestVersion === false && planLatestVersion && (
+                      <Badge
+                        variant="outline"
+                        className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 text-xs"
+                        title={`Version actuelle disponible : v${planLatestVersion.versionNumber}`}
+                      >
+                        v{planLatestVersion.versionNumber} disponible
+                      </Badge>
+                    )}
+                    {subscription.planId && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMigrateDialogOpen(true)}
+                      >
+                        Migrer
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+
+            {subscription.id && subscription.planId && (
+              <MigrateSubscriptionDialog
+                open={migrateDialogOpen}
+                onOpenChange={setMigrateDialogOpen}
+                subscriptionId={subscription.id}
+                planId={subscription.planId}
+                currentPlanVersionId={planVersion?.id ?? null}
+              />
+            )}
 
             <div>
               <h4 className="text-sm font-semibold mb-2">Factures récentes</h4>

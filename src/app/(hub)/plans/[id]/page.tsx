@@ -13,6 +13,7 @@ import { usePlanSubscriptions } from '@/hooks/api/plans/usePlanSubscriptions';
 import { useAdminAuditLogs } from '@/hooks/api/auditLogs/useAdminAuditLogs';
 import { AuditLogCard } from '@/components/auditLogs/AuditLogCard';
 import { PlanForm } from '@/components/plans/PlanForm';
+import { PlanVersionTimeline } from '@/components/plans/PlanVersionTimeline';
 import { buildPlanFeaturesPayload, type PlanFeatureState } from '@/components/plans/PlanFeaturesEditor';
 import type { PlanFormValues } from '@/validators/plans/validator';
 import type { PlanType } from '@/types/generated/api-types';
@@ -354,6 +355,7 @@ export default function EditPlanPage() {
         isPending={updateMutation.isPending}
         submitLabel="Enregistrer les modifications"
       />
+      <PlanVersionTimeline planId={id} />
       <PlanSubscriptionsCard planId={id} />
       <PlanHistoryCard planId={id} />
 
