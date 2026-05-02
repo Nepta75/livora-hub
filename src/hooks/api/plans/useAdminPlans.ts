@@ -6,10 +6,8 @@ import {
   plansService,
   featuresService,
   subscriptionsService,
-  type CreatePlanPayload,
-  type UpdatePlanPayload,
 } from '@/services/admin/plansService';
-import type { IPlan } from '@/types/generated/api-types';
+import type { IPlan, IPlanDto } from '@/types/generated/api-types';
 
 export const PLANS_KEYS = {
   all: ['admin', 'plans'] as const,
@@ -48,7 +46,7 @@ export function useCreateAdminPlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreatePlanPayload) => plansService.create(data, token),
+    mutationFn: (data: IPlanDto) => plansService.create(data, token),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PLANS_KEYS.all });
     },
@@ -60,7 +58,7 @@ export function useUpdateAdminPlan(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdatePlanPayload) => plansService.update(id, data, token),
+    mutationFn: (data: IPlanDto) => plansService.update(id, data, token),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PLANS_KEYS.all });
       void queryClient.invalidateQueries({ queryKey: PLANS_KEYS.detail(id) });

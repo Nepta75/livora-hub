@@ -1,9 +1,14 @@
 'use client';
 
-import type { IFeature, IPlanFeature } from '@/types/generated/api-types';
+import type {
+  IFeature,
+  IPlanFeature,
+  IPlanFeatureDto,
+  PlanFeatureKey,
+} from '@/types/generated/api-types';
 
 export interface PlanFeatureState {
-  featureKey: string;
+  featureKey: PlanFeatureKey;
   featureType: string;
   limitValue: number;
   overageEnabled: boolean;
@@ -43,9 +48,10 @@ export function initFeaturesState(
 ): PlanFeatureState[] {
   return features.map((feature) => {
     const existing = existingFeatures?.find((pf) => pf.feature?.key === feature.key);
+    const featureKey = feature.key as PlanFeatureKey;
     if (feature.type === 'boolean') {
       return {
-        featureKey: feature.key,
+        featureKey,
         featureType: 'boolean',
         limitValue: 0,
         overageEnabled: false,
@@ -54,7 +60,7 @@ export function initFeaturesState(
       };
     }
     return {
-      featureKey: feature.key,
+      featureKey,
       featureType: 'limit',
       limitValue: existing?.limitValue ?? 0,
       overageEnabled: existing?.overageEnabled ?? false,
@@ -64,7 +70,7 @@ export function initFeaturesState(
   });
 }
 
-export function buildPlanFeaturesPayload(planFeatures: PlanFeatureState[]) {
+export function buildPlanFeaturesPayload(planFeatures: PlanFeatureState[]): IPlanFeatureDto[] {
   return planFeatures.map((f) => ({
     featureKey: f.featureKey,
     enabled: f.featureType === 'boolean' ? f.enabled : undefined,

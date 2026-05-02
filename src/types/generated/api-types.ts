@@ -732,8 +732,6 @@ export interface IPlanDto {
   isFeatured?: boolean;
   ctaLabel?: string | null;
   planFeatures?: IPlanFeatureDto[] | null;
-  visible: boolean;
-  featured: boolean;
 }
 
 export interface IPlanFeature {
