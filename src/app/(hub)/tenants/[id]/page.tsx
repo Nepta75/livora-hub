@@ -260,14 +260,8 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
   const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
 
   const hasSubscription = !!subscription && !!subscription.id;
-  // The fields below are returned by the backend (cf. AdminSubscriptionEnrichmentService)
-  // but the generated TS types haven't been regenerated yet — coerce locally.
-  const planVersion = (subscription as unknown as {
-    planVersion?: { id: string; versionNumber: number; signedAt: string | null } | null;
-  } | undefined)?.planVersion ?? null;
-  const planLatestVersion = (subscription as unknown as {
-    planLatestVersion?: { id: string; versionNumber: number } | null;
-  } | undefined)?.planLatestVersion ?? null;
+  const planVersion = subscription?.planVersion ?? null;
+  const planLatestVersion = subscription?.planLatestVersion ?? null;
   const isOnLatestVersion =
     planVersion && planLatestVersion ? planVersion.id === planLatestVersion.id : null;
   const status = subscription?.status ?? '';

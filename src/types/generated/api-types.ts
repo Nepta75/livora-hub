@@ -21,6 +21,7 @@ export type DriverScheduleStatus = "planned" | "active" | "completed" | "cancell
 export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" | "unavailable";
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
 export type GlobalSettingPricingType = "distance" | "city";
+export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
@@ -382,6 +383,14 @@ export interface IHubUser {
   roles?: string[];
 }
 
+export interface IHubUserDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  roles?: HubUserRoles[];
+}
+
 export interface ImpersonationLog {
   id?: string;
   hubUserEmail?: string;
@@ -457,6 +466,20 @@ export interface InvoiceDto {
   orderIds: string[];
   customerId: string;
   customerType: OrderCustomerType;
+}
+
+export interface IMigrateCohortDto {
+  subscriptionIds?: string[];
+  tenantConsentObtainedAt?: string | null;
+  reason?: string | null;
+  tenantConsentObtainedAtImmutable?: string | null;
+}
+
+export interface IMigrateSubscriptionVersionDto {
+  targetPlanVersionId: string;
+  tenantConsentObtainedAt?: string | null;
+  reason?: string | null;
+  tenantConsentObtainedAtImmutable?: string | null;
 }
 
 export interface IOrder {
@@ -739,6 +762,11 @@ export interface IPlanFeatureDto {
   overagePriceEuro?: number | null;
 }
 
+export interface IPlanVersion {
+  id: string;
+  versionNumber: number;
+}
+
 export interface IPricingConfig {
   id: string;
   tenantId: string;
@@ -992,6 +1020,7 @@ export interface ISubscription {
   id: string;
   tenant?: ITenant4 | null;
   plan?: IPlan2 | null;
+  planVersion: IPlanVersion;
   source: string;
   status: string;
   trialEndsAt?: string | null;
@@ -1182,6 +1211,12 @@ export interface ITripSummaryDto {
   trips: ITripDto[];
   totalDistance: number;
   totalCredit: number;
+}
+
+export interface IUpdateHubUserDto {
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 export interface IUpdatePasswordDto {
@@ -1406,6 +1441,15 @@ export type get_admin_tenant_subscription_readResponse = {
   paidAt?: string | null;
   status?: string | null;
 }[];
+  planVersion?: {
+  id?: string;
+  versionNumber?: number;
+  signedAt?: string | null;
+};
+  planLatestVersion?: {
+  id?: string;
+  versionNumber?: number;
+} | null;
 };
 export type get_admin_tenant_subscription_invoice_readResponse = {
   data?: ISubscriptionInvoice[];
@@ -1423,6 +1467,20 @@ export type get_admin_plan_subscriptions_readResponse = {
   endedAt?: string | null;
   currentPriceEuroCents?: number | null;
   isOnLatestPrice?: boolean | null;
+}[];
+export type get_admin_plan_versions_readResponse = {
+  id?: string;
+  versionNumber?: number;
+  isFrozen?: boolean;
+  tenantCount?: number;
+  monthlyPriceEuro?: number | null;
+  annualPriceEuro?: number | null;
+  trialDays?: number | null;
+  description?: string | null;
+  ctaLabel?: string | null;
+  changeReason?: string | null;
+  createdAt?: string | null;
+  diffVsPrevious?: { [key: string]: unknown } | null;
 }[];
 export type get_admin_promo_code_readResponse = IPromoCodeDto[];
 export type post_admin_promo_code_createResponse = IPromoCodeDto;
@@ -1504,7 +1562,21 @@ export type post_driver_schedule_createResponse = IDriverSchedule;
 export type get_driver_schedule_readResponse = IDriverSchedule[] | IDriverSchedule;
 export type post_delivery_zone_createResponse = IDeliveryZone;
 export type get_delivery_zone_readResponse = IDeliveryZone[] | IDeliveryZone;
-export type get_subscription_readResponse = ISubscription;
+export type get_subscription_readResponse = ISubscription & {
+  planLatestVersion?: {
+  id?: string;
+  versionNumber?: number;
+} | null;
+  signedAt?: string | null;
+  effectiveFeatures?: {
+  featureKey?: string;
+  type?: 'boolean' | 'limit';
+  enabled?: boolean | null;
+  limitValue?: number | null;
+  overageEnabled?: boolean;
+  overagePriceEuro?: number | null;
+}[];
+};
 export type get_subscription_active_discountResponse = {
   couponRef?: string | null;
   label?: string | null;
