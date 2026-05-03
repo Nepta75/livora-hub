@@ -423,7 +423,7 @@ export interface Invoice {
   tenantEmail: string;
   tenantLogo?: string | null;
   tenantSiretNumber: string;
-  tenantVatNumber: string;
+  tenantVatNumber?: string | null;
   tenantRCS: string;
   customerName: string;
   customerEmail: string;
@@ -889,6 +889,12 @@ export interface IPromoCodeRuleDto {
   createdAt: string;
 }
 
+export interface IPromoPreviewDto {
+  code: string;
+  planSlug?: string | null;
+  billingPeriod: PromoCodeApplicableBillingPeriods;
+}
+
 export interface IQuote {
   id: string;
   tenant: ITenant;
@@ -912,7 +918,7 @@ export interface IQuote {
   tenantEmail: string;
   tenantLogo?: string | null;
   tenantSiretNumber: string;
-  tenantVatNumber: string;
+  tenantVatNumber?: string | null;
   tenantRCS: string;
   customerName: string;
   customerEmail: string;
@@ -956,7 +962,7 @@ export interface IQuoteVersion {
   tenantPhone?: string | null;
   tenantEmail: string;
   tenantSiretNumber: string;
-  tenantVatNumber: string;
+  tenantVatNumber?: string | null;
   tenantRCS: string;
   customerName: string;
   customerAddress: string;
@@ -1002,6 +1008,10 @@ export interface IResetPasswordDto {
   password: string;
 }
 
+export interface IResumeCheckoutDto {
+  promoCode?: string | null;
+}
+
 export interface ISetDefaultPaymentMethodDto {
   paymentMethodId?: string;
 }
@@ -1028,6 +1038,12 @@ export interface IStoragePricingTier {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
+}
+
+export interface ISubscribeToPlanDto {
+  planSlug: string;
+  billingPeriod: PromoCodeApplicableBillingPeriods;
+  promoCode?: string | null;
 }
 
 export interface ISubscription {
@@ -1136,7 +1152,7 @@ export interface ITenant {
   siretNumber: string;
   rcsCity: string;
   address?: IAddress | null;
-  vatNumber: string;
+  vatNumber?: string | null;
   defaultBankDetail?: IBankDetail | null;
   createdAt: string;
   updatedAt: string;
@@ -1200,11 +1216,20 @@ export interface ITenantRegisterPlanDto {
   billingPeriod?: PromoCodeApplicableBillingPeriods;
 }
 
+export interface ITenantRegisterStartDto {
+  email: string;
+}
+
 export interface ITenantRegisterUserDto {
   firstName?: string;
   lastName?: string;
   email?: string;
   password?: string;
+}
+
+export interface ITenantRegisterVerifyCodeDto {
+  email: string;
+  otp: string;
 }
 
 export interface ITimeSlotDto {
@@ -1426,6 +1451,15 @@ export interface IWeightPricingTierDto {
 export type GetAuditLogReadResponse = IAuditLog[];
 export type GetAuditLogEntityTypesResponse = string[];
 export type PostHubRegisterConfirmResponse = IHubUser;
+export type PostPublicRegisterStartResponse = {
+  alreadyVerified?: boolean;
+  userExists?: boolean | null;
+  message?: string;
+};
+export type PostPublicRegisterVerifyCodeResponse = {
+  message?: string;
+  userExists?: boolean;
+};
 export type PostPublicRegisterResponse = {
   checkoutUrl?: string;
   subscriptionId?: string;
@@ -1652,6 +1686,22 @@ export type GetSubscriptionActiveDiscountResponse = {
   code?: string | null;
   expiresAt?: string | null;
 };
+export type PostSubscriptionResumeCheckoutResponse = {
+  url?: string;
+};
+export type PostSubscriptionSubscribeToPlanResponse = {
+  url?: string;
+};
+export type PostSubscriptionPromoPreviewResponse = {
+  code?: string;
+  type?: string;
+  percentOff?: number | null;
+  amountOff?: number | null;
+  currency?: string | null;
+  duration?: string | null;
+  durationInMonths?: number | null;
+  trialDays?: number | null;
+};
 export type GetSubscriptionUsageResponse = {
   periodStart?: string;
   periodEnd?: string;
@@ -1705,6 +1755,16 @@ export type PostPublicContactCreateResponse = {
   message?: string;
 };
 export type GetPublicPilotProgramReadResponse = IPilotProgramStatus;
+export type PostPublicPromoPreviewResponse = {
+  code?: string;
+  type?: string;
+  percentOff?: number | null;
+  amountOff?: number | null;
+  currency?: string | null;
+  duration?: string | null;
+  durationInMonths?: number | null;
+  trialDays?: number | null;
+};
 export type PostChatCreateMessageResponse = IChatMessage;
 export type GetChatReadMessagesResponse = IChatMessage[];
 export type GetChatListConversationsResponse = IChatMessage[];

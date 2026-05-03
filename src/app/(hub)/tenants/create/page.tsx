@@ -40,20 +40,24 @@ export default function CreateTenantPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<CreateTenantFormValues>({
     resolver: yupResolver(createTenantSchema),
     defaultValues: {
-      name: '', email: '', phone: '', siretNumber: '', rcsCity: '', vatNumber: '',
+      name: '', email: '', phone: '', siretNumber: '', rcsCity: '', vatExempt: false, vatNumber: '',
       address: { name: '', streetNumber: '', street: '', postalCode: '', city: '', country: 'France' },
       defaultBankDetail: { bankLabel: '', bankName: '', accountHolderName: '', iban: '', bic: '', bankCode: '', accountNumber: '' },
     },
   });
 
+  const vatExempt = watch('vatExempt');
+
   const onSubmit = async (values: CreateTenantFormValues) => {
     try {
       const payload = {
         ...values,
+        vatNumber: values.vatExempt ? '' : values.vatNumber,
         address: {
           ...values.address,
           type: 'billing' as const,
@@ -101,9 +105,22 @@ export default function CreateTenantPage() {
             <Field label="Ville RCS" id="rcsCity" error={errors.rcsCity?.message}>
               <Input id="rcsCity" {...register('rcsCity')} placeholder="Paris" />
             </Field>
-            <Field label="Numéro de TVA" id="vatNumber" error={errors.vatNumber?.message}>
-              <Input id="vatNumber" {...register('vatNumber')} placeholder="FR12345678901" />
-            </Field>
+            <div className="sm:col-span-2 flex items-center gap-2">
+              <input
+                id="vatExempt"
+                type="checkbox"
+                {...register('vatExempt')}
+                className="h-4 w-4 rounded border-zinc-300"
+              />
+              <Label htmlFor="vatExempt" className="font-normal">
+                Franchise de TVA (auto-entrepreneur, art. 293 B du CGI)
+              </Label>
+            </div>
+            {!vatExempt && (
+              <Field label="Numéro de TVA" id="vatNumber" error={errors.vatNumber?.message}>
+                <Input id="vatNumber" {...register('vatNumber')} placeholder="FR12345678901" />
+              </Field>
+            )}
           </CardContent>
         </Card>
 

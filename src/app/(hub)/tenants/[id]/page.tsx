@@ -491,6 +491,7 @@ export default function TenantDetailPage() {
       phone: '',
       siretNumber: tenant.siretNumber ?? '',
       rcsCity: tenant.rcsCity ?? '',
+      vatExempt: !tenant.vatNumber,
       vatNumber: tenant.vatNumber ?? '',
       address: {
         name: tenant.address?.name ?? '',
@@ -517,6 +518,7 @@ export default function TenantDetailPage() {
     try {
       const payload = {
         ...values,
+        vatNumber: values.vatExempt ? '' : values.vatNumber,
         address: {
           ...values.address,
           type: 'billing' as const,
@@ -630,9 +632,22 @@ export default function TenantDetailPage() {
               <Field label="Ville RCS" id="edit-rcsCity" error={editTenantForm.formState.errors.rcsCity?.message}>
                 <Input id="edit-rcsCity" {...editTenantForm.register('rcsCity')} />
               </Field>
-              <Field label="Numéro de TVA" id="edit-vatNumber" error={editTenantForm.formState.errors.vatNumber?.message}>
-                <Input id="edit-vatNumber" {...editTenantForm.register('vatNumber')} />
-              </Field>
+              <div className="sm:col-span-2 flex items-center gap-2">
+                <input
+                  id="edit-vatExempt"
+                  type="checkbox"
+                  {...editTenantForm.register('vatExempt')}
+                  className="h-4 w-4 rounded border-zinc-300"
+                />
+                <Label htmlFor="edit-vatExempt" className="font-normal">
+                  Franchise de TVA (auto-entrepreneur, art. 293 B du CGI)
+                </Label>
+              </div>
+              {!editTenantForm.watch('vatExempt') && (
+                <Field label="Numéro de TVA" id="edit-vatNumber" error={editTenantForm.formState.errors.vatNumber?.message}>
+                  <Input id="edit-vatNumber" {...editTenantForm.register('vatNumber')} />
+                </Field>
+              )}
             </CardContent>
           </Card>
 
@@ -735,7 +750,11 @@ export default function TenantDetailPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">TVA</span>
-              <span className="font-mono">{tenant.vatNumber}</span>
+              <span className="font-mono">
+                {tenant.vatNumber || (
+                  <span className="text-muted-foreground italic">Franchise (art. 293 B CGI)</span>
+                )}
+              </span>
             </div>
             {tenant.rcsCity && (
               <div className="flex justify-between">

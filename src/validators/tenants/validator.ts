@@ -10,7 +10,15 @@ export const createTenantSchema = yup.object({
     .length(14, 'Le SIRET doit contenir 14 chiffres')
     .matches(/^\d{14}$/, 'Le SIRET doit contenir uniquement des chiffres'),
   rcsCity: yup.string().required('Ville RCS requise'),
-  vatNumber: yup.string().required('Numéro de TVA requis'),
+  vatExempt: yup.boolean().required(),
+  vatNumber: yup
+    .string()
+    .defined()
+    .when('vatExempt', {
+      is: false,
+      then: schema => schema.required('Numéro de TVA requis'),
+      otherwise: schema => schema,
+    }),
 
   address: yup.object({
     name: yup.string().required('Libellé adresse requis'),
