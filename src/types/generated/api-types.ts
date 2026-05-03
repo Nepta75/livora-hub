@@ -94,6 +94,13 @@ export interface IAddressMandatoryDto {
   fullAddress: string;
 }
 
+export interface IAddTenantDto {
+  company: ITenantRegisterCompanyDto;
+  plan: ITenantRegisterPlanDto;
+  promoCode?: string | null;
+  acceptedTermsAt?: string;
+}
+
 export interface IAdminReplacePromoCodeDto {
   code?: string;
   reason?: string;
@@ -1305,7 +1312,6 @@ export interface IUser {
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
-  roles?: string[];
   impersonated?: boolean;
   impersonatedByEmail?: string | null;
   impersonatedByName?: string | null;
@@ -1318,7 +1324,8 @@ export interface IUser {
   invitationTokenValid: boolean;
   passwordResetTokenValid: boolean;
   tenants: ITenant[];
-  admin: boolean;
+  roles: string[];
+  rolesForTenant: string[];
   auditIdentifier: string;
   userName: string;
   salt?: string | null;
@@ -1340,7 +1347,6 @@ export interface IUserRead {
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
-  roles?: string[];
 }
 
 export interface IUserTenant {
@@ -1351,6 +1357,7 @@ export interface IUserTenantRead {
   id: string;
   user: IUser;
   tenant: ITenant;
+  roles?: string[];
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1739,6 +1746,11 @@ export type GetSubscriptionPaymentMethodResponse = {
 };
 export type PostSubscriptionSetupIntentResponse = {
   clientSecret?: string;
+};
+export type PostMeAddTenantResponse = {
+  checkoutUrl?: string;
+  subscriptionId?: string;
+  tenantId?: string;
 };
 export type PostPublicActivateAccountResponse = {
   token?: string;
