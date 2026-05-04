@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { notFound } from 'next/navigation';
 import { toast } from 'sonner';
 import { AlertTriangle, Zap } from 'lucide-react';
 import { useAdvanceBilling } from '@/hooks/api/devTools/useAdvanceBilling';
@@ -16,10 +17,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+const IS_LIVE_MODE = process.env.NEXT_PUBLIC_STRIPE_MODE === 'live';
+
 export default function DevToolsPage() {
   const { userRoles } = useAuth();
   const advanceMutation = useAdvanceBilling();
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // Defense in depth — sidebar already hides the entry, but a direct URL
+  // hit on a prod build should 404 rather than render a button that would
+  // 403 anyway.
+  if (IS_LIVE_MODE) {
+    notFound();
+  }
 
   if (!userRoles?.isAdmin) {
     return (

@@ -9,6 +9,11 @@ import { Users, Building2, Shield, LayoutDashboard, LogOut, X, CreditCard, Zap, 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
+// Dev tools are gated to non-live Stripe environments — backend already
+// refuses POST /admin/dev-tools/advance-billing when APP_ENV=prod, this
+// just hides the entry point so a prod admin never sees a useless button.
+const IS_LIVE_MODE = process.env.NEXT_PUBLIC_STRIPE_MODE === 'live';
+
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard, adminOnly: false },
   { href: '/users', label: 'Utilisateurs', icon: Users, adminOnly: false },
@@ -19,7 +24,9 @@ const navItems = [
   { href: '/features', label: 'Features', icon: Zap, adminOnly: true },
   { href: '/logs', label: 'Logs', icon: ScrollText, adminOnly: true },
   { href: '/roles', label: 'Rôles', icon: Shield, adminOnly: false },
-  { href: '/dev-tools', label: 'Dev Tools', icon: Wrench, adminOnly: true },
+  ...(IS_LIVE_MODE
+    ? []
+    : [{ href: '/dev-tools', label: 'Dev Tools', icon: Wrench, adminOnly: true }]),
 ];
 
 interface SidebarProps {
