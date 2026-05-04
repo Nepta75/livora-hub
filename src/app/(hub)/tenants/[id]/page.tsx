@@ -56,6 +56,7 @@ import {
 } from '@/components/ui/table';
 import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, ScrollText, ChevronDown, ChevronRight, ClipboardList, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { STATUS_BADGE } from '@/lib/action-palette';
 import type { IUser } from '@/types/generated/api-types';
 import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
 import { MigrateSubscriptionDialog } from '@/components/plans/MigrateSubscriptionDialog';
@@ -389,6 +390,29 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                         Migrer
                       </Button>
                     )}
+                  </div>
+                </div>
+              )}
+              {subscription.appliedPromoCode && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Code promo</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="font-mono">
+                      {subscription.appliedPromoCode.code}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={`${
+                        subscription.appliedPromoCode.type === 'trial'
+                          ? STATUS_BADGE.info
+                          : STATUS_BADGE.active
+                      } text-xs`}
+                    >
+                      {subscription.appliedPromoCode.type === 'trial' ? 'Essai' : 'Réduction'}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {formatFrDate(subscription.appliedPromoCode.redeemedAt)}
+                    </span>
                   </div>
                 </div>
               )}

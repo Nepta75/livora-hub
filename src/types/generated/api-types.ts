@@ -1509,7 +1509,24 @@ export type GetAdminTenantSubscriptionReadResponse = {
   id?: string;
   versionNumber?: number;
 } | null;
+  appliedPromoCode?: {
+  code: string;
+  type: 'discount' | 'trial';
+  redeemedAt: string;
+  amountDiscountedCents: number;
+  currency: string;
+} | null;
 };
+export type GetAdminPromoCodeRedemptionReadResponse = {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  tenantEmail: string;
+  redeemedAt: string;
+  amountDiscountedCents: number;
+  currency: string;
+  provider: string;
+}[];
 export type GetAdminTenantSubscriptionInvoiceReadResponse = {
   data?: ISubscriptionInvoice[];
   total?: number;

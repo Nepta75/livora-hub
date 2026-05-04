@@ -9,6 +9,8 @@ import type {
 
 export const PROMO_CODES_KEYS = {
   all: ['admin', 'promo-codes'] as const,
+  redemptions: (promoCodeId: string) =>
+    ['admin', 'promo-codes', promoCodeId, 'redemptions'] as const,
 };
 
 export function useAdminPromoCodes() {
@@ -17,6 +19,18 @@ export function useAdminPromoCodes() {
   return useQuery({
     queryKey: PROMO_CODES_KEYS.all,
     queryFn: () => promoCodesService.getAll(token),
+  });
+}
+
+export function useAdminPromoCodeRedemptions(promoCodeId: string | null) {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: PROMO_CODES_KEYS.redemptions(promoCodeId ?? ''),
+    // `enabled` short-circuits the call when promoCodeId is null, so the
+    // non-null assertion is the React Query idiom.
+    queryFn: () => promoCodesService.getRedemptions(promoCodeId!, token),
+    enabled: !!promoCodeId,
   });
 }
 

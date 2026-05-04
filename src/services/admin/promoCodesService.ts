@@ -1,5 +1,6 @@
 import { httpClient } from '@/services/http/httpClient';
 import type {
+  GetAdminPromoCodeRedemptionReadResponse,
   ICreatePromoCodeDto,
   ICreatePromoCodeRuleDto,
   IPromoCodeDto,
@@ -8,6 +9,12 @@ import type {
 
 export const promoCodesService = {
   getAll: (token: string) => httpClient.get<IPromoCodeDto[]>('/promo-code', { token }),
+
+  getRedemptions: (promoCodeId: string, token: string) =>
+    httpClient.get<GetAdminPromoCodeRedemptionReadResponse>(
+      `/promo-code/${promoCodeId}/redemptions`,
+      { token },
+    ),
 
   create: (data: ICreatePromoCodeDto, token: string) =>
     httpClient.post<IPromoCodeDto>('/promo-code', data, { token }),

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Archive, Pencil, Plus, RotateCcw, Settings2, Trash2 } from 'lucide-react';
+import { Archive, Pencil, Plus, RotateCcw, Settings2, Trash2, Users } from 'lucide-react';
 import {
   useAdminPromoCodes,
   useArchiveAdminPromoCode,
@@ -31,6 +31,7 @@ import {
 import { CreatePromoCodeDialog } from '@/components/promoCodes/CreatePromoCodeDialog';
 import { EditPromoCodeDialog } from '@/components/promoCodes/EditPromoCodeDialog';
 import { ManagePromoCodeRulesDialog } from '@/components/promoCodes/ManagePromoCodeRulesDialog';
+import { PromoCodeRedemptionsDialog } from '@/components/promoCodes/PromoCodeRedemptionsDialog';
 import { ACTION, CONFIRM_BUTTON, STATUS_BADGE } from '@/lib/action-palette';
 import type { IPromoCodeDto } from '@/types/generated/api-types';
 
@@ -85,11 +86,13 @@ function PromoCodeRow({
   isAdmin,
   onEdit,
   onManageRules,
+  onShowRedemptions,
 }: {
   promoCode: IPromoCodeDto;
   isAdmin: boolean;
   onEdit: (promoCode: IPromoCodeDto) => void;
   onManageRules: (promoCode: IPromoCodeDto) => void;
+  onShowRedemptions: (promoCode: IPromoCodeDto) => void;
 }) {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -99,7 +102,7 @@ function PromoCodeRow({
 
   const redemptions = promoCode.maxRedemptions
     ? `${promoCode.timesRedeemed} / ${promoCode.maxRedemptions}`
-    : `${promoCode.timesRedeemed}`;
+    : `${promoCode.timesRedeemed} / illimité`;
 
   const rulesCount = promoCode.rules?.length ?? 0;
 
@@ -199,6 +202,18 @@ function PromoCodeRow({
                 title="Gérer les règles"
               >
                 <Settings2 className="h-4 w-4" />
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={ACTION.neutral}
+                onClick={() => onShowRedemptions(promoCode)}
+                title="Voir les utilisations"
+                disabled={promoCode.redemptionCount === 0}
+              >
+                <Users className="h-4 w-4" />
               </Button>
             )}
             {isAdmin && promoCode.active && (
@@ -307,6 +322,7 @@ export default function PromoCodesPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editFor, setEditFor] = useState<IPromoCodeDto | null>(null);
   const [rulesFor, setRulesFor] = useState<IPromoCodeDto | null>(null);
+  const [redemptionsFor, setRedemptionsFor] = useState<IPromoCodeDto | null>(null);
 
   // Keep the rules dialog's promo code in sync with the latest list refetch —
   // a mutation from inside the dialog invalidates the list, and we want the
@@ -360,6 +376,7 @@ export default function PromoCodesPage() {
                   isAdmin={isAdmin}
                   onEdit={setEditFor}
                   onManageRules={setRulesFor}
+                  onShowRedemptions={setRedemptionsFor}
                 />
               ))
             ) : (
@@ -384,6 +401,12 @@ export default function PromoCodesPage() {
         promoCode={syncedRulesFor}
         onOpenChange={(open) => {
           if (!open) setRulesFor(null);
+        }}
+      />
+      <PromoCodeRedemptionsDialog
+        promoCode={redemptionsFor}
+        onOpenChange={(open) => {
+          if (!open) setRedemptionsFor(null);
         }}
       />
     </div>
