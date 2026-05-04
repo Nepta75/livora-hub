@@ -1497,8 +1497,10 @@ export type GetAdminTenantSubscriptionReadResponse = {
   recentInvoices?: {
   id?: string;
   amountPaidEuroCents?: number;
+  totalEuroCents?: number;
   paidAt?: string | null;
   status?: string | null;
+  hostedInvoiceUrl?: string | null;
 }[];
   planVersion?: {
   id?: string;

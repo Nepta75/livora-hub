@@ -437,19 +437,37 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Montant</TableHead>
+                        <TableHead>Total TTC</TableHead>
+                        <TableHead className="hidden md:table-cell">Encaissé</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Statut</TableHead>
+                        <TableHead className="w-12 text-right" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {invoices.slice(0, 6).map(inv => (
                         <TableRow key={inv.id ?? `${inv.paidAt}-${inv.amountPaidEuroCents}`}>
                           <TableCell className="font-medium">
+                            {formatEuroCents(inv.totalEuroCents ?? inv.amountPaidEuroCents)}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell text-muted-foreground">
                             {formatEuroCents(inv.amountPaidEuroCents)}
                           </TableCell>
                           <TableCell>{formatFrDate(inv.paidAt)}</TableCell>
                           <TableCell className="text-muted-foreground">{inv.status ?? '—'}</TableCell>
+                          <TableCell className="text-right">
+                            {inv.hostedInvoiceUrl ? (
+                              <a
+                                href={inv.hostedInvoiceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Ouvrir sur Stripe"
+                                className="inline-flex items-center text-zinc-500 hover:text-zinc-900"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            ) : null}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
