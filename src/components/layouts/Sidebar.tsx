@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
-import { Users, Building2, Shield, LayoutDashboard, LogOut, X, CreditCard, Zap, Tag, ScrollText, Receipt } from 'lucide-react';
+import { Users, Building2, Shield, LayoutDashboard, LogOut, X, CreditCard, Zap, Tag, ScrollText, Receipt, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
@@ -19,6 +19,7 @@ const navItems = [
   { href: '/features', label: 'Features', icon: Zap, adminOnly: true },
   { href: '/logs', label: 'Logs', icon: ScrollText, adminOnly: true },
   { href: '/roles', label: 'Rôles', icon: Shield, adminOnly: false },
+  { href: '/dev-tools', label: 'Dev Tools', icon: Wrench, adminOnly: true },
 ];
 
 interface SidebarProps {
