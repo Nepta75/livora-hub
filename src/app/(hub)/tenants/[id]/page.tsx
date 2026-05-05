@@ -10,6 +10,7 @@ import {
   useAdminTenant,
   useAdminTenantAuditLogs,
   useAdminTenantUsers,
+  useDownloadAdminTenantSubscriptionInvoice,
   useInviteUserToTenant,
   useImpersonationLogs,
   useImpersonateTenant,
@@ -54,7 +55,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, ScrollText, ChevronDown, ChevronRight, ClipboardList, CreditCard } from 'lucide-react';
+import { ArrowLeft, Plus, UserPlus, Pencil, Trash2, ExternalLink, ShieldCheck, ScrollText, ChevronDown, ChevronRight, ClipboardList, CreditCard, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { STATUS_BADGE } from '@/lib/action-palette';
 import type { IUser } from '@/types/generated/api-types';
@@ -282,6 +283,7 @@ function formatFrDate(iso?: string | null): string {
 function SubscriptionSection({ tenantId }: { tenantId: string }) {
   const { data: subscription, isLoading } = useTenantSubscription(tenantId);
   const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
+  const downloadFrPdfMutation = useDownloadAdminTenantSubscriptionInvoice(tenantId);
 
   const hasSubscription = !!subscription && !!subscription.id;
   const planVersion = subscription?.planVersion ?? null;
@@ -491,17 +493,35 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                             <TableCell>{formatFrDate(inv.paidAt)}</TableCell>
                             <TableCell className="text-muted-foreground">{inv.status ?? '—'}</TableCell>
                             <TableCell className="text-right">
-                              {inv.hostedInvoiceUrl ? (
-                                <a
-                                  href={inv.hostedInvoiceUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  title="Ouvrir sur Stripe"
-                                  className="inline-flex items-center text-zinc-500 hover:text-zinc-900"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                </a>
-                              ) : null}
+                              <div className="inline-flex items-center gap-2">
+                                {inv.mirrorInvoiceId && inv.mirrorInvoiceNumber ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      downloadFrPdfMutation.mutate({
+                                        invoiceId: inv.mirrorInvoiceId!,
+                                        invoiceNumber: inv.mirrorInvoiceNumber!,
+                                      })
+                                    }
+                                    disabled={downloadFrPdfMutation.isPending}
+                                    title={`PDF FR — ${inv.mirrorInvoiceNumber}`}
+                                    className="inline-flex items-center text-zinc-500 hover:text-zinc-900 disabled:opacity-50"
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </button>
+                                ) : null}
+                                {inv.hostedInvoiceUrl ? (
+                                  <a
+                                    href={inv.hostedInvoiceUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Ouvrir sur Stripe"
+                                    className="inline-flex items-center text-zinc-500 hover:text-zinc-900"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                  </a>
+                                ) : null}
+                              </div>
                             </TableCell>
                           </TableRow>
                         );

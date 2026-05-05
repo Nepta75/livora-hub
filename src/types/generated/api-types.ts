@@ -1521,6 +1521,8 @@ export type GetAdminTenantSubscriptionReadResponse = {
   status?: string | null;
   hostedInvoiceUrl?: string | null;
   kind?: 'subscription' | 'overage' | 'subscription_with_overage' | 'other';
+  mirrorInvoiceId?: string | null;
+  mirrorInvoiceNumber?: string | null;
 }[];
   planVersion?: {
   id?: string;
