@@ -12,6 +12,7 @@ export type IPricingType = 'distance' | 'city';
 
 // Enum Types (extracted from inline enum properties in OpenAPI schemas)
 export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing";
+export type AppliedPromoCodeType = "discount" | "trial";
 export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE";
 export type ContactRequestContext = "founding-setup" | "enterprise" | "demo";
 export type ContactRequestVolume = "1-50" | "50-200" | "200-500" | "500+";
@@ -27,7 +28,6 @@ export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
 export type PromoCodeApplicableBillingPeriods = "monthly" | "annual";
-export type PromoCodeType = "discount" | "trial";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
@@ -104,6 +104,14 @@ export interface IAddTenantDto {
 export interface IAdminReplacePromoCodeDto {
   code?: string;
   reason?: string;
+}
+
+export interface IAppliedPromoCodeDto {
+  code: string;
+  type: AppliedPromoCodeType;
+  redeemedAt: string;
+  amountDiscountedCents: number;
+  currency: string;
 }
 
 export interface IApplyPromoCodeDto {
@@ -194,7 +202,7 @@ export interface IContactRequestDto {
 
 export interface ICreatePromoCodeDto {
   code: string;
-  type?: PromoCodeType;
+  type?: AppliedPromoCodeType;
   trialDays?: number | null;
   percentOff?: number | null;
   amountOff?: number | null;
@@ -876,7 +884,7 @@ export interface IPromoCodeCouponDto {
 export interface IPromoCodeDto {
   id: string;
   code: string;
-  type: PromoCodeType;
+  type: AppliedPromoCodeType;
   active: boolean;
   maxRedemptions?: number | null;
   timesRedeemed: number;
@@ -887,6 +895,17 @@ export interface IPromoCodeDto {
   trialDays?: number | null;
   rules?: IPromoCodeRuleDto[];
   applicableBillingPeriods?: PromoCodeApplicableBillingPeriods[] | null;
+}
+
+export interface IPromoCodeRedemptionListItemDto {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  tenantEmail: string;
+  redeemedAt: string;
+  amountDiscountedCents: number;
+  currency: string;
+  provider: string;
 }
 
 export interface IPromoCodeRuleDto {
@@ -1501,6 +1520,7 @@ export type GetAdminTenantSubscriptionReadResponse = {
   paidAt?: string | null;
   status?: string | null;
   hostedInvoiceUrl?: string | null;
+  kind?: 'subscription' | 'overage' | 'subscription_with_overage' | 'other';
 }[];
   planVersion?: {
   id?: string;
@@ -1511,24 +1531,8 @@ export type GetAdminTenantSubscriptionReadResponse = {
   id?: string;
   versionNumber?: number;
 } | null;
-  appliedPromoCode?: {
-  code: string;
-  type: 'discount' | 'trial';
-  redeemedAt: string;
-  amountDiscountedCents: number;
-  currency: string;
-} | null;
+  appliedPromoCode?: IAppliedPromoCodeDto | null;
 };
-export type GetAdminPromoCodeRedemptionReadResponse = {
-  id: string;
-  tenantId: string;
-  tenantName: string;
-  tenantEmail: string;
-  redeemedAt: string;
-  amountDiscountedCents: number;
-  currency: string;
-  provider: string;
-}[];
 export type GetAdminTenantSubscriptionInvoiceReadResponse = {
   data?: ISubscriptionInvoice[];
   total?: number;
@@ -1614,6 +1618,7 @@ export type PostAdminSubscriptionMigrateVersionResponse = {
 export type GetAdminPromoCodeReadResponse = IPromoCodeDto[];
 export type PostAdminPromoCodeCreateResponse = IPromoCodeDto;
 export type PatchAdminPromoCodeUpdateResponse = IPromoCodeDto;
+export type GetAdminPromoCodeRedemptionsResponse = IPromoCodeRedemptionListItemDto[];
 export type PostAdminPromoCodeRuleCreateResponse = IPromoCodeDto;
 export type GetAdminBillingOverviewResponse = {
   tenantId?: string;
@@ -1625,6 +1630,19 @@ export type GetAdminBillingOverviewResponse = {
   status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit';
   topOverageFeature?: string | null;
 }[];
+export type PostAdminDevToolsAdvanceBillingResponse = {
+  advanced?: number;
+  skipped?: number;
+  errors?: {
+  tenant?: string;
+  error?: string;
+}[];
+};
+export type PostAdminDevToolsGenerateOverageInvoicesResponse = {
+  billed?: number;
+  skipped?: number;
+  errors?: number;
+};
 export type GetAdminBillingPendingRecordsResponse = {
   recordId?: string;
   tenantId?: string;

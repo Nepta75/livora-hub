@@ -2,12 +2,12 @@ import * as yup from 'yup';
 import type {
   CreatePromoCodeDuration,
   PromoCodeApplicableBillingPeriods,
-  PromoCodeType,
+  AppliedPromoCodeType,
 } from '@/types/generated/api-types';
 
 export const BILLING_PERIODS = ['monthly', 'annual'] as const satisfies readonly PromoCodeApplicableBillingPeriods[];
 
-export const PROMO_TYPES = ['discount', 'trial'] as const satisfies readonly PromoCodeType[];
+export const PROMO_TYPES = ['discount', 'trial'] as const satisfies readonly AppliedPromoCodeType[];
 
 const nullableInt = () =>
   yup
@@ -28,7 +28,7 @@ export const promoCodeSchema = yup.object({
     ),
   type: yup
     .string()
-    .oneOf<PromoCodeType>(PROMO_TYPES, 'Type de promo invalide')
+    .oneOf<AppliedPromoCodeType>(PROMO_TYPES, 'Type de promo invalide')
     .required('Type de promo requis'),
   // Trial: applies via Stripe trial_period_days, no Coupon. Required when
   // type=trial, must stay null otherwise (the backend rejects otherwise).
@@ -52,13 +52,13 @@ export const promoCodeSchema = yup.object({
     .min(1, 'Doit être >= 1')
     .max(100, 'Doit être <= 100')
     .when(['type', 'discountType'], {
-      is: (type: PromoCodeType, discountType: DiscountType) => 'discount' === type && 'percent' === discountType,
+      is: (type: AppliedPromoCodeType, discountType: DiscountType) => 'discount' === type && 'percent' === discountType,
       then: (s) => s.required('Pourcentage requis'),
     }),
   amountOff: nullableInt()
     .min(1, 'Doit être >= 1')
     .when(['type', 'discountType'], {
-      is: (type: PromoCodeType, discountType: DiscountType) => 'discount' === type && 'amount' === discountType,
+      is: (type: AppliedPromoCodeType, discountType: DiscountType) => 'discount' === type && 'amount' === discountType,
       then: (s) => s.required('Montant requis'),
     }),
   currency: yup
@@ -66,7 +66,7 @@ export const promoCodeSchema = yup.object({
     .nullable()
     .transform((value, original) => (original === '' ? null : value))
     .when(['type', 'discountType'], {
-      is: (type: PromoCodeType, discountType: DiscountType) => 'discount' === type && 'amount' === discountType,
+      is: (type: AppliedPromoCodeType, discountType: DiscountType) => 'discount' === type && 'amount' === discountType,
       then: (s) =>
         s
           .required('Devise requise')
@@ -84,7 +84,7 @@ export const promoCodeSchema = yup.object({
     .min(1, 'Doit être >= 1')
     .max(36, 'Doit être <= 36')
     .when(['type', 'duration'], {
-      is: (type: PromoCodeType, duration: CreatePromoCodeDuration | null) =>
+      is: (type: AppliedPromoCodeType, duration: CreatePromoCodeDuration | null) =>
         'discount' === type && 'repeating' === duration,
       then: (s) => s.required('Nombre de mois requis'),
     }),

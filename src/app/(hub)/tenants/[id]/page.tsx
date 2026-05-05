@@ -243,6 +243,29 @@ const STATUS_BADGE_CLASS: Record<string, string> = {
   canceled: 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-100',
 };
 
+const INVOICE_KIND_META: Record<string, { label: string; tooltip: string; className: string }> = {
+  subscription: {
+    label: 'Abonnement',
+    tooltip: 'Facture du cycle d’abonnement',
+    className: STATUS_BADGE.inactive,
+  },
+  overage: {
+    label: 'Dépassement',
+    tooltip: 'Facture standalone de dépassement (cron ou dev-tools)',
+    className: STATUS_BADGE.warning,
+  },
+  subscription_with_overage: {
+    label: 'Abonnement + dépass.',
+    tooltip: 'Facture de cycle qui inclut des lignes de dépassement attachées via webhook',
+    className: STATUS_BADGE.info,
+  },
+  other: {
+    label: 'Autre',
+    tooltip: 'Facture ponctuelle (ajustement ops, ancien abonnement, etc.)',
+    className: STATUS_BADGE.inactive,
+  },
+};
+
 function formatEuroCents(cents?: number | null): string {
   if (cents === null || cents === undefined) return '—';
   return (cents / 100).toLocaleString('fr-FR', {
@@ -429,7 +452,7 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
             )}
 
             <div>
-              <h4 className="text-sm font-semibold mb-2">Factures récentes</h4>
+              <h4 className="text-sm font-semibold mb-2">Factures récentes (Stripe)</h4>
               {invoices.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic">Aucune facture récente.</p>
               ) : (
@@ -437,6 +460,7 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Type</TableHead>
                         <TableHead>Total TTC</TableHead>
                         <TableHead className="hidden md:table-cell">Encaissé</TableHead>
                         <TableHead>Date</TableHead>
@@ -445,31 +469,43 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {invoices.slice(0, 6).map(inv => (
-                        <TableRow key={inv.id ?? `${inv.paidAt}-${inv.amountPaidEuroCents}`}>
-                          <TableCell className="font-medium">
-                            {formatEuroCents(inv.totalEuroCents ?? inv.amountPaidEuroCents)}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell text-muted-foreground">
-                            {formatEuroCents(inv.amountPaidEuroCents)}
-                          </TableCell>
-                          <TableCell>{formatFrDate(inv.paidAt)}</TableCell>
-                          <TableCell className="text-muted-foreground">{inv.status ?? '—'}</TableCell>
-                          <TableCell className="text-right">
-                            {inv.hostedInvoiceUrl ? (
-                              <a
-                                href={inv.hostedInvoiceUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Ouvrir sur Stripe"
-                                className="inline-flex items-center text-zinc-500 hover:text-zinc-900"
+                      {invoices.slice(0, 6).map(inv => {
+                        const meta = INVOICE_KIND_META[inv.kind ?? 'other'] ?? INVOICE_KIND_META.other;
+                        return (
+                          <TableRow key={inv.id ?? `${inv.paidAt}-${inv.amountPaidEuroCents}`}>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={`${meta.className} text-xs`}
+                                title={meta.tooltip}
                               >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            ) : null}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                                {meta.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {formatEuroCents(inv.totalEuroCents ?? inv.amountPaidEuroCents)}
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell text-muted-foreground">
+                              {formatEuroCents(inv.amountPaidEuroCents)}
+                            </TableCell>
+                            <TableCell>{formatFrDate(inv.paidAt)}</TableCell>
+                            <TableCell className="text-muted-foreground">{inv.status ?? '—'}</TableCell>
+                            <TableCell className="text-right">
+                              {inv.hostedInvoiceUrl ? (
+                                <a
+                                  href={inv.hostedInvoiceUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Ouvrir sur Stripe"
+                                  className="inline-flex items-center text-zinc-500 hover:text-zinc-900"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              ) : null}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
