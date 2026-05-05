@@ -1514,6 +1514,10 @@ export type GetAdminTenantSubscriptionReadResponse = {
   planAnnualPriceEuroCents?: number | null;
   isOnLatestPrice?: boolean | null;
   billingPeriod?: PromoCodeApplicableBillingPeriods | null;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  nextOverageCycleStart?: string | null;
+  nextOverageCycleEnd?: string | null;
   recentInvoices?: {
   id?: string;
   amountPaidEuroCents?: number;

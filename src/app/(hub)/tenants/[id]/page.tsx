@@ -390,6 +390,30 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                   <p>{formatFrDate(subscription.startedAt)}</p>
                 </div>
               )}
+              {subscription.currentPeriodStart && subscription.currentPeriodEnd && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Cycle Stripe en cours</p>
+                  <p>
+                    {formatFrDate(subscription.currentPeriodStart)} →{' '}
+                    {formatFrDate(subscription.currentPeriodEnd)}
+                  </p>
+                </div>
+              )}
+              {subscription.nextOverageCycleEnd && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">
+                    Prochaine échéance dépassements
+                  </p>
+                  <p className="font-medium">
+                    {formatFrDate(subscription.nextOverageCycleEnd)}
+                  </p>
+                  {subscription.billingPeriod === 'annual' && (
+                    <p className="text-muted-foreground text-xs mt-0.5">
+                      Sous-fenêtre mensuelle ancrée sur le jour de souscription
+                    </p>
+                  )}
+                </div>
+              )}
               {planVersion && (
                 <div>
                   <p className="text-muted-foreground text-xs mb-1">Version du plan</p>
