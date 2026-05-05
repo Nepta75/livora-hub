@@ -46,7 +46,7 @@ export default function DevToolsPage() {
     advanceMutation.mutate(undefined, {
       onSuccess: (result) => {
         setConfirmOpen(false);
-        const summary = `${result.advanced} abonnement${result.advanced > 1 ? 's' : ''} avancé${result.advanced > 1 ? 's' : ''}`;
+        const summary = `${result.advanced} facture${result.advanced > 1 ? 's' : ''} générée${result.advanced > 1 ? 's' : ''}`;
         if (result.errors.length > 0) {
           toast.warning(`${summary} — ${result.errors.length} erreur(s) Stripe, voir les logs.`);
         } else {
@@ -93,23 +93,24 @@ export default function DevToolsPage() {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Zap className="h-4 w-4 text-amber-600" />
-            Avancer la facturation Stripe
+            Générer une facture de proration Stripe
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
             Repositionne le <span className="font-mono">billing_cycle_anchor</span> de chaque
-            abonnement Stripe actif sur <span className="font-mono">now</span> avec proration
-            facturée immédiatement. Stripe émet une nouvelle facture, qui déclenche en chaîne{' '}
-            <span className="font-mono">invoice.created</span> →{' '}
-            <span className="font-mono">invoice.finalized</span> →{' '}
+            abonnement Stripe actif sur <span className="font-mono">now</span>. Stripe émet
+            immédiatement une facture pour la portion non facturée du cycle en cours
+            (proration), qui déclenche en chaîne <span className="font-mono">invoice.created</span>{' '}
+            → <span className="font-mono">invoice.finalized</span> →{' '}
             <span className="font-mono">invoice.paid</span> via le pipeline webhook habituel.
+            Ne couvre PAS les dépassements (utiliser le bouton ci-dessous).
           </p>
           <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             <div>
               Action irréversible. À utiliser uniquement en environnement de test. Refusée
-              côté backend si <span className="font-mono">APP_ENV=prod</span>.
+              côté backend si la clé Stripe est <span className="font-mono">sk_live_*</span>.
             </div>
           </div>
           <Button
@@ -117,7 +118,9 @@ export default function DevToolsPage() {
             onClick={() => setConfirmOpen(true)}
             disabled={advanceMutation.isPending}
           >
-            {advanceMutation.isPending ? 'Avancement…' : 'Avancer tous les abonnements (1 mois)'}
+            {advanceMutation.isPending
+              ? 'Génération…'
+              : 'Générer une facture pour tous les abonnements'}
           </Button>
         </CardContent>
       </Card>
@@ -161,10 +164,10 @@ export default function DevToolsPage() {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Confirmer l&apos;avancement</DialogTitle>
+            <DialogTitle>Confirmer la génération</DialogTitle>
             <DialogDescription>
-              Tous les abonnements Stripe actifs vont être facturés immédiatement pour leur
-              prochain cycle. Continuer ?
+              Une facture de proration va être émise immédiatement pour chaque abonnement
+              Stripe actif (portion non facturée du cycle en cours). Continuer ?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -172,7 +175,7 @@ export default function DevToolsPage() {
               Annuler
             </Button>
             <Button onClick={handleAdvance} disabled={advanceMutation.isPending}>
-              {advanceMutation.isPending ? 'Avancement…' : 'Confirmer'}
+              {advanceMutation.isPending ? 'Génération…' : 'Confirmer'}
             </Button>
           </DialogFooter>
         </DialogContent>
