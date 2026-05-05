@@ -181,7 +181,7 @@ export default function BillingOverviewPage() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Facturation — Vue d&apos;ensemble</h2>
+        <h2 className="text-2xl font-bold">Dépassements — Vue d&apos;ensemble</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Consommation et dépassements en cours, par tenant. Les montants sont projetés sur la
           période courante et seront facturés à la prochaine clôture (mensuelle pour les abos
