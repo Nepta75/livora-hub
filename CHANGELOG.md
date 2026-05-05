@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.3.0](https://github.com/Nepta75/livora-hub/compare/livora-hub-v0.2.1...livora-hub-v0.3.0) (2026-05-05)
+
+
+### Features
+
+* **admin:** plan stripe sync UI, sub enrichment, audit logs page ([8507b10](https://github.com/Nepta75/livora-hub/commit/8507b10364dceafe3b1cbe9ce1336f38d7737f3d))
+* **billing:** admin billing overview dashboard ([371f5ea](https://github.com/Nepta75/livora-hub/commit/371f5ea6e92a29a8326dc50560d643c82e715d50))
+* **billing:** pending records banner + manual cron trigger ([54ebeae](https://github.com/Nepta75/livora-hub/commit/54ebeaec072b30e8d59d3ba0c4fad98d11aaf2fa))
+* **billing:** show already-billed amount on overview row ([38ec4f8](https://github.com/Nepta75/livora-hub/commit/38ec4f8ba86563b7a4fd48f2a45806937d6d53e2))
+* **dev-tools:** add "advance billing" admin button ([35745b5](https://github.com/Nepta75/livora-hub/commit/35745b52185db2edafb20b2d8c73435db739d82f))
+* **dev-tools:** add overage invoice generation card ([89b93ef](https://github.com/Nepta75/livora-hub/commit/89b93efea924f8d99a91f0c2969ee898dfef9337))
+* **plans:** add plan CRUD and subscription management in hub ([b40c0d7](https://github.com/Nepta75/livora-hub/commit/b40c0d7fc5da6f34d78c493b3f56481dd1c734d2))
+* **plans:** ctaLabel in admin form ([783b6cc](https://github.com/Nepta75/livora-hub/commit/783b6cc9b94e6002176ad7773e5d78f1c404524c))
+* **plans:** dynamic pricing fields, isVisible/isFeatured, dual Stripe price IDs ([76e7d04](https://github.com/Nepta75/livora-hub/commit/76e7d04e8d36116539d3fb8190e42684e9d989d2))
+* **plans:** edit safety banner + price change confirm dialog ([642578f](https://github.com/Nepta75/livora-hub/commit/642578f5ca796f7342eab61d08ef3ef1760cc7a6))
+* **plans:** history section on plan detail + extract AuditLogCard ([73c479f](https://github.com/Nepta75/livora-hub/commit/73c479ff963e033d33f7e89d9cff0547878fefa7))
+* **plans:** stripe sync badge on list, require monthly price ([e4dc297](https://github.com/Nepta75/livora-hub/commit/e4dc297dbf8938d61540604c553a8be35548c4fa))
+* **plans:** version timeline + migration UI ([bad4186](https://github.com/Nepta75/livora-hub/commit/bad4186a44bf07d5e02b405f73e5bf6fdbe91fa4))
+* **promo-codes:** admin CRUD + shared action palette ([ecb7235](https://github.com/Nepta75/livora-hub/commit/ecb72359d311f6556665335cb72dcfcf0af87c24))
+* **promo-codes:** edit + display applicable billing periods ([dc93ec9](https://github.com/Nepta75/livora-hub/commit/dc93ec9a0b4ef0961b13da0aa72ddc13f638d9f2))
+* **promo-codes:** edit dialog for max redemptions ([9e22e0e](https://github.com/Nepta75/livora-hub/commit/9e22e0e69e4a0a6a2259fead4c0f5a76c1b0f2d3))
+* **promo-codes:** redesign create dialog for clarity ([6b68302](https://github.com/Nepta75/livora-hub/commit/6b68302804c393cf7403631a3eb6f3f62758840d))
+* **promo-codes:** show applicable billing periods on the edit dialog ([ba73be0](https://github.com/Nepta75/livora-hub/commit/ba73be0f90962e0b6b3cc6a6cb57d7ce0ebcea16))
+* **promo-codes:** support trial and discount types in admin UI ([75700af](https://github.com/Nepta75/livora-hub/commit/75700af3064392edc401270316e9f7aaeb2128a7))
+* **promo-codes:** tenant eligibility rule in the editor ([9dfde07](https://github.com/Nepta75/livora-hub/commit/9dfde07c9427971f7cd11c87f4327f6bbb69d517))
+* **promo:** guard rules editor + map sync errors ([eb8b339](https://github.com/Nepta75/livora-hub/commit/eb8b33973e99e8a99362204a8f341e7e58913365))
+* **promo:** redemption drill-down + applied code on tenant ([f149fcc](https://github.com/Nepta75/livora-hub/commit/f149fcc9fb6f1480f7f9c1ba70d8cdf8b62ea20f))
+* **tenant:** franchise de TVA checkbox in admin tenant form ([deb6ad7](https://github.com/Nepta75/livora-hub/commit/deb6ad7d5d7268bbe0f2f9014024b7985e428893))
+* **tenants:** add FR PDF download link to recent invoices ([62cbc75](https://github.com/Nepta75/livora-hub/commit/62cbc753a7f584ff40ac7bb4bbd218ec0c779364))
+* **tenants:** show anniversary dates on subscription card ([728524d](https://github.com/Nepta75/livora-hub/commit/728524d2d41e5d30fcbd0e6c62ddf889bf3771c9))
+* **tenants:** show TTC + Stripe link in recent invoices ([e448fcc](https://github.com/Nepta75/livora-hub/commit/e448fcc1157a2c30b935c879625131bac0b75c09))
+* **tenants:** surface all Stripe invoices with kind badge ([038d936](https://github.com/Nepta75/livora-hub/commit/038d9368c677850495c69af46929ee7d3d12ad88))
+* **tenant:** subscription invoices section on tenant detail ([afffc7e](https://github.com/Nepta75/livora-hub/commit/afffc7e5ebd3c64d3cc1fbc7cfcc4f5c4ee6a587))
+* **types:** honor nullable:true in generated types ([3d86b32](https://github.com/Nepta75/livora-hub/commit/3d86b323fe128c560ced6d713c650fba74388d8d))
+
+
+### Bug Fixes
+
+* **billing:** banner palette + lockHeld toast + dedupe formatDate ([410216c](https://github.com/Nepta75/livora-hub/commit/410216cb27667fa178a5a10f699399e4eb98636e))
+* **billing:** review-driven UX + a11y polish ([4834e11](https://github.com/Nepta75/livora-hub/commit/4834e114588ef94dbaeaa26e4b7faaf47726ab4f))
+* **dev-tools:** correct advance-billing wording ([a969ef4](https://github.com/Nepta75/livora-hub/commit/a969ef494420d6fbcb9617bbed863958a9aba05d))
+* **docker:** expose env as .env in production image ([80e300e](https://github.com/Nepta75/livora-hub/commit/80e300edb4fceb146201073c439a4f944ec91939))
+* **docker:** write env file to .env.production ([bdb1558](https://github.com/Nepta75/livora-hub/commit/bdb15586db0437f0b501e8af249a2d8fa7f74c38))
+* **env:** set NEXT_PUBLIC_STRIPE_MODE per environment ([6e0d0a5](https://github.com/Nepta75/livora-hub/commit/6e0d0a56b5c6d49f3fd40d385c35ed02734c153a))
+* **logs:** wrap useSearchParams in Suspense boundary ([8fdf3c4](https://github.com/Nepta75/livora-hub/commit/8fdf3c4335aa5d0402f4841656b67e7762abec45))
+* **promo-codes:** apply review findings on admin UI ([1aaed14](https://github.com/Nepta75/livora-hub/commit/1aaed14d39da618e66d111ad15bafad80bd8cff1))
+* **promo-codes:** unindent section bodies ([170bae5](https://github.com/Nepta75/livora-hub/commit/170bae5b1bf505856806ffa5051d42b62df91d2e))
+* **promo-codes:** widen create dialog + tenant search ([34d99e6](https://github.com/Nepta75/livora-hub/commit/34d99e683df22f0aab7a09f8ab0ff5f3a592027e))
+
 ## [0.2.1](https://github.com/Nepta75/livora-hub/compare/livora-hub-v0.2.0...livora-hub-v0.2.1) (2026-04-10)
 
 
