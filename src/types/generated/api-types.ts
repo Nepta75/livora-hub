@@ -1634,6 +1634,7 @@ export type GetAdminBillingOverviewResponse = {
   billingPeriod?: PromoCodeApplicableBillingPeriods | null;
   nextInvoiceDate?: string;
   projectedTotalOverageEuro?: number;
+  alreadyBilledTotalEuro?: number;
   status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit';
   topOverageFeature?: string | null;
 }[];
@@ -1762,6 +1763,8 @@ export type GetSubscriptionUsageResponse = {
   limits?: {
   featureKey?: string;
   limit?: number;
+  effectiveLimit?: number;
+  billedOverageUnits?: number;
   currentUsage?: number | null;
   percentUsed?: number | null;
   status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit' | 'unlimited' | 'unknown';

@@ -293,7 +293,12 @@ export default function BillingOverviewPage() {
                       (row.projectedTotalOverageEuro ?? 0) > 0 && 'font-semibold'
                     )}
                   >
-                    {formatEuro(row.projectedTotalOverageEuro)}
+                    <div>{formatEuro(row.projectedTotalOverageEuro)}</div>
+                    {(row.alreadyBilledTotalEuro ?? 0) > 0 && (
+                      <div className="text-emerald-600 text-xs font-normal">
+                        +{formatEuro(row.alreadyBilledTotalEuro ?? 0)} facturé ce cycle
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
                     {row.topOverageFeature ? featureLabel(row.topOverageFeature) : '—'}
