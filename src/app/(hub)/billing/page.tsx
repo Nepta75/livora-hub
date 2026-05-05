@@ -183,9 +183,10 @@ export default function BillingOverviewPage() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold">Dépassements — Vue d&apos;ensemble</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Consommation et dépassements en cours, par tenant. Les montants sont projetés sur la
-          période courante et seront facturés à la prochaine clôture (mensuelle pour les abos
-          mensuels, fin de mois pour les abos annuels via cron).
+          Consommation et dépassements en cours, par tenant. Les montants sont projetés sur le
+          cycle courant (anniversaire de souscription) et seront facturés à la prochaine clôture
+          (mensuelle pour les abos mensuels, sous-fenêtre mensuelle facturée via cron pour les
+          abos annuels).
         </p>
       </div>
 

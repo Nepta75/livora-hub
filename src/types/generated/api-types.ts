@@ -1080,6 +1080,7 @@ export interface ISubscription {
   source: string;
   status: string;
   trialEndsAt?: string | null;
+  currentPeriodStart?: string | null;
   currentPeriodEnd?: string | null;
   canceledAt?: string | null;
   cancelAtPeriodEnd?: boolean;
