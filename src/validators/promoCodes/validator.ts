@@ -1,11 +1,11 @@
 import * as yup from 'yup';
 import type {
   CreatePromoCodeDuration,
-  PromoCodeApplicableBillingPeriods,
+  ChangePlanBillingPeriod,
   AppliedPromoCodeType,
 } from '@/types/generated/api-types';
 
-export const BILLING_PERIODS = ['monthly', 'annual'] as const satisfies readonly PromoCodeApplicableBillingPeriods[];
+export const BILLING_PERIODS = ['monthly', 'annual'] as const satisfies readonly ChangePlanBillingPeriod[];
 
 export const PROMO_TYPES = ['discount', 'trial'] as const satisfies readonly AppliedPromoCodeType[];
 
@@ -98,7 +98,7 @@ export const promoCodeSchema = yup.object({
   // semantics break in a given mode (legacy use case before trial codes).
   applicableBillingPeriods: yup
     .array()
-    .of(yup.string().oneOf<PromoCodeApplicableBillingPeriods>(BILLING_PERIODS).required())
+    .of(yup.string().oneOf<ChangePlanBillingPeriod>(BILLING_PERIODS).required())
     .nullable()
     .transform((value: unknown) =>
       Array.isArray(value) && value.length === 0 ? null : value,

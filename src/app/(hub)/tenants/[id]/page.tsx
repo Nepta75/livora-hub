@@ -61,6 +61,7 @@ import { STATUS_BADGE } from '@/lib/action-palette';
 import type { IUser } from '@/types/generated/api-types';
 import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
 import { MigrateSubscriptionDialog } from '@/components/plans/MigrateSubscriptionDialog';
+import { ChangePlanDialog } from '@/components/subscriptions/ChangePlanDialog';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
 
 const ACTION_LABELS: Record<string, string> = {
@@ -283,6 +284,7 @@ function formatFrDate(iso?: string | null): string {
 function SubscriptionSection({ tenantId }: { tenantId: string }) {
   const { data: subscription, isLoading } = useTenantSubscription(tenantId);
   const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
+  const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
   const downloadFrPdfMutation = useDownloadAdminTenantSubscriptionInvoice(tenantId);
 
   const hasSubscription = !!subscription && !!subscription.id;
@@ -476,6 +478,37 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                 currentPlanVersionId={planVersion?.id ?? null}
               />
             )}
+
+            {subscription.id
+              && subscription.planId
+              && (status === 'active' || status === 'trialing')
+              && (
+                <div className="flex items-center justify-between rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                  <div>
+                    <p className="text-sm font-medium text-zinc-900">Changer de plan</p>
+                    <p className="text-xs text-zinc-600">
+                      Bascule l’abonnement Stripe sur un autre plan ou une autre période avec
+                      prorata calculé par Stripe.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setChangePlanDialogOpen(true)}
+                  >
+                    Changer de plan
+                  </Button>
+                  <ChangePlanDialog
+                    open={changePlanDialogOpen}
+                    onOpenChange={setChangePlanDialogOpen}
+                    tenantId={tenantId}
+                    currentPlanId={subscription.planId}
+                    currentBillingPeriod={
+                      subscription.billingPeriod === 'annual' ? 'annual' : 'monthly'
+                    }
+                  />
+                </div>
+              )}
 
             <div>
               <h4 className="text-sm font-semibold mb-2">Factures récentes (Stripe)</h4>

@@ -14,6 +14,8 @@ export type IPricingType = 'distance' | 'city';
 export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing";
 export type AppliedPromoCodeType = "discount" | "trial";
 export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE";
+export type ChangePlanBillingPeriod = "monthly" | "annual";
+export type ChangePlanProrationBehavior = "create_prorations" | "none" | "always_invoice";
 export type ContactRequestContext = "founding-setup" | "enterprise" | "demo";
 export type ContactRequestVolume = "1-50" | "50-200" | "200-500" | "500+";
 export type CreatePromoCodeDuration = "once" | "repeating" | "forever";
@@ -27,7 +29,6 @@ export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DE
 export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
-export type PromoCodeApplicableBillingPeriods = "monthly" | "annual";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
@@ -150,6 +151,14 @@ export interface IBankDetail {
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
+}
+
+export interface IChangePlanDto {
+  targetPlanId?: string;
+  billingPeriod?: ChangePlanBillingPeriod;
+  prorationBehavior?: ChangePlanProrationBehavior | null;
+  reason?: string | null;
+  previewedAt?: number | null;
 }
 
 export interface IChatMessage {
@@ -894,7 +903,7 @@ export interface IPromoCodeDto {
   coupon?: IPromoCodeCouponDto | null;
   trialDays?: number | null;
   rules?: IPromoCodeRuleDto[];
-  applicableBillingPeriods?: PromoCodeApplicableBillingPeriods[] | null;
+  applicableBillingPeriods?: ChangePlanBillingPeriod[] | null;
 }
 
 export interface IPromoCodeRedemptionListItemDto {
@@ -918,7 +927,7 @@ export interface IPromoCodeRuleDto {
 export interface IPromoPreviewDto {
   code: string;
   planSlug?: string | null;
-  billingPeriod: PromoCodeApplicableBillingPeriods;
+  billingPeriod: ChangePlanBillingPeriod;
 }
 
 export interface IQuote {
@@ -1068,7 +1077,7 @@ export interface IStoragePricingTier {
 
 export interface ISubscribeToPlanDto {
   planSlug: string;
-  billingPeriod: PromoCodeApplicableBillingPeriods;
+  billingPeriod: ChangePlanBillingPeriod;
   promoCode?: string | null;
 }
 
@@ -1240,7 +1249,7 @@ export interface ITenantRegisterDto {
 
 export interface ITenantRegisterPlanDto {
   slug?: string;
-  billingPeriod?: PromoCodeApplicableBillingPeriods;
+  billingPeriod?: ChangePlanBillingPeriod;
 }
 
 export interface ITenantRegisterStartDto {
@@ -1513,7 +1522,7 @@ export type GetAdminTenantSubscriptionReadResponse = {
   planMonthlyPriceEuroCents?: number | null;
   planAnnualPriceEuroCents?: number | null;
   isOnLatestPrice?: boolean | null;
-  billingPeriod?: PromoCodeApplicableBillingPeriods | null;
+  billingPeriod?: ChangePlanBillingPeriod | null;
   currentPeriodStart?: string | null;
   currentPeriodEnd?: string | null;
   nextOverageCycleStart?: string | null;
@@ -1539,6 +1548,21 @@ export type GetAdminTenantSubscriptionReadResponse = {
   versionNumber?: number;
 } | null;
   appliedPromoCode?: IAppliedPromoCodeDto | null;
+};
+export type PostAdminTenantSubscriptionChangePlanPreviewResponse = {
+  lineItems: {
+  description?: string;
+  amountCents?: number;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  isProration?: boolean;
+}[];
+  totalCreditCents: number;
+  totalChargeCents: number;
+  effectiveAt?: string | null;
+  nextInvoiceDate?: string | null;
+  previewedAt: number;
+  currency: string;
 };
 export type GetAdminTenantSubscriptionInvoiceReadResponse = {
   data?: ISubscriptionInvoice[];
@@ -1631,7 +1655,7 @@ export type GetAdminBillingOverviewResponse = {
   tenantId?: string;
   tenantName?: string;
   planName?: string;
-  billingPeriod?: PromoCodeApplicableBillingPeriods | null;
+  billingPeriod?: ChangePlanBillingPeriod | null;
   nextInvoiceDate?: string;
   projectedTotalOverageEuro?: number;
   alreadyBilledTotalEuro?: number;
@@ -1656,7 +1680,7 @@ export type GetAdminBillingPendingRecordsResponse = {
   tenantId?: string;
   tenantName?: string;
   planName?: string;
-  billingPeriod?: PromoCodeApplicableBillingPeriods | null;
+  billingPeriod?: ChangePlanBillingPeriod | null;
   featureKey?: string;
   periodStart?: string;
   periodEnd?: string;
