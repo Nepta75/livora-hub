@@ -27,6 +27,7 @@ import type {
   ChangePlanProrationBehavior,
 } from '@/types/generated/api-types';
 import { PlanChangePreviewCard } from '@/components/subscriptions/PlanChangePreviewCard';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Props {
   open: boolean;
@@ -61,6 +62,7 @@ export function ChangePlanDialog({
   const [prorationBehavior, setProrationBehavior] =
     useState<ChangePlanProrationBehavior>('create_prorations');
   const [reason, setReason] = useState('');
+  const [bypassConfirm, setBypassConfirm] = useState('');
 
   // Reset every time the dialog opens so an aborted attempt does not leak.
   useEffect(() => {
@@ -70,8 +72,17 @@ export function ChangePlanDialog({
       setAdvancedOpen(false);
       setProrationBehavior('create_prorations');
       setReason('');
+      setBypassConfirm('');
     }
   }, [open, currentBillingPeriod]);
+
+  // Switching an annual subscription to monthly mid-cycle is an engagement
+  // break — the customer pre-paid 12 months at the annual discount. The hub
+  // admin can still do it (commercial edge cases) but only after the
+  // type-to-confirm gate in Mode avancé.
+  const isPeriodDowngrade =
+    currentBillingPeriod === 'annual' && billingPeriod === 'monthly';
+  const bypassReady = bypassConfirm.trim() === 'ROMPRE';
 
   const candidatePlans = useMemo(() => {
     return (plans ?? []).filter(
@@ -89,6 +100,11 @@ export function ChangePlanDialog({
 
   const periodAvailable = (period: ChangePlanBillingPeriod): boolean => {
     if (!targetPlan) return true;
+    // Annual → monthly is gated behind Mode avancé — keep the button reachable
+    // only once the admin has explicitly opened the override panel.
+    if (currentBillingPeriod === 'annual' && period === 'monthly' && !advancedOpen) {
+      return false;
+    }
     return period === 'annual' ? !!targetPlan.stripeAnnualPriceId : !!targetPlan.stripeMonthlyPriceId;
   };
 
@@ -130,7 +146,8 @@ export function ChangePlanDialog({
     !isDifferent
     || changePlan.isPending
     || previewQuery.isFetching
-    || !previewQuery.data;
+    || !previewQuery.data
+    || (isPeriodDowngrade && !bypassReady);
 
   const handleSubmit = async () => {
     if (!previewQuery.data) return;
@@ -141,6 +158,7 @@ export function ChangePlanDialog({
         prorationBehavior,
         reason: reason.trim() === '' ? null : reason.trim(),
         previewedAt: previewQuery.data.previewedAt,
+        force: isPeriodDowngrade,
       });
       toast.success('Changement de plan appliqué');
       onOpenChange(false);
@@ -233,6 +251,11 @@ export function ChangePlanDialog({
                 );
               })}
             </div>
+            {currentBillingPeriod === 'annual' && !advancedOpen && (
+              <p className="text-xs text-zinc-500">
+                Le passage en mensuel rompt l’engagement annuel — déverrouillable via le mode avancé.
+              </p>
+            )}
           </div>
 
           {isDifferent && (
@@ -241,6 +264,30 @@ export function ChangePlanDialog({
               preview={previewQuery.data}
               errorMessage={previewError}
             />
+          )}
+
+          {isPeriodDowngrade && (
+            <Alert variant="destructive">
+              <AlertTitle>Rupture d’engagement annuel</AlertTitle>
+              <AlertDescription>
+                <p>
+                  L’abonnement courant est annuel — le client a payé 12 mois d’avance au tarif
+                  remisé. Le bascule en mensuel génère un crédit Stripe (consommé sur les
+                  prochaines factures, jamais remboursé sur la carte) et casse l’engagement.
+                </p>
+                <p>
+                  Action visible dans <span className="font-mono">/logs</span>. Tapez{' '}
+                  <span className="font-mono font-bold">ROMPRE</span> pour confirmer :
+                </p>
+                <Input
+                  value={bypassConfirm}
+                  onChange={(e) => setBypassConfirm(e.target.value)}
+                  placeholder="ROMPRE"
+                  autoComplete="off"
+                  className="mt-1 font-mono"
+                />
+              </AlertDescription>
+            </Alert>
           )}
 
           <div>
@@ -293,8 +340,16 @@ export function ChangePlanDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button onClick={handleSubmit} disabled={submitDisabled}>
-            {changePlan.isPending ? 'Application…' : 'Confirmer le changement'}
+          <Button
+            onClick={handleSubmit}
+            disabled={submitDisabled}
+            variant={isPeriodDowngrade ? 'destructive' : 'default'}
+          >
+            {changePlan.isPending
+              ? 'Application…'
+              : isPeriodDowngrade
+                ? 'Confirmer la rupture d’engagement'
+                : 'Confirmer le changement'}
           </Button>
         </DialogFooter>
       </DialogContent>

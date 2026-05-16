@@ -57,17 +57,20 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
     <div className="space-y-3 rounded-md border border-zinc-200 bg-zinc-50 p-3">
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-xs uppercase tracking-wide text-zinc-500">Effet immédiat</p>
+          <p className="text-xs uppercase tracking-wide text-zinc-500">
+            {isNetCredit ? 'Crédit généré' : 'À facturer'}
+          </p>
           <p
             className={`mt-1 text-base font-semibold ${
               isNetCredit ? 'text-emerald-700' : 'text-amber-700'
             }`}
           >
-            {isNetCredit ? '+' : ''}
             {formatEuroCents(Math.abs(netImmediateCents), currency)}
           </p>
           <p className="mt-0.5 text-xs text-zinc-500">
-            {isNetCredit ? 'Crédit consommé sur la prochaine facture' : 'À payer sur la prochaine facture'}
+            {isNetCredit
+              ? 'Reporté sur les prochaines factures — aucun remboursement sur la carte.'
+              : 'Ajouté à la prochaine facture (prorata Stripe).'}
           </p>
         </div>
         <div>
