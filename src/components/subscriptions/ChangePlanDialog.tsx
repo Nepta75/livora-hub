@@ -170,7 +170,7 @@ export function ChangePlanDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Changer de plan</DialogTitle>
           <DialogDescription>
@@ -188,7 +188,9 @@ export function ChangePlanDialog({
               disabled={plansLoading}
             >
               <SelectTrigger id="target-plan">
-                <SelectValue placeholder={plansLoading ? 'Chargement…' : 'Choisir un plan'} />
+                <SelectValue placeholder={plansLoading ? 'Chargement…' : 'Choisir un plan'}>
+                  {targetPlan?.name ?? null}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {candidatePlans.map((plan) => (
@@ -308,16 +310,24 @@ export function ChangePlanDialog({
                   }
                 >
                   <SelectTrigger id="proration-behavior">
-                    <SelectValue />
+                    <SelectValue>
+                      {prorationBehavior === 'create_prorations'
+                        ? 'Proratiser (recommandé)'
+                        : prorationBehavior === 'always_invoice'
+                          ? 'Proratiser et facturer immédiatement'
+                          : 'Pas de prorata'}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="create_prorations">
-                      create_prorations (défaut)
+                      Proratiser (recommandé) — crédit ou charge sur la prochaine facture
                     </SelectItem>
                     <SelectItem value="always_invoice">
-                      always_invoice (facturation immédiate)
+                      Proratiser et facturer immédiatement
                     </SelectItem>
-                    <SelectItem value="none">none (pas de prorata)</SelectItem>
+                    <SelectItem value="none">
+                      Pas de prorata — la nouvelle période démarre sans ajustement
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
