@@ -62,6 +62,8 @@ import type { IUser } from '@/types/generated/api-types';
 import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
 import { MigrateSubscriptionDialog } from '@/components/plans/MigrateSubscriptionDialog';
 import { ChangePlanDialog } from '@/components/subscriptions/ChangePlanDialog';
+import { useCancelPendingPlanChange } from '@/hooks/api/subscriptions/useChangePlan';
+import { cn } from '@/lib/utils';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
 
 const ACTION_LABELS: Record<string, string> = {
@@ -286,6 +288,7 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
   const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
   const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
   const downloadFrPdfMutation = useDownloadAdminTenantSubscriptionInvoice(tenantId);
+  const cancelPendingChangeMutation = useCancelPendingPlanChange(tenantId);
 
   const hasSubscription = !!subscription && !!subscription.id;
   const planVersion = subscription?.planVersion ?? null;
@@ -509,6 +512,39 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                   />
                 </div>
               )}
+
+            {subscription.pendingPlan?.name && (
+              <div className={cn('flex items-center justify-between rounded-md border p-3', STATUS_BADGE.info)}>
+                <div>
+                  <p className="text-sm font-medium">
+                    Changement programmé : <span className="font-semibold">{subscription.pendingPlan.name}</span>
+                    {subscription.pendingBillingPeriod
+                      ? ` (${subscription.pendingBillingPeriod === 'annual' ? 'annuel' : 'mensuel'})`
+                      : ''}
+                  </p>
+                  <p className="text-xs">
+                    Effectif {subscription.pendingChangeEffectiveAt
+                      ? `le ${formatFrDate(subscription.pendingChangeEffectiveAt)}`
+                      : 'à la fin du cycle actuel'}
+                    .
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => cancelPendingChangeMutation.mutate(undefined, {
+                    onSuccess: () => toast.success('Changement programmé annulé.'),
+                    onError: (err) => {
+                      const message = err instanceof Error ? err.message : 'Erreur inconnue';
+                      toast.error(`Annulation refusée : ${message}`);
+                    },
+                  })}
+                  disabled={cancelPendingChangeMutation.isPending}
+                >
+                  {cancelPendingChangeMutation.isPending ? 'Annulation…' : 'Annuler'}
+                </Button>
+              </div>
+            )}
 
             <div>
               <h4 className="text-sm font-semibold mb-2">Factures récentes (Stripe)</h4>

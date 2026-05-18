@@ -52,3 +52,17 @@ export function useChangePlan(tenantId: string) {
     },
   });
 }
+
+export function useCancelPendingPlanChange(tenantId: string) {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => subscriptionPlanChangeService.cancelPendingChange(tenantId, token),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'tenants', tenantId] });
+      void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEYS.byTenant(tenantId) });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'plan-subscriptions'] });
+    },
+  });
+}

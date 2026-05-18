@@ -115,10 +115,6 @@ export interface IAppliedPromoCodeDto {
   currency: string;
 }
 
-export interface IApplyPromoCodeDto {
-  code?: string;
-}
-
 export interface IAuditLog {
   id?: string;
   message?: string;
@@ -159,6 +155,7 @@ export interface IChangePlanDto {
   prorationBehavior?: ChangePlanProrationBehavior | null;
   reason?: string | null;
   previewedAt?: number | null;
+  force?: boolean;
 }
 
 export interface IChatMessage {
@@ -1095,6 +1092,10 @@ export interface ISubscription {
   cancelAtPeriodEnd?: boolean;
   allowOverage?: boolean;
   billingPeriod?: string | null;
+  pendingScheduleId?: string | null;
+  pendingChangeEffectiveAt?: string | null;
+  pendingPlan?: IPlan2 | null;
+  pendingBillingPeriod?: string | null;
   active: boolean;
 }
 
@@ -1548,6 +1549,13 @@ export type GetAdminTenantSubscriptionReadResponse = {
   versionNumber?: number;
 } | null;
   appliedPromoCode?: IAppliedPromoCodeDto | null;
+  pendingScheduleId?: string | null;
+  pendingChangeEffectiveAt?: string | null;
+  pendingBillingPeriod?: ChangePlanBillingPeriod | null;
+  pendingPlan?: {
+  id?: string;
+  name?: string;
+} | null;
 };
 export type PostAdminTenantSubscriptionChangePlanPreviewResponse = {
   lineItems: {
@@ -1563,6 +1571,9 @@ export type PostAdminTenantSubscriptionChangePlanPreviewResponse = {
   nextInvoiceDate?: string | null;
   previewedAt: number;
   currency: string;
+  direction: string;
+  scheduledAt?: string | null;
+  targetPriceCents: number;
 };
 export type GetAdminTenantSubscriptionInvoiceReadResponse = {
   data?: ISubscriptionInvoice[];
@@ -1767,6 +1778,24 @@ export type PostSubscriptionResumeCheckoutResponse = {
 };
 export type PostSubscriptionSubscribeToPlanResponse = {
   url?: string;
+};
+export type PostSubscriptionChangePlanPreviewResponse = {
+  lineItems: {
+  description?: string;
+  amountCents?: number;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  isProration?: boolean;
+}[];
+  totalCreditCents: number;
+  totalChargeCents: number;
+  effectiveAt?: string | null;
+  nextInvoiceDate?: string | null;
+  previewedAt: number;
+  currency: string;
+  direction: string;
+  scheduledAt?: string | null;
+  targetPriceCents: number;
 };
 export type PostSubscriptionPromoPreviewResponse = {
   code?: string;

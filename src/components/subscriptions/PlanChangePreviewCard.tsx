@@ -3,6 +3,8 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { STATUS_BADGE } from '@/lib/action-palette';
+import { cn } from '@/lib/utils';
 import type { PlanChangePreviewResponse } from '@/services/admin/subscriptionPlanChangeService';
 
 type LineItem = PlanChangePreviewResponse['lineItems'][number];
@@ -52,6 +54,27 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
   }
 
   const currency = preview.currency || 'eur';
+  const isScheduled = !!preview.scheduledAt;
+
+  if (isScheduled) {
+    return (
+      <div className={cn('space-y-2 rounded-md border p-3 text-sm', STATUS_BADGE.info)}>
+        <p className="font-semibold">
+          Effectif le {formatFrDate(preview.scheduledAt)}
+        </p>
+        <p className="text-xs">
+          Aucun changement sur cette facture.
+        </p>
+        <p className="text-sm">
+          Nouveau prix :{' '}
+          <span className="font-semibold">
+            {formatEuroCents(preview.targetPriceCents, currency)}
+          </span>
+        </p>
+      </div>
+    );
+  }
+
   const netImmediateCents = preview.totalChargeCents - preview.totalCreditCents;
   const isNetCredit = netImmediateCents < 0;
 

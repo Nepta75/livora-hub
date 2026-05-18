@@ -39,4 +39,7 @@ export const subscriptionPlanChangeService = {
       body,
       { token },
     ),
+
+  cancelPendingChange: (tenantId: string, token: string) =>
+    httpClient.delete(`/tenant/${tenantId}/subscription/pending-change`, { token }),
 };
