@@ -170,16 +170,17 @@ export function ChangePlanDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent
+        className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl"
+      >
+        <DialogHeader className="border-b border-zinc-200 px-4 py-3 sm:px-6 sm:py-4">
           <DialogTitle>Changer de plan</DialogTitle>
           <DialogDescription>
-            Bascule l’abonnement Stripe sur un autre plan / une autre période. Le prorata
-            est calculé par Stripe et ajouté à la prochaine facture.
+            Upgrades facturés immédiatement, downgrades programmés à la fin du cycle.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
           <div className="space-y-1.5">
             <Label htmlFor="target-plan">Plan cible</Label>
             <Select
@@ -195,17 +196,16 @@ export function ChangePlanDialog({
               <SelectContent>
                 {candidatePlans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id ?? ''}>
-                    {plan.name}
-                    {plan.monthlyPriceEuro != null && (
-                      <span className="ml-1 text-zinc-500">
-                        — {formatEuroCents(plan.monthlyPriceEuro * 100)}/mois
+                    <div className="flex flex-col">
+                      <span>{plan.name}</span>
+                      <span className="text-xs text-zinc-500">
+                        {plan.monthlyPriceEuro != null
+                          && `${formatEuroCents(plan.monthlyPriceEuro * 100)}/mois`}
+                        {plan.monthlyPriceEuro != null && plan.annualPriceEuro != null && ' · '}
+                        {plan.annualPriceEuro != null
+                          && `${formatEuroCents(plan.annualPriceEuro * 100)}/an`}
                       </span>
-                    )}
-                    {plan.annualPriceEuro != null && (
-                      <span className="ml-1 text-zinc-500">
-                        · {formatEuroCents(plan.annualPriceEuro * 100)}/an
-                      </span>
-                    )}
+                    </div>
                   </SelectItem>
                 ))}
                 {candidatePlans.length === 0 && !plansLoading && (
@@ -346,14 +346,19 @@ export function ChangePlanDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="flex-col-reverse gap-2 border-t border-zinc-200 px-4 py-3 sm:flex-row sm:px-6 sm:py-4">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="w-full sm:w-auto"
+          >
             Annuler
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={submitDisabled}
             variant={isPeriodDowngrade ? 'destructive' : 'default'}
+            className="w-full sm:w-auto"
           >
             {changePlan.isPending
               ? 'Application…'
