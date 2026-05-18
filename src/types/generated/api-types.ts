@@ -1574,6 +1574,8 @@ export type PostAdminTenantSubscriptionChangePlanPreviewResponse = {
   direction: string;
   scheduledAt?: string | null;
   targetPriceCents: number;
+  subtotalCents: number;
+  totalAmountCents: number;
 };
 export type GetAdminTenantSubscriptionInvoiceReadResponse = {
   data?: ISubscriptionInvoice[];
@@ -1796,6 +1798,8 @@ export type PostSubscriptionChangePlanPreviewResponse = {
   direction: string;
   scheduledAt?: string | null;
   targetPriceCents: number;
+  subtotalCents: number;
+  totalAmountCents: number;
 };
 export type PostSubscriptionPromoPreviewResponse = {
   code?: string;

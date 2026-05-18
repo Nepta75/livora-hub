@@ -55,6 +55,8 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
 
   const currency = preview.currency || 'eur';
   const isScheduled = !!preview.scheduledAt;
+  const ttcDiffersFromHt =
+    !!preview.totalAmountCents && preview.totalAmountCents !== preview.subtotalCents;
 
   if (isScheduled) {
     return (
@@ -91,8 +93,14 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
               isNetCredit ? 'text-emerald-700' : 'text-amber-700'
             }`}
           >
-            {formatEuroCents(Math.abs(netImmediateCents), currency)}
+            {formatEuroCents(Math.abs(netImmediateCents), currency)}{' '}
+            <span className="text-xs font-normal text-zinc-500">HT</span>
           </p>
+          {!isNetCredit && ttcDiffersFromHt && (
+            <p className="mt-0.5 text-xs text-zinc-500">
+              soit {formatEuroCents(preview.totalAmountCents, currency)} TTC (TVA incluse)
+            </p>
+          )}
           <p className="mt-0.5 text-xs text-zinc-500">
             {isNetCredit
               ? 'Reporté sur les prochaines factures — aucun remboursement sur la carte.'
