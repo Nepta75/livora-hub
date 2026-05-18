@@ -60,16 +60,17 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
     return (
       <div className={cn('space-y-2 rounded-md border p-3 text-sm', STATUS_BADGE.info)}>
         <p className="font-semibold">
-          Effectif le {formatFrDate(preview.scheduledAt)}
+          Changement programmé le {formatFrDate(preview.scheduledAt)}
         </p>
         <p className="text-xs">
-          Aucun changement sur cette facture.
+          Aucun frais aujourd&apos;hui — l&apos;offre actuelle reste active jusque-là.
         </p>
         <p className="text-sm">
-          Nouveau prix :{' '}
+          Prochaine facture :{' '}
           <span className="font-semibold">
             {formatEuroCents(preview.targetPriceCents, currency)}
-          </span>
+          </span>{' '}
+          le {formatFrDate(preview.scheduledAt)}.
         </p>
       </div>
     );
