@@ -84,7 +84,7 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
           <p className="text-xs uppercase tracking-wide text-zinc-500">
-            {isNetCredit ? 'Crédit généré' : 'À facturer'}
+            {isNetCredit ? 'Crédit généré' : 'Débité aujourd’hui'}
           </p>
           <p
             className={`mt-1 text-base font-semibold ${
@@ -96,11 +96,11 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
           <p className="mt-0.5 text-xs text-zinc-500">
             {isNetCredit
               ? 'Reporté sur les prochaines factures — aucun remboursement sur la carte.'
-              : 'Ajouté à la prochaine facture (prorata Stripe).'}
+              : 'Prélevé immédiatement sur le moyen de paiement.'}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wide text-zinc-500">Prochaine facture</p>
+          <p className="text-xs uppercase tracking-wide text-zinc-500">Prochain renouvellement</p>
           <p className="mt-1 text-base font-semibold text-zinc-900">
             {formatFrDate(preview.nextInvoiceDate)}
           </p>
