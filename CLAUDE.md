@@ -66,6 +66,20 @@ Rules:
 - **Confirm dialogs** mirror the action tone — archive confirm uses `CONFIRM_BUTTON.warning`, delete uses shadcn `variant="destructive"`.
 - Do not introduce a new color scale without updating `action-palette.ts` and this section together.
 
+## Subscription billing UI
+
+The admin subscription surface (`/tenants/[id]` + plan-change dialog) reads
+the same `PlanChangePreview` contract as the tenant app. Behaviour rules,
+the four plan-change directions, VAT model, and the Stripe Dahlia field
+quirks live in **`../api-vista-app/BILLING_WORKFLOW.md`** — read that
+before changing the dialog, preview card, cancel banner, or any other
+subscription UI.
+
+Key hub-specific points:
+- `ChangePlanDialog.tsx` exposes a **"Mode avancé"** that lets admins override `prorationBehavior` (`create_prorations` / `always_invoice` / `none`) and bypass the annual→monthly engagement gate via type-to-confirm `ROMPRE` (sends `force=true` to the backend).
+- `PlanChangePreviewCard.tsx` renders two variants driven by `preview.scheduledAt`: scheduled-downgrade (sky-blue info card with HT + TTC) vs immediate-swap (HT + TTC + per-line proration toggle).
+- The pending-change banner on the tenant detail page lets the admin cancel a queued schedule (`DELETE /admin/tenant/{id}/subscription/pending-change`); the same endpoint clears `Subscription.pending_*` fields in the same transaction as the Stripe schedule release.
+
 ## Archive + delete pattern
 
 Resources that can be temporarily disabled AND permanently removed (e.g. promo codes) expose **three** mutations and **three** buttons:
