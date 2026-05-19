@@ -18,7 +18,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-const IS_LIVE_MODE = process.env.NEXT_PUBLIC_STRIPE_MODE === 'live';
+// Fail-safe gate: positive opt-in via `=test`. If the env var is unset or
+// holds any other value (`live`, empty, typo) the page 404s. Backend already
+// refuses live keys; this just keeps a misbuilt image from rendering the UI.
+const IS_TEST_MODE = process.env.NEXT_PUBLIC_STRIPE_MODE === 'test';
 
 export default function DevToolsPage() {
   const { userRoles } = useAuth();
@@ -28,9 +31,9 @@ export default function DevToolsPage() {
   const [overageConfirmOpen, setOverageConfirmOpen] = useState(false);
 
   // Defense in depth — sidebar already hides the entry, but a direct URL
-  // hit on a prod build should 404 rather than render a button that would
-  // 403 anyway.
-  if (IS_LIVE_MODE) {
+  // hit on a non-test build should 404 rather than render a button that
+  // would 403 anyway.
+  if (!IS_TEST_MODE) {
     notFound();
   }
 

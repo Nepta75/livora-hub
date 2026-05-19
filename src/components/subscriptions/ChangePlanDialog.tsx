@@ -158,7 +158,11 @@ export function ChangePlanDialog({
         prorationBehavior,
         reason: reason.trim() === '' ? null : reason.trim(),
         previewedAt: previewQuery.data.previewedAt,
-        force: isPeriodDowngrade,
+        // Send `force` ONLY when the admin has typed ROMPRE — otherwise an
+        // annual→monthly attempt could leak `force=true` purely from period
+        // direction (defence-in-depth; the submit button is already disabled
+        // by `submitDisabled` when bypass is not ready).
+        force: isPeriodDowngrade && bypassReady,
       });
       toast.success('Changement de plan appliqué');
       onOpenChange(false);

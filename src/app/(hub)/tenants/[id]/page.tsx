@@ -680,7 +680,12 @@ export default function TenantDetailPage() {
     try {
       const { token } = await impersonateMutation.mutateAsync({ tenantId: id, userId });
       const vistaUrl = process.env.NEXT_PUBLIC_VISTA_APP_URL ?? '';
-      window.open(`${vistaUrl}/auth/impersonate?token=${token}`, '_blank');
+      // Token travels in the URL fragment so it is never sent to the server,
+      // never logged in access logs, and never forwarded via Referer headers.
+      window.open(
+        `${vistaUrl}/auth/impersonate#token=${encodeURIComponent(token)}`,
+        '_blank',
+      );
     } catch {
       toast.error("Impossible d'accéder à l'application.");
     } finally {
