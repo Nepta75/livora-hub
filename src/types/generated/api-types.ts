@@ -1558,6 +1558,16 @@ export type GetAdminTenantSubscriptionReadResponse = {
   id?: string;
   name?: string;
 } | null;
+  cancelAtPeriodEnd?: boolean;
+  canceledAt?: string | null;
+  lastPlanChange?: {
+  message?: string;
+  createdAt?: string;
+} | null;
+  customerBalance?: {
+  cents?: number;
+  currency?: string;
+} | null;
 };
 export type PostAdminTenantSubscriptionChangePlanPreviewResponse = {
   lineItems: {

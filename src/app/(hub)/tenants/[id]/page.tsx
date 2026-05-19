@@ -71,6 +71,14 @@ const ACTION_LABELS: Record<string, string> = {
   CREATE: 'Création',
   UPDATE: 'Modification',
   DELETE: 'Suppression',
+  PLAN_CHANGE: 'Changement de plan',
+  PLAN_CHANGE_SCHEDULED: 'Changement de plan programmé',
+  UPDATE_PAYMENT_METHOD: 'Moyen de paiement modifié',
+  OVERAGE_INVOICE_CREATED: 'Facture de dépassement',
+  OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
+  TAX_DELTA: 'Écart de TVA détecté',
+  DEVTOOLS_ADVANCE_BILLING: 'Outil dev — avance facturation',
+  DEVTOOLS_OVERAGE_INVOICES: 'Outil dev — factures de dépassement',
 };
 
 function formatShortDateTime(iso?: string | null): string {
@@ -472,7 +480,61 @@ function SubscriptionSection({ tenantId, tenantName }: { tenantId: string; tenan
                   </div>
                 </div>
               )}
+              {subscription.lastPlanChange?.message && (
+                <div>
+                  <p className="text-muted-foreground text-xs mb-1">Dernier changement de plan</p>
+                  <p>{subscription.lastPlanChange.message}</p>
+                  {subscription.lastPlanChange.createdAt && (
+                    <p className="text-muted-foreground text-xs mt-0.5">
+                      {formatFrDate(subscription.lastPlanChange.createdAt)}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
+
+            {subscription.cancelAtPeriodEnd && (
+              <div className={cn('rounded-md border p-3', STATUS_BADGE.warning)}>
+                <p className="text-sm font-medium">Résiliation programmée par le client</p>
+                <p className="text-xs">
+                  L’abonnement prendra fin
+                  {subscription.currentPeriodEnd
+                    ? ` le ${formatFrDate(subscription.currentPeriodEnd)}`
+                    : ' à la fin du cycle en cours'}
+                  . Le client garde l’accès jusque-là.
+                </p>
+              </div>
+            )}
+
+            {subscription.customerBalance?.cents != null
+              && subscription.customerBalance.cents !== 0 && (
+              <div
+                className={cn(
+                  'rounded-md border p-3',
+                  subscription.customerBalance.cents < 0 ? STATUS_BADGE.active : STATUS_BADGE.warning,
+                )}
+              >
+                {subscription.customerBalance.cents < 0 ? (
+                  <>
+                    <p className="text-sm font-medium">
+                      Crédit Stripe : {formatEuroCents(-subscription.customerBalance.cents)}
+                    </p>
+                    <p className="text-xs">
+                      Déduit automatiquement de la prochaine facture du client.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium">
+                      Solde dû : {formatEuroCents(subscription.customerBalance.cents)}
+                    </p>
+                    <p className="text-xs">
+                      Ajouté automatiquement à la prochaine facture du client.
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
 
             {subscription.id && subscription.planId && (
               <MigrateSubscriptionDialog
