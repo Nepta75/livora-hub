@@ -70,10 +70,15 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
         <p className="text-sm">
           Prochaine facture :{' '}
           <span className="font-semibold">
-            {formatEuroCents(preview.targetPriceCents, currency)}
+            {formatEuroCents(preview.targetPriceCents, currency)} HT
           </span>{' '}
           le {formatFrDate(preview.scheduledAt)}.
         </p>
+        {ttcDiffersFromHt && (
+          <p className="text-xs">
+            soit {formatEuroCents(preview.totalAmountCents, currency)} TTC (TVA incluse)
+          </p>
+        )}
       </div>
     );
   }
