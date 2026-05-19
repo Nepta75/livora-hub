@@ -12,6 +12,7 @@ import {
   type UpdateTenantPayload,
   type UpdateTenantUserPayload,
 } from '@/services/admin/tenantsService';
+import { SUBSCRIPTION_KEYS } from '@/hooks/api/plans/useAdminPlans';
 import type { GetAdminTenantSubscriptionInvoiceReadResponse } from '@/types/generated/api-types';
 
 export const TENANTS_KEYS = {
@@ -172,6 +173,19 @@ export function useAdminTenantSubscriptionInvoices(
       }),
     enabled: enabled && !!tenantId,
     placeholderData: prev => prev,
+  });
+}
+
+export function useCancelTenantSubscription(tenantId: string) {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (force: boolean) => tenantsService.cancelSubscription(tenantId, force, token),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEYS.byTenant(tenantId) });
+      void queryClient.invalidateQueries({ queryKey: TENANTS_KEYS.detail(tenantId) });
+    },
   });
 }
 

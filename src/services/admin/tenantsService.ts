@@ -154,4 +154,10 @@ export const tenantsService = {
       `/tenant/${tenantId}/subscription-invoice/${invoiceId}/pdf`,
       { token, responseType: 'blob' },
     ),
+
+  cancelSubscription: (tenantId: string, force: boolean, token: string) =>
+    httpClient.delete(
+      `/tenant/${tenantId}/subscription${force ? '?force=true' : ''}`,
+      { token },
+    ),
 };

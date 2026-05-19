@@ -5,6 +5,17 @@ interface FetchOptions extends RequestInit {
   responseType?: 'json' | 'blob' | 'raw';
 }
 
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly body: unknown,
+  ) {
+    super(message);
+    this.name = 'HttpError';
+  }
+}
+
 class HttpClient {
   private async request<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
     const { token, responseType = 'json', ...fetchOptions } = options;
@@ -35,7 +46,8 @@ class HttpClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({})) as { error?: string; message?: string };
-      throw new Error(errorData.message ?? errorData.error ?? "Une erreur est survenue lors de l'appel API.");
+      const message = errorData.message ?? errorData.error ?? "Une erreur est survenue lors de l'appel API.";
+      throw new HttpError(message, response.status, errorData);
     }
 
     if (response.status === 204) {

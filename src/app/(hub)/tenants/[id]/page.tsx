@@ -62,6 +62,7 @@ import type { IUser } from '@/types/generated/api-types';
 import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
 import { MigrateSubscriptionDialog } from '@/components/plans/MigrateSubscriptionDialog';
 import { ChangePlanDialog } from '@/components/subscriptions/ChangePlanDialog';
+import { CancelSubscriptionDialog } from '@/components/subscriptions/CancelSubscriptionDialog';
 import { useCancelPendingPlanChange } from '@/hooks/api/subscriptions/useChangePlan';
 import { cn } from '@/lib/utils';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
@@ -283,10 +284,11 @@ function formatFrDate(iso?: string | null): string {
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
-function SubscriptionSection({ tenantId }: { tenantId: string }) {
+function SubscriptionSection({ tenantId, tenantName }: { tenantId: string; tenantName: string }) {
   const { data: subscription, isLoading } = useTenantSubscription(tenantId);
   const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
   const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const downloadFrPdfMutation = useDownloadAdminTenantSubscriptionInvoice(tenantId);
   const cancelPendingChangeMutation = useCancelPendingPlanChange(tenantId);
 
@@ -512,6 +514,31 @@ function SubscriptionSection({ tenantId }: { tenantId: string }) {
                   />
                 </div>
               )}
+
+            {subscription.id && (
+              <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 p-3">
+                <div>
+                  <p className="text-sm font-medium text-red-900">Annuler l’abonnement</p>
+                  <p className="text-xs text-red-700">
+                    Coupe l’accès immédiatement et supprime la ligne locale. Bloqué si un crédit
+                    Stripe non remboursé est détecté.
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setCancelDialogOpen(true)}
+                >
+                  Annuler l’abonnement
+                </Button>
+                <CancelSubscriptionDialog
+                  open={cancelDialogOpen}
+                  onOpenChange={setCancelDialogOpen}
+                  tenantId={tenantId}
+                  tenantName={tenantName}
+                />
+              </div>
+            )}
 
             {subscription.pendingPlan?.name && (
               <div className={cn('flex items-center justify-between rounded-md border p-3', STATUS_BADGE.info)}>
@@ -1106,7 +1133,7 @@ export default function TenantDetailPage() {
         )}
       </div>
 
-      <SubscriptionSection tenantId={id} />
+      <SubscriptionSection tenantId={id} tenantName={tenant?.name ?? ''} />
 
       <SubscriptionInvoicesSection tenantId={id} />
 
