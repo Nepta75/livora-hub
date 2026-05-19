@@ -62,15 +62,19 @@ export function CancelSubscriptionDialog({
   const [strandedCredit, setStrandedCredit] = useState<StrandedCreditPayload | null>(null);
   const [acknowledgedRefund, setAcknowledgedRefund] = useState(false);
   const cancelMutation = useCancelTenantSubscription(tenantId);
+  // `reset` is a stable reference in React Query v5; the mutation object
+  // itself is NOT — depending on the whole object re-runs this effect every
+  // render and `reset()` re-renders, producing an infinite update loop.
+  const { reset: resetCancelMutation } = cancelMutation;
 
   useEffect(() => {
     if (!open) {
       setConfirm('');
       setStrandedCredit(null);
       setAcknowledgedRefund(false);
-      cancelMutation.reset();
+      resetCancelMutation();
     }
-  }, [open, cancelMutation]);
+  }, [open, resetCancelMutation]);
 
   const confirmReady = confirm.trim() === CONFIRM_WORD;
   const force = strandedCredit !== null && acknowledgedRefund;
