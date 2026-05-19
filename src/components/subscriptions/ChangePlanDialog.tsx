@@ -171,16 +171,16 @@ export function ChangePlanDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="flex max-h-[90vh] flex-col gap-0 p-0 sm:max-w-2xl"
+        className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl"
       >
-        <DialogHeader className="border-b border-zinc-200 px-4 py-3 sm:px-6 sm:py-4">
+        <DialogHeader className="shrink-0 border-b border-zinc-200 px-4 py-3 pr-12 sm:px-6 sm:py-4 sm:pr-14">
           <DialogTitle>Changer de plan</DialogTitle>
           <DialogDescription>
             Upgrades facturés immédiatement, downgrades programmés à la fin du cycle.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6">
           <div className="space-y-1.5">
             <Label htmlFor="target-plan">Plan cible</Label>
             <Select
@@ -196,9 +196,9 @@ export function ChangePlanDialog({
               <SelectContent>
                 {candidatePlans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id ?? ''}>
-                    <div className="flex flex-col">
-                      <span>{plan.name}</span>
-                      <span className="text-xs text-zinc-500">
+                    <div className="flex min-w-0 flex-col">
+                      <span className="truncate">{plan.name}</span>
+                      <span className="truncate text-xs text-zinc-500">
                         {plan.monthlyPriceEuro != null
                           && `${formatEuroCents(plan.monthlyPriceEuro * 100)}/mois`}
                         {plan.monthlyPriceEuro != null && plan.annualPriceEuro != null && ' · '}
@@ -229,7 +229,7 @@ export function ChangePlanDialog({
                     type="button"
                     disabled={!available}
                     onClick={() => setBillingPeriod(period)}
-                    className={`rounded-md border p-3 text-left text-sm transition-colors ${
+                    className={`min-w-0 rounded-md border p-3 text-left text-sm transition-colors ${
                       selected
                         ? 'border-zinc-900 bg-zinc-900 text-white'
                         : 'border-zinc-200 bg-white hover:border-zinc-400'
@@ -239,13 +239,18 @@ export function ChangePlanDialog({
                       {period === 'monthly' ? 'Mensuel' : 'Annuel'}
                     </p>
                     {targetPlan && (
-                      <p className={`text-xs ${selected ? 'text-zinc-300' : 'text-zinc-500'}`}>
+                      <p className={`text-xs leading-snug ${selected ? 'text-zinc-300' : 'text-zinc-500'}`}>
                         {period === 'monthly'
                           ? targetPlan.monthlyPriceEuro != null
                             ? `${formatEuroCents(targetPlan.monthlyPriceEuro * 100)}/mois`
                             : '—'
                           : targetPlan.annualPriceEuro != null
-                            ? `${formatEuroCents(targetPlan.annualPriceEuro * 100)}/mois facturé annuellement`
+                            ? (
+                                <>
+                                  <span className="block">{formatEuroCents(targetPlan.annualPriceEuro * 100)}/mois</span>
+                                  <span className="block">facturé annuellement</span>
+                                </>
+                              )
                             : '—'}
                       </p>
                     )}
@@ -346,7 +351,7 @@ export function ChangePlanDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-col-reverse gap-2 border-t border-zinc-200 px-4 py-3 sm:flex-row sm:px-6 sm:py-4">
+        <DialogFooter className="m-0 shrink-0 flex-col-reverse gap-2 rounded-none border-t border-zinc-200 bg-zinc-50 px-4 py-3 sm:flex-row sm:px-6 sm:py-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -358,7 +363,7 @@ export function ChangePlanDialog({
             onClick={handleSubmit}
             disabled={submitDisabled}
             variant={isPeriodDowngrade ? 'destructive' : 'default'}
-            className="w-full sm:w-auto"
+            className="w-full whitespace-normal sm:w-auto"
           >
             {changePlan.isPending
               ? 'Application…'
