@@ -5,8 +5,6 @@ import {
   type ChangePlanCommitPayload,
   type ChangePlanPreviewPayload,
 } from '@/services/admin/subscriptionPlanChangeService';
-import { SUBSCRIPTION_KEYS } from '@/hooks/api/plans/useAdminPlans';
-
 const PREVIEW_KEY = (tenantId: string, body: ChangePlanPreviewPayload | null) =>
   ['admin', 'tenants', tenantId, 'subscription', 'change-plan-preview', body] as const;
 
@@ -46,8 +44,10 @@ export function useChangePlan(tenantId: string) {
     mutationFn: (body: ChangePlanCommitPayload) =>
       subscriptionPlanChangeService.changePlan(tenantId, body, token),
     onSuccess: () => {
+      // ['admin', 'tenants', tenantId] is a strict prefix of
+      // SUBSCRIPTION_KEYS.byTenant(tenantId) so the single invalidation
+      // already matches both query keys.
       void queryClient.invalidateQueries({ queryKey: ['admin', 'tenants', tenantId] });
-      void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEYS.byTenant(tenantId) });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'plan-subscriptions'] });
     },
   });
@@ -61,7 +61,6 @@ export function useCancelPendingPlanChange(tenantId: string) {
     mutationFn: () => subscriptionPlanChangeService.cancelPendingChange(tenantId, token),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'tenants', tenantId] });
-      void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEYS.byTenant(tenantId) });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'plan-subscriptions'] });
     },
   });

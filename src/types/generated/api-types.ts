@@ -1079,6 +1079,8 @@ export interface ISubscribeToPlanDto {
 }
 
 export interface ISubscription {
+  billingPeriod?: ChangePlanBillingPeriod | null;
+  pendingBillingPeriod?: ChangePlanBillingPeriod | null;
   id: string;
   tenant?: ITenant4 | null;
   plan?: IPlan2 | null;
@@ -1091,15 +1093,15 @@ export interface ISubscription {
   canceledAt?: string | null;
   cancelAtPeriodEnd?: boolean;
   allowOverage?: boolean;
-  billingPeriod?: string | null;
   pendingScheduleId?: string | null;
   pendingChangeEffectiveAt?: string | null;
   pendingPlan?: IPlan2 | null;
-  pendingBillingPeriod?: string | null;
   active: boolean;
 }
 
 export interface ISubscription2 {
+  billingPeriod?: ChangePlanBillingPeriod | null;
+  pendingBillingPeriod?: ChangePlanBillingPeriod | null;
   id: string;
 }
 
@@ -1571,7 +1573,7 @@ export type PostAdminTenantSubscriptionChangePlanPreviewResponse = {
   nextInvoiceDate?: string | null;
   previewedAt: number;
   currency: string;
-  direction: string;
+  billingPeriod: ChangePlanBillingPeriod;
   scheduledAt?: string | null;
   targetPriceCents: number;
   subtotalCents: number;
@@ -1795,7 +1797,7 @@ export type PostSubscriptionChangePlanPreviewResponse = {
   nextInvoiceDate?: string | null;
   previewedAt: number;
   currency: string;
-  direction: string;
+  billingPeriod: ChangePlanBillingPeriod;
   scheduledAt?: string | null;
   targetPriceCents: number;
   subtotalCents: number;
