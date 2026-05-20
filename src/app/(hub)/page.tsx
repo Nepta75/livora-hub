@@ -1,18 +1,78 @@
 'use client';
 
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Building2, FlaskConical } from 'lucide-react';
+import {
+  Building2,
+  FlaskConical,
+  Wallet,
+  TrendingUp,
+  CalendarClock,
+  Receipt,
+  Sparkles,
+} from 'lucide-react';
 import { useAdminUsers } from '@/hooks/api/users/useAdminUsers';
-import { useAdminTenants } from '@/hooks/api/tenants/useAdminTenants';
+import { useAdminDashboardMetrics } from '@/hooks/api/dashboard/useAdminDashboardMetrics';
 import { useAdminSeed } from '@/hooks/api/seed/useAdminSeed';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { STATUS_BADGE } from '@/lib/action-palette';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import type {
+  DashboardRecentPayment,
+  DashboardRecentSubscription,
+} from '@/services/admin/dashboardService';
 
 const ENABLE_SEED = process.env.NEXT_PUBLIC_ENABLE_SEED === 'true';
 
+const formatEuro = (amount: number | undefined): string =>
+  new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount ?? 0);
+
+const formatDateTime = (iso: string | null | undefined): string => {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+// Subscription lifecycle status → French label + badge tone.
+const STATUS_META: Record<string, { label: string; tone: string }> = {
+  active: { label: 'Actif', tone: STATUS_BADGE.active },
+  trialing: { label: 'Essai', tone: STATUS_BADGE.info },
+  past_due: { label: 'Impayé', tone: STATUS_BADGE.warning },
+  canceled: { label: 'Annulé', tone: STATUS_BADGE.inactive },
+  incomplete: { label: 'Incomplet', tone: STATUS_BADGE.warning },
+  registration_failed: { label: 'Échec inscription', tone: STATUS_BADGE.danger },
+};
+
+const KIND_LABEL: Record<string, string> = {
+  subscription: 'Abonnement',
+  overage: 'Dépassement',
+  subscription_with_overage: 'Abonnement + dépassement',
+  other: 'Autre',
+};
+
+const BILLING_PERIOD_LABEL: Record<string, string> = {
+  monthly: 'Mensuel',
+  annual: 'Annuel',
+};
+
 export default function DashboardPage() {
-  const { data: users, isLoading: usersLoading } = useAdminUsers();
-  const { data: tenants, isLoading: tenantsLoading } = useAdminTenants();
+  const { data: metrics, isLoading, error } = useAdminDashboardMetrics();
+  const { data: users } = useAdminUsers();
   const seedMutation = useAdminSeed();
 
   const handleSeed = async () => {
@@ -27,6 +87,11 @@ export default function DashboardPage() {
     }
   };
 
+  const tenants = metrics?.tenants;
+  const revenue = metrics?.revenue;
+  const recentPayments = metrics?.recentPayments ?? [];
+  const recentSubscriptions = metrics?.recentSubscriptions ?? [];
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -38,36 +103,256 @@ export default function DashboardPage() {
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {error && (
+        <p className="text-destructive mb-6">Impossible de charger les métriques du dashboard.</p>
+      )}
+
+      {/* Revenue — realised cash + recurring run-rate */}
+      <SectionTitle>Revenus</SectionTitle>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <MetricCard
+          title="Chiffre d'affaires total"
+          icon={<Wallet className="h-4 w-4 text-muted-foreground" />}
+          value={isLoading ? null : formatEuro(revenue?.totalPaidEuro)}
+          hint="encaissé sur toutes les factures payées"
+        />
+        <MetricCard
+          title="Encaissé ce mois-ci"
+          icon={<CalendarClock className="h-4 w-4 text-muted-foreground" />}
+          value={isLoading ? null : formatEuro(revenue?.currentMonthPaidEuro)}
+          hint="factures payées depuis le 1er du mois"
+        />
+        <MetricCard
+          title="MRR"
+          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+          value={isLoading ? null : formatEuro(revenue?.mrrEuro)}
+          hint="revenu mensuel récurrent (abos actifs)"
+        />
+      </div>
+
+      {/* Tenants — lifecycle breakdown */}
+      <SectionTitle>Tenants</SectionTitle>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <MetricCard
+          title="Total"
+          icon={<Building2 className="h-4 w-4 text-muted-foreground" />}
+          value={isLoading ? null : String(tenants?.total ?? 0)}
+        />
+        <MetricCard
+          title="Actifs"
+          value={isLoading ? null : String(tenants?.active ?? 0)}
+          tone={STATUS_BADGE.active}
+        />
+        <MetricCard
+          title="En essai"
+          value={isLoading ? null : String(tenants?.trialing ?? 0)}
+          tone={STATUS_BADGE.info}
+        />
+        <MetricCard
+          title="Impayés"
+          value={isLoading ? null : String(tenants?.pastDue ?? 0)}
+          tone={STATUS_BADGE.warning}
+        />
+        <MetricCard
+          title="Annulés"
+          value={isLoading ? null : String(tenants?.canceled ?? 0)}
+          tone={STATUS_BADGE.inactive}
+        />
+        <MetricCard
+          title="Résiliés ce mois"
+          value={isLoading ? null : String(tenants?.canceledThisMonth ?? 0)}
+          tone={(tenants?.canceledThisMonth ?? 0) > 0 ? STATUS_BADGE.danger : undefined}
+        />
+      </div>
+
+      {/* Recent activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Utilisateurs Hub</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium">Derniers paiements</CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {usersLoading ? (
-              <p className="text-2xl font-bold text-muted-foreground">—</p>
-            ) : (
-              <p className="text-2xl font-bold">{users?.length ?? 0}</p>
-            )}
-            <p className="text-xs text-muted-foreground">comptes admin et modérateurs</p>
+            <RecentPaymentsTable
+              rows={recentPayments}
+              isLoading={isLoading}
+            />
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tenants</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium">Souscriptions récentes</CardTitle>
+            <Sparkles className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {tenantsLoading ? (
-              <p className="text-2xl font-bold text-muted-foreground">—</p>
-            ) : (
-              <p className="text-2xl font-bold">{tenants?.length ?? 0}</p>
-            )}
-            <p className="text-xs text-muted-foreground">organisations clientes actives</p>
+            <RecentSubscriptionsTable
+              rows={recentSubscriptions}
+              isLoading={isLoading}
+            />
           </CardContent>
         </Card>
       </div>
+
+      {users && (
+        <p className="text-xs text-muted-foreground mt-6">
+          {users.length} compte{users.length > 1 ? 's' : ''} hub (admins et modérateurs).
+        </p>
+      )}
     </div>
+  );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+      {children}
+    </h3>
+  );
+}
+
+function MetricCard({
+  title,
+  value,
+  icon,
+  hint,
+  tone,
+}: {
+  title: string;
+  value: string | null;
+  icon?: React.ReactNode;
+  hint?: string;
+  tone?: string;
+}) {
+  return (
+    <Card className={cn(tone)}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <p className={cn('text-2xl font-bold', value === null && 'text-muted-foreground')}>
+          {value ?? '—'}
+        </p>
+        {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatusBadge({ status }: { status: string | undefined }) {
+  const meta = status ? STATUS_META[status] : undefined;
+  if (!meta) return <span className="text-muted-foreground">{status ?? '—'}</span>;
+  return (
+    <Badge variant="outline" className={cn('rounded-full', meta.tone)}>
+      {meta.label}
+    </Badge>
+  );
+}
+
+function RecentPaymentsTable({
+  rows,
+  isLoading,
+}: {
+  rows: DashboardRecentPayment[];
+  isLoading: boolean;
+}) {
+  if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
+  if (rows.length === 0) {
+    return <p className="text-sm text-muted-foreground">Aucun paiement enregistré.</p>;
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Tenant</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead className="text-right">Montant</TableHead>
+          <TableHead className="text-right">Payé le</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row) => (
+          <TableRow key={row.invoiceId}>
+            <TableCell className="font-medium">
+              <Link
+                href={`/tenants/${row.tenantId}`}
+                className="hover:underline underline-offset-2"
+              >
+                {row.tenantName}
+              </Link>
+              <span className="block text-xs text-muted-foreground font-normal">
+                {row.invoiceNumber}
+              </span>
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm">
+              {KIND_LABEL[row.kind ?? ''] ?? row.kind ?? '—'}
+            </TableCell>
+            <TableCell className="text-right font-mono font-semibold">
+              {formatEuro(row.amountPaidEuro)}
+            </TableCell>
+            <TableCell className="text-right text-muted-foreground text-sm">
+              {formatDateTime(row.paidAt)}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function RecentSubscriptionsTable({
+  rows,
+  isLoading,
+}: {
+  rows: DashboardRecentSubscription[];
+  isLoading: boolean;
+}) {
+  if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
+  if (rows.length === 0) {
+    return <p className="text-sm text-muted-foreground">Aucune souscription enregistrée.</p>;
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Tenant</TableHead>
+          <TableHead>Offre</TableHead>
+          <TableHead>Statut</TableHead>
+          <TableHead className="text-right">Créée le</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row) => (
+          <TableRow key={row.subscriptionId}>
+            <TableCell className="font-medium">
+              <Link
+                href={`/tenants/${row.tenantId}`}
+                className="hover:underline underline-offset-2"
+              >
+                {row.tenantName}
+              </Link>
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm">
+              {row.planName}
+              {row.billingPeriod && (
+                <span className="block text-xs">
+                  {BILLING_PERIOD_LABEL[row.billingPeriod] ?? row.billingPeriod}
+                </span>
+              )}
+            </TableCell>
+            <TableCell>
+              <StatusBadge status={row.status} />
+            </TableCell>
+            <TableCell className="text-right text-muted-foreground text-sm">
+              {formatDateTime(row.createdAt)}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

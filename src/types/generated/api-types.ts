@@ -1676,6 +1676,41 @@ export type PostAdminPromoCodeCreateResponse = IPromoCodeDto;
 export type PatchAdminPromoCodeUpdateResponse = IPromoCodeDto;
 export type GetAdminPromoCodeRedemptionsResponse = IPromoCodeRedemptionListItemDto[];
 export type PostAdminPromoCodeRuleCreateResponse = IPromoCodeDto;
+export type GetAdminDashboardMetricsResponse = {
+  tenants?: {
+  total?: number;
+  active?: number;
+  trialing?: number;
+  pastDue?: number;
+  canceled?: number;
+  canceledThisMonth?: number;
+};
+  revenue?: {
+  currency?: string;
+  totalPaidEuro?: number;
+  currentMonthPaidEuro?: number;
+  mrrEuro?: number;
+};
+  recentPayments?: {
+  invoiceId?: string;
+  invoiceNumber?: string;
+  tenantId?: string;
+  tenantName?: string;
+  amountPaidEuro?: number;
+  currency?: string;
+  kind?: 'subscription' | 'overage' | 'subscription_with_overage' | 'other';
+  paidAt?: string | null;
+}[];
+  recentSubscriptions?: {
+  subscriptionId?: string;
+  tenantId?: string;
+  tenantName?: string;
+  planName?: string;
+  status?: SubscriptionStatus;
+  billingPeriod?: ChangePlanBillingPeriod | null;
+  createdAt?: string | null;
+}[];
+};
 export type GetAdminBillingOverviewResponse = {
   tenantId?: string;
   tenantName?: string;
