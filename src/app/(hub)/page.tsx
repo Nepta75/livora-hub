@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Building2,
@@ -258,6 +258,8 @@ function RecentPaymentsTable({
   rows: DashboardRecentPayment[];
   isLoading: boolean;
 }) {
+  const router = useRouter();
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
   if (rows.length === 0) {
     return <p className="text-sm text-muted-foreground">Aucun paiement enregistré.</p>;
@@ -275,14 +277,11 @@ function RecentPaymentsTable({
       </TableHeader>
       <TableBody>
         {rows.map((row) => (
-          <TableRow key={row.invoiceId}>
+          <ClickableRow key={row.invoiceId} href={`/tenants/${row.tenantId}`} router={router}>
             <TableCell className="font-medium">
-              <Link
-                href={`/tenants/${row.tenantId}`}
-                className="hover:underline underline-offset-2"
-              >
+              <span className="text-primary underline-offset-2 group-hover:underline">
                 {row.tenantName}
-              </Link>
+              </span>
               <span className="block text-xs text-muted-foreground font-normal">
                 {row.invoiceNumber}
               </span>
@@ -296,10 +295,41 @@ function RecentPaymentsTable({
             <TableCell className="text-right text-muted-foreground text-sm">
               {formatDateTime(row.paidAt)}
             </TableCell>
-          </TableRow>
+          </ClickableRow>
         ))}
       </TableBody>
     </Table>
+  );
+}
+
+/**
+ * Table row that navigates to `href` on click or keyboard activation —
+ * the whole row is the link target so dashboard panels stay scannable.
+ */
+function ClickableRow({
+  href,
+  router,
+  children,
+}: {
+  href: string;
+  router: ReturnType<typeof useRouter>;
+  children: React.ReactNode;
+}) {
+  return (
+    <TableRow
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(href)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(href);
+        }
+      }}
+      className="group cursor-pointer hover:bg-muted/50"
+    >
+      {children}
+    </TableRow>
   );
 }
 
@@ -310,6 +340,8 @@ function RecentSubscriptionsTable({
   rows: DashboardRecentSubscription[];
   isLoading: boolean;
 }) {
+  const router = useRouter();
+
   if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
   if (rows.length === 0) {
     return <p className="text-sm text-muted-foreground">Aucune souscription enregistrée.</p>;
@@ -327,14 +359,15 @@ function RecentSubscriptionsTable({
       </TableHeader>
       <TableBody>
         {rows.map((row) => (
-          <TableRow key={row.subscriptionId}>
+          <ClickableRow
+            key={row.subscriptionId}
+            href={`/tenants/${row.tenantId}`}
+            router={router}
+          >
             <TableCell className="font-medium">
-              <Link
-                href={`/tenants/${row.tenantId}`}
-                className="hover:underline underline-offset-2"
-              >
+              <span className="text-primary underline-offset-2 group-hover:underline">
                 {row.tenantName}
-              </Link>
+              </span>
             </TableCell>
             <TableCell className="text-muted-foreground text-sm">
               {row.planName}
@@ -350,7 +383,7 @@ function RecentSubscriptionsTable({
             <TableCell className="text-right text-muted-foreground text-sm">
               {formatDateTime(row.createdAt)}
             </TableCell>
-          </TableRow>
+          </ClickableRow>
         ))}
       </TableBody>
     </Table>
