@@ -148,7 +148,7 @@ export default function AccountingPage() {
                 <Label>Mois</Label>
                 <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>{(value) => MONTHS[Number(value) - 1]}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {MONTHS.map((label, idx) => (
@@ -163,7 +163,7 @@ export default function AccountingPage() {
                 <Label>Année</Label>
                 <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>{(value) => String(value)}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {years.map((y) => (

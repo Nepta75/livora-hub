@@ -154,7 +154,7 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
   return (
     <Dialog open={invoice !== null} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="flex max-h-[85vh] flex-col">
-        <DialogHeader>
+        <DialogHeader className="shrink-0">
           <DialogTitle>Rembourser la facture {invoice?.invoiceNumber}</DialogTitle>
           <DialogDescription>
             Le remboursement est exécuté immédiatement via Stripe et tracé dans les logs d&rsquo;audit.
@@ -187,7 +187,12 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
                 <Label>Type de remboursement</Label>
                 <Select value={mode} onValueChange={(v) => setMode(v as 'full' | 'partial')}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>
+                      {(value) =>
+                        value === 'partial'
+                          ? 'Partiel'
+                          : `Total — ${formatAmount(refundable, currency)}`}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="full">
@@ -220,7 +225,7 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
                   onValueChange={(v) => setReason(v as RefundSubscriptionInvoiceReason)}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>{(value) => reasonLabel(String(value))}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {(Object.keys(REASON_LABELS) as RefundSubscriptionInvoiceReason[]).map((r) => (
@@ -292,7 +297,7 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="shrink-0">
           <Button
             type="button"
             variant="outline"
