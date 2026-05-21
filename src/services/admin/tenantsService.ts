@@ -3,13 +3,21 @@ import type {
   AuditLogAction,
   IAuditLog,
   ImpersonationLog,
+  IRefundSubscriptionInvoiceDto,
   ISubscriptionInvoice,
+  ISubscriptionInvoiceRefund,
   ITenant,
   IUser,
   GetAdminTenantSubscriptionInvoiceReadResponse,
 } from '@/types/generated/api-types';
 
-export type { IAuditLog, ImpersonationLog, ISubscriptionInvoice };
+export type { IAuditLog, ImpersonationLog, ISubscriptionInvoice, ISubscriptionInvoiceRefund };
+
+/** Shape returned by POST /tenant/{id}/subscription-invoice/{id}/refund. */
+export interface RefundSubscriptionInvoiceResult {
+  refund: ISubscriptionInvoiceRefund;
+  invoice: ISubscriptionInvoice;
+}
 
 export interface TenantSubscriptionInvoiceFilters {
   search?: string;
@@ -153,6 +161,24 @@ export const tenantsService = {
     httpClient.get<Blob>(
       `/tenant/${tenantId}/subscription-invoice/${invoiceId}/pdf`,
       { token, responseType: 'blob' },
+    ),
+
+  downloadCreditNotePdf: (tenantId: string, creditNoteId: string, token: string) =>
+    httpClient.get<Blob>(
+      `/tenant/${tenantId}/credit-note/${creditNoteId}/pdf`,
+      { token, responseType: 'blob' },
+    ),
+
+  refundSubscriptionInvoice: (
+    tenantId: string,
+    invoiceId: string,
+    body: IRefundSubscriptionInvoiceDto,
+    token: string,
+  ) =>
+    httpClient.post<RefundSubscriptionInvoiceResult>(
+      `/tenant/${tenantId}/subscription-invoice/${invoiceId}/refund`,
+      body,
+      { token },
     ),
 
   cancelSubscription: (tenantId: string, force: boolean, token: string) =>

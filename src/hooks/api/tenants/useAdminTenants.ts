@@ -13,7 +13,11 @@ import {
   type UpdateTenantUserPayload,
 } from '@/services/admin/tenantsService';
 import { SUBSCRIPTION_KEYS } from '@/hooks/api/plans/useAdminPlans';
-import type { GetAdminTenantSubscriptionInvoiceReadResponse } from '@/types/generated/api-types';
+import { DASHBOARD_METRICS_KEYS } from '@/hooks/api/dashboard/useAdminDashboardMetrics';
+import type {
+  GetAdminTenantSubscriptionInvoiceReadResponse,
+  IRefundSubscriptionInvoiceDto,
+} from '@/types/generated/api-types';
 
 export const TENANTS_KEYS = {
   all: ['admin', 'tenants'] as const,
@@ -203,6 +207,47 @@ export function useDownloadAdminTenantSubscriptionInvoice(tenantId: string) {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+    },
+  });
+}
+
+export function useDownloadAdminTenantCreditNote(tenantId: string) {
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      creditNoteId,
+      creditNoteNumber,
+    }: {
+      creditNoteId: string;
+      creditNoteNumber: string;
+    }) => {
+      const blob = await tenantsService.downloadCreditNotePdf(tenantId, creditNoteId, token);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${creditNoteNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    },
+  });
+}
+
+export function useRefundAdminTenantSubscriptionInvoice(tenantId: string) {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ invoiceId, body }: { invoiceId: string; body: IRefundSubscriptionInvoiceDto }) =>
+      tenantsService.refundSubscriptionInvoice(tenantId, invoiceId, body, token),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ['admin', 'tenants', tenantId, 'subscription-invoices'],
+      });
+      void queryClient.invalidateQueries({ queryKey: TENANTS_KEYS.detail(tenantId) });
+      void queryClient.invalidateQueries({ queryKey: DASHBOARD_METRICS_KEYS.all });
     },
   });
 }

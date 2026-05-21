@@ -29,6 +29,7 @@ export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DE
 export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
+export type RefundSubscriptionInvoiceReason = "duplicate" | "fraudulent" | "requested_by_customer";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
@@ -1031,6 +1032,12 @@ export interface IReadWarehouseOrderDto {
   daysInWarehouse?: number;
 }
 
+export interface IRefundSubscriptionInvoiceDto {
+  amount?: number | null;
+  reason?: RefundSubscriptionInvoiceReason;
+  note?: string | null;
+}
+
 export interface IRegisterFinalizeDto {
   sessionId?: string;
 }
@@ -1103,6 +1110,9 @@ export interface ISubscription2 {
   billingPeriod?: ChangePlanBillingPeriod | null;
   pendingBillingPeriod?: ChangePlanBillingPeriod | null;
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
 }
 
 export interface ISubscriptionDto {
@@ -1128,6 +1138,7 @@ export interface ISubscriptionInvoice {
   total: number;
   amountPaid?: number;
   amountDue?: number;
+  refundedAmount?: number;
   periodStart: string;
   periodEnd: string;
   issuedAt: string;
@@ -1148,9 +1159,28 @@ export interface ISubscriptionInvoice {
   customerEmail: string;
   lines: ISubscriptionInvoiceLine[];
   taxBreakdowns: ISubscriptionInvoiceTaxBreakdown[];
+  refunds: ISubscriptionInvoiceRefund[];
   automaticTaxEnabled?: boolean;
   automaticTaxStatus?: string | null;
   issuerVatRegime: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+}
+
+export interface ISubscriptionInvoiceCreditNote {
+  id: string;
+  creditNoteNumber: string;
+  currency: string;
+  amountHt: number;
+  taxAmount: number;
+  amountTtc: number;
+  taxRatePct: string;
+  reason: string;
+  issuedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
 }
 
 export interface ISubscriptionInvoiceLine {
@@ -1163,6 +1193,25 @@ export interface ISubscriptionInvoiceLine {
   periodStart?: string | null;
   periodEnd?: string | null;
   taxAmount?: number;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+}
+
+export interface ISubscriptionInvoiceRefund {
+  id: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  note?: string | null;
+  status: string;
+  failureReason?: string | null;
+  provider: string;
+  actorEmail?: string | null;
+  creditNote?: ISubscriptionInvoiceCreditNote | null;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
 }
 
 export interface ISubscriptionInvoiceTaxBreakdown {
@@ -1174,6 +1223,9 @@ export interface ISubscriptionInvoiceTaxBreakdown {
   taxAmount: number;
   inclusive?: boolean;
   taxabilityReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
 }
 
 export interface ITenant {
@@ -1211,6 +1263,9 @@ export interface ITenant3 {
   user?: IUser;
   privateCustomer?: IPrivateCustomer[];
   id: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
 }
 
 export interface ITenant4 {
@@ -1690,6 +1745,23 @@ export type GetAdminDashboardMetricsResponse = {
   totalPaidEuro?: number;
   currentMonthPaidEuro?: number;
   mrrEuro?: number;
+};
+  refunds?: {
+  currency?: string;
+  totalRefundedEuro?: number;
+  currentMonthRefundedEuro?: number;
+  recent?: {
+  refundId?: string;
+  invoiceId?: string;
+  invoiceNumber?: string;
+  tenantId?: string;
+  tenantName?: string;
+  amountEuro?: number;
+  currency?: string;
+  reason?: RefundSubscriptionInvoiceReason;
+  status?: 'pending' | 'requires_action' | 'succeeded' | 'failed' | 'canceled';
+  createdAt?: string | null;
+}[];
 };
   recentPayments?: {
   invoiceId?: string;

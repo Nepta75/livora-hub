@@ -10,6 +10,7 @@ import {
   CalendarClock,
   Receipt,
   Sparkles,
+  RotateCcw,
 } from 'lucide-react';
 import { useAdminUsers } from '@/hooks/api/users/useAdminUsers';
 import { useAdminDashboardMetrics } from '@/hooks/api/dashboard/useAdminDashboardMetrics';
@@ -29,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import type {
   DashboardRecentPayment,
+  DashboardRecentRefund,
   DashboardRecentSubscription,
 } from '@/services/admin/dashboardService';
 
@@ -70,6 +72,21 @@ const BILLING_PERIOD_LABEL: Record<string, string> = {
   annual: 'Annuel',
 };
 
+const REFUND_REASON_LABEL: Record<string, string> = {
+  duplicate: 'Doublon',
+  fraudulent: 'Fraude',
+  requested_by_customer: 'Demande client',
+};
+
+// Refund status → French label + badge tone.
+const REFUND_STATUS_META: Record<string, { label: string; tone: string }> = {
+  pending: { label: 'En cours', tone: STATUS_BADGE.warning },
+  requires_action: { label: 'Action requise', tone: STATUS_BADGE.warning },
+  succeeded: { label: 'Effectué', tone: STATUS_BADGE.active },
+  failed: { label: 'Échoué', tone: STATUS_BADGE.danger },
+  canceled: { label: 'Annulé', tone: STATUS_BADGE.inactive },
+};
+
 export default function DashboardPage() {
   const { data: metrics, isLoading, error } = useAdminDashboardMetrics();
   const { data: users } = useAdminUsers();
@@ -89,8 +106,10 @@ export default function DashboardPage() {
 
   const tenants = metrics?.tenants;
   const revenue = metrics?.revenue;
+  const refunds = metrics?.refunds;
   const recentPayments = metrics?.recentPayments ?? [];
   const recentSubscriptions = metrics?.recentSubscriptions ?? [];
+  const recentRefunds = metrics?.refunds?.recent ?? [];
 
   return (
     <div>
@@ -166,6 +185,23 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Refunds — money returned to tenants */}
+      <SectionTitle>Remboursements</SectionTitle>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        <MetricCard
+          title="Total remboursé"
+          icon={<RotateCcw className="h-4 w-4 text-muted-foreground" />}
+          value={isLoading ? null : formatEuro(refunds?.totalRefundedEuro)}
+          hint="remboursements aboutis, toutes périodes"
+        />
+        <MetricCard
+          title="Remboursé ce mois-ci"
+          icon={<CalendarClock className="h-4 w-4 text-muted-foreground" />}
+          value={isLoading ? null : formatEuro(refunds?.currentMonthRefundedEuro)}
+          hint="remboursements aboutis depuis le 1er du mois"
+        />
+      </div>
+
       {/* Recent activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
@@ -194,6 +230,16 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="mt-6">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+          <CardTitle className="text-sm font-medium">Derniers remboursements</CardTitle>
+          <RotateCcw className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <RecentRefundsTable rows={recentRefunds} isLoading={isLoading} />
+        </CardContent>
+      </Card>
 
       {users && (
         <p className="text-xs text-muted-foreground mt-6">
@@ -330,6 +376,70 @@ function ClickableRow({
     >
       {children}
     </TableRow>
+  );
+}
+
+function RecentRefundsTable({
+  rows,
+  isLoading,
+}: {
+  rows: DashboardRecentRefund[];
+  isLoading: boolean;
+}) {
+  const router = useRouter();
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">Chargement...</p>;
+  if (rows.length === 0) {
+    return <p className="text-sm text-muted-foreground">Aucun remboursement enregistré.</p>;
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Tenant</TableHead>
+          <TableHead>Motif</TableHead>
+          <TableHead>Statut</TableHead>
+          <TableHead className="text-right">Montant</TableHead>
+          <TableHead className="text-right">Émis le</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row) => {
+          const meta = row.status ? REFUND_STATUS_META[row.status] : undefined;
+          return (
+            <ClickableRow key={row.refundId} href={`/tenants/${row.tenantId}`} router={router}>
+              <TableCell className="font-medium">
+                <span className="text-primary underline-offset-2 group-hover:underline">
+                  {row.tenantName}
+                </span>
+                <span className="block text-xs text-muted-foreground font-normal">
+                  {row.invoiceNumber}
+                </span>
+              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                {REFUND_REASON_LABEL[row.reason ?? ''] ?? row.reason ?? '—'}
+              </TableCell>
+              <TableCell>
+                {meta ? (
+                  <Badge variant="outline" className={cn('rounded-full', meta.tone)}>
+                    {meta.label}
+                  </Badge>
+                ) : (
+                  <span className="text-muted-foreground">{row.status ?? '—'}</span>
+                )}
+              </TableCell>
+              <TableCell className="text-right font-mono font-semibold">
+                {formatEuro(row.amountEuro)}
+              </TableCell>
+              <TableCell className="text-right text-muted-foreground text-sm">
+                {formatDateTime(row.createdAt)}
+              </TableCell>
+            </ClickableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 }
 
