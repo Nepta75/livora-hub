@@ -40,6 +40,12 @@ const REASON_LABELS: Record<RefundSubscriptionInvoiceReason, string> = {
   fraudulent: 'Fraude',
 };
 
+// `refund.reason` is typed `string` (Stripe-origin refunds may carry a value
+// outside our enum) — fall back to the raw value rather than rendering blank.
+function reasonLabel(reason: string): string {
+  return REASON_LABELS[reason as RefundSubscriptionInvoiceReason] ?? reason;
+}
+
 const REFUND_STATUS_LABELS: Record<string, string> = {
   pending: 'En cours',
   requires_action: 'Action requise',
@@ -147,7 +153,7 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
 
   return (
     <Dialog open={invoice !== null} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false}>
+      <DialogContent showCloseButton={false} className="flex max-h-[85vh] flex-col">
         <DialogHeader>
           <DialogTitle>Rembourser la facture {invoice?.invoiceNumber}</DialogTitle>
           <DialogDescription>
@@ -155,7 +161,7 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
           <div className="grid grid-cols-3 gap-3 rounded-md border p-3 text-sm">
             <div>
               <p className="text-xs text-muted-foreground">Payé</p>
@@ -247,9 +253,14 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
               <ul className="rounded-md border divide-y text-sm">
                 {refunds.map((refund) => (
                   <li key={refund.id} className="flex items-center justify-between gap-2 px-3 py-2">
-                    <span className="font-medium">
-                      {formatAmount(refund.amount, refund.currency)}
-                    </span>
+                    <div className="min-w-0">
+                      <span className="font-medium">
+                        {formatAmount(refund.amount, refund.currency)}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {reasonLabel(refund.reason)}
+                      </span>
+                    </div>
                     <span className="text-xs text-muted-foreground">
                       {formatFrDate(refund.createdAt)}
                     </span>
