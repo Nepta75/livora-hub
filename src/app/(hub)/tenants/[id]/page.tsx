@@ -63,6 +63,7 @@ import { useTenantSubscription } from '@/hooks/api/plans/useAdminPlans';
 import { MigrateSubscriptionDialog } from '@/components/plans/MigrateSubscriptionDialog';
 import { ChangePlanDialog } from '@/components/subscriptions/ChangePlanDialog';
 import { CancelSubscriptionDialog } from '@/components/subscriptions/CancelSubscriptionDialog';
+import { ExtendTrialDialog } from '@/components/subscriptions/ExtendTrialDialog';
 import { useCancelPendingPlanChange } from '@/hooks/api/subscriptions/useChangePlan';
 import { cn } from '@/lib/utils';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
@@ -74,6 +75,7 @@ const ACTION_LABELS: Record<string, string> = {
   PLAN_CHANGE: 'Changement de plan',
   PLAN_CHANGE_SCHEDULED: 'Changement de plan programmé',
   UPDATE_PAYMENT_METHOD: 'Moyen de paiement modifié',
+  TRIAL_EXTENDED: 'Essai prolongé',
   OVERAGE_INVOICE_CREATED: 'Facture de dépassement',
   OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
   TAX_DELTA: 'Écart de TVA détecté',
@@ -296,6 +298,7 @@ function SubscriptionSection({ tenantId, tenantName }: { tenantId: string; tenan
   const { data: subscription, isLoading } = useTenantSubscription(tenantId);
   const [migrateDialogOpen, setMigrateDialogOpen] = useState(false);
   const [changePlanDialogOpen, setChangePlanDialogOpen] = useState(false);
+  const [extendTrialDialogOpen, setExtendTrialDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const downloadFrPdfMutation = useDownloadAdminTenantSubscriptionInvoice(tenantId);
   const cancelPendingChangeMutation = useCancelPendingPlanChange(tenantId);
@@ -395,8 +398,12 @@ function SubscriptionSection({ tenantId, tenantName }: { tenantId: string; tenan
               </div>
               {status === 'trialing' && (
                 <div>
-                  <p className="text-muted-foreground text-xs mb-1">Essai</p>
-                  <p>Essai en cours</p>
+                  <p className="text-muted-foreground text-xs mb-1">Fin d’essai</p>
+                  <p>
+                    {subscription.trialEndsAt
+                      ? formatFrDate(subscription.trialEndsAt)
+                      : 'Essai en cours'}
+                  </p>
                 </div>
               )}
               {subscription.startedAt && (
@@ -576,6 +583,31 @@ function SubscriptionSection({ tenantId, tenantName }: { tenantId: string; tenan
                   />
                 </div>
               )}
+
+            {subscription.id && status === 'trialing' && (
+              <div className={cn('flex items-center justify-between rounded-md border p-3', STATUS_BADGE.info)}>
+                <div>
+                  <p className="text-sm font-medium">Prolonger la période d’essai</p>
+                  <p className="text-xs">
+                    Repousse la fin d’essai. La nouvelle date est appliquée à l’abonnement
+                    Stripe et tracée dans les logs d’audit.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExtendTrialDialogOpen(true)}
+                >
+                  Prolonger l’essai
+                </Button>
+                <ExtendTrialDialog
+                  open={extendTrialDialogOpen}
+                  onOpenChange={setExtendTrialDialogOpen}
+                  tenantId={tenantId}
+                  currentTrialEnd={subscription.trialEndsAt ?? null}
+                />
+              </div>
+            )}
 
             {subscription.id && (
               <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 p-3">

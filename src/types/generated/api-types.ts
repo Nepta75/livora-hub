@@ -350,6 +350,11 @@ export interface IDriverScheduleTimeSlotDto {
   description?: string | null;
 }
 
+export interface IExtendTrialDto {
+  trialEndsAt: string | null;
+  reason?: string;
+}
+
 export interface IFeature {
   id: string;
   key: string;
@@ -1581,6 +1586,7 @@ export type GetAdminTenantSubscriptionReadResponse = {
   planAnnualPriceEuroCents?: number | null;
   isOnLatestPrice?: boolean | null;
   billingPeriod?: ChangePlanBillingPeriod | null;
+  trialEndsAt?: string | null;
   currentPeriodStart?: string | null;
   currentPeriodEnd?: string | null;
   nextOverageCycleStart?: string | null;
