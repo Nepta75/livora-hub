@@ -8,6 +8,7 @@ import {
   type InviteTenantUserPayload,
   type TenantAuditLogFilters,
   type TenantAuditLogPagination,
+  type TenantListFilters,
   type TenantSubscriptionInvoiceFilters,
   type UpdateTenantPayload,
   type UpdateTenantUserPayload,
@@ -19,8 +20,13 @@ import type {
   IRefundSubscriptionInvoiceDto,
 } from '@/types/generated/api-types';
 
+export const TENANTS_PAGE_SIZE = 25;
+
 export const TENANTS_KEYS = {
   all: ['admin', 'tenants'] as const,
+  list: (filters: TenantListFilters, page: number) =>
+    ['admin', 'tenants', 'list', filters, page] as const,
+  options: ['admin', 'tenants', 'options'] as const,
   detail: (id: string) => ['admin', 'tenants', id] as const,
   users: (id: string) => ['admin', 'tenants', id, 'users'] as const,
   impersonationLogs: (id: string) => ['admin', 'tenants', id, 'impersonation-logs'] as const,
@@ -33,12 +39,31 @@ export const TENANTS_KEYS = {
   ) => ['admin', 'tenants', id, 'subscription-invoices', filters, page] as const,
 };
 
+/**
+ * Paginated, searchable tenants listing. `placeholderData` keeps the previous
+ * page on screen while the next one loads, so the table doesn't flash empty.
+ */
+export function useAdminTenantList(filters: TenantListFilters, page = 0) {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: TENANTS_KEYS.list(filters, page),
+    queryFn: () =>
+      tenantsService.getList(filters, token, {
+        limit: TENANTS_PAGE_SIZE,
+        offset: page * TENANTS_PAGE_SIZE,
+      }),
+    placeholderData: (prev) => prev,
+  });
+}
+
+/** Full lightweight `{id, name}` tenant list — for tenant pickers. */
 export function useAdminTenants() {
   const { token } = useAuth();
 
   return useQuery({
-    queryKey: TENANTS_KEYS.all,
-    queryFn: () => tenantsService.getAll(token),
+    queryKey: TENANTS_KEYS.options,
+    queryFn: () => tenantsService.getOptions(token),
   });
 }
 

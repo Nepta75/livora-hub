@@ -12,7 +12,7 @@ import {
   Sparkles,
   RotateCcw,
 } from 'lucide-react';
-import { useAdminUsers } from '@/hooks/api/users/useAdminUsers';
+import { useAdminUserList } from '@/hooks/api/users/useAdminUsers';
 import { useAdminDashboardMetrics } from '@/hooks/api/dashboard/useAdminDashboardMetrics';
 import { useAdminSeed } from '@/hooks/api/seed/useAdminSeed';
 import { Button } from '@/components/ui/button';
@@ -89,7 +89,8 @@ const REFUND_STATUS_META: Record<string, { label: string; tone: string }> = {
 
 export default function DashboardPage() {
   const { data: metrics, isLoading, error } = useAdminDashboardMetrics();
-  const { data: users } = useAdminUsers();
+  // First page only — `total` is the hub user count we display below.
+  const { data: hubUsers } = useAdminUserList({}, 0);
   const seedMutation = useAdminSeed();
 
   const handleSeed = async () => {
@@ -241,9 +242,9 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {users && (
+      {hubUsers && (
         <p className="text-xs text-muted-foreground mt-6">
-          {users.length} compte{users.length > 1 ? 's' : ''} hub (admins et modérateurs).
+          {hubUsers.total} compte{hubUsers.total > 1 ? 's' : ''} hub (admins et modérateurs).
         </p>
       )}
     </div>

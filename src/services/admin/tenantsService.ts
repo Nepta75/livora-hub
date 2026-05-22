@@ -4,6 +4,7 @@ import type {
   IAuditLog,
   ImpersonationLog,
   IRefundSubscriptionInvoiceDto,
+  ISubscription,
   ISubscriptionInvoice,
   ISubscriptionInvoiceRefund,
   ITenant,
@@ -12,6 +13,39 @@ import type {
 } from '@/types/generated/api-types';
 
 export type { IAuditLog, ImpersonationLog, ISubscriptionInvoice, ISubscriptionInvoiceRefund };
+
+/** Free-text filter for the paginated tenants listing. */
+export interface TenantListFilters {
+  search?: string;
+}
+
+export interface ListPagination {
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * One row of the hub tenants listing — the tenant plus the figures the table
+ * renders alongside it. `subscription` is `null` when the tenant has never
+ * subscribed. Composed from generated entity types (no manual duplication).
+ */
+export interface AdminTenantListItem {
+  tenant: ITenant;
+  userCount: number;
+  subscription: ISubscription | null;
+}
+
+/** Shape returned by GET /admin/tenant (paginated). */
+export interface AdminTenantListResponse {
+  data: AdminTenantListItem[];
+  total: number;
+}
+
+/** Lightweight tenant entry for pickers — GET /admin/tenant/options. */
+export interface TenantOption {
+  id: string;
+  name: string;
+}
 
 /** Shape returned by POST /tenant/{id}/subscription-invoice/{id}/refund. */
 export interface RefundSubscriptionInvoiceResult {
@@ -90,7 +124,18 @@ export interface UpdateTenantUserPayload {
 export type UpdateTenantPayload = Partial<CreateTenantPayload>;
 
 export const tenantsService = {
-  getAll: (token: string) => httpClient.get<ITenant[]>('/tenant', { token }),
+  getList: (filters: TenantListFilters, token: string, pagination?: ListPagination) => {
+    const query = new URLSearchParams();
+    Object.entries({ ...filters, ...pagination }).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, String(value));
+      }
+    });
+    const qs = query.toString();
+    return httpClient.get<AdminTenantListResponse>(`/tenant${qs ? `?${qs}` : ''}`, { token });
+  },
+
+  getOptions: (token: string) => httpClient.get<TenantOption[]>('/tenant/options', { token }),
 
   getById: (id: string, token: string) =>
     httpClient.get<ITenant>(`/tenant/${id}`, { token }),

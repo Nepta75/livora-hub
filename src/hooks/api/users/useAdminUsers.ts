@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { usersService } from '@/services/admin/usersService';
+import { usersService, type HubUserListFilters } from '@/services/admin/usersService';
 import type {
   IHubUserDto,
   IUpdateHubUserDto,
@@ -8,17 +8,30 @@ import type {
   IUpdatePasswordDto,
 } from '@/types/generated/api-types';
 
+export const HUB_USERS_PAGE_SIZE = 25;
+
 export const USERS_KEYS = {
   all: ['admin', 'users'] as const,
+  list: (filters: HubUserListFilters, page: number) =>
+    ['admin', 'users', 'list', filters, page] as const,
   detail: (id: string) => ['admin', 'users', id] as const,
 };
 
-export function useAdminUsers() {
+/**
+ * Paginated, searchable hub users listing. `placeholderData` keeps the
+ * previous page visible while the next one loads.
+ */
+export function useAdminUserList(filters: HubUserListFilters, page = 0) {
   const { token } = useAuth();
 
   return useQuery({
-    queryKey: USERS_KEYS.all,
-    queryFn: () => usersService.getAll(token),
+    queryKey: USERS_KEYS.list(filters, page),
+    queryFn: () =>
+      usersService.getList(filters, token, {
+        limit: HUB_USERS_PAGE_SIZE,
+        offset: page * HUB_USERS_PAGE_SIZE,
+      }),
+    placeholderData: (prev) => prev,
   });
 }
 

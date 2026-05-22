@@ -80,6 +80,28 @@ Key hub-specific points:
 - `PlanChangePreviewCard.tsx` renders two variants driven by `preview.scheduledAt`: scheduled-downgrade (sky-blue info card with HT + TTC) vs immediate-swap (HT + TTC + per-line proration toggle).
 - The pending-change banner on the tenant detail page lets the admin cancel a queued schedule (`DELETE /admin/tenant/{id}/subscription/pending-change`); the same endpoint clears `Subscription.pending_*` fields in the same transaction as the Stripe schedule release.
 
+## Listing pages — server-side pagination + search
+
+Listing pages backed by a paginated endpoint (`/tenants`, `/users`) share
+three primitives — reuse them, do not re-roll per page:
+
+- `useListingState()` (`src/hooks/`) — reads/writes `?search=` + `?page=` in
+  the URL (the single source of truth). Page is 1-indexed in the URL,
+  0-indexed in code. Requires a `<Suspense>` boundary (`useSearchParams`).
+- `SearchInput` (`src/components/listing/`) — debounced search field; keeps a
+  local draft so typing stays snappy while the URL write is debounced 300ms.
+- `ListingPagination` (`src/components/listing/`) — result count + prev/next.
+
+The matching list hooks (`useAdminTenantList`, `useAdminUserList`) hit
+`{data, total}` endpoints and use `placeholderData: prev => prev` so the
+table doesn't flash empty between pages. Page size constants live next to
+the hook (`TENANTS_PAGE_SIZE`, `HUB_USERS_PAGE_SIZE`).
+
+**Tenant pickers** (e.g. `PromoCodeRulesEditor`) need the *full* tenant list,
+not a page — they use `useAdminTenants()`, which now hits
+`GET /admin/tenant/options` (lightweight `{id, name}[]`). The paginated
+`GET /admin/tenant` is for the listing only.
+
 ## Archive + delete pattern
 
 Resources that can be temporarily disabled AND permanently removed (e.g. promo codes) expose **three** mutations and **three** buttons:

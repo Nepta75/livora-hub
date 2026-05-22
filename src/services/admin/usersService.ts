@@ -6,9 +6,30 @@ import type {
   IUpdateHubUserRolesDto,
   IUpdatePasswordDto,
 } from '@/types/generated/api-types';
+import type { ListPagination } from '@/services/admin/tenantsService';
+
+/** Free-text filter for the paginated hub users listing. */
+export interface HubUserListFilters {
+  search?: string;
+}
+
+/** Shape returned by GET /admin/user (paginated). */
+export interface AdminHubUserListResponse {
+  data: IHubUser[];
+  total: number;
+}
 
 export const usersService = {
-  getAll: (token: string) => httpClient.get<IHubUser[]>('/user', { token }),
+  getList: (filters: HubUserListFilters, token: string, pagination?: ListPagination) => {
+    const query = new URLSearchParams();
+    Object.entries({ ...filters, ...pagination }).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, String(value));
+      }
+    });
+    const qs = query.toString();
+    return httpClient.get<AdminHubUserListResponse>(`/user${qs ? `?${qs}` : ''}`, { token });
+  },
 
   getById: (id: string, token: string) => httpClient.get<IHubUser>(`/user/${id}`, { token }),
 
