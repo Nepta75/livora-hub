@@ -1572,6 +1572,22 @@ export type PostPublicRegisterResponse = {
 export type PostPublicRegisterFinalizeResponse = {
   token?: string;
 };
+export type GetAdminUserListResponse = {
+  data?: { [key: string]: unknown }[];
+  total?: number;
+};
+export type GetAdminTenantListResponse = {
+  data?: {
+  tenant?: { [key: string]: unknown };
+  userCount?: number;
+  subscription?: { [key: string]: unknown } | null;
+}[];
+  total?: number;
+};
+export type GetAdminTenantOptionsResponse = {
+  id?: string;
+  name?: string;
+}[];
 export type PostAdminTenantImpersonateResponse = {
   token?: string;
 };
