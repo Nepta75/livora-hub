@@ -1370,6 +1370,11 @@ export interface IUpdatePromoCodeDto {
   expiresAt?: string | null;
 }
 
+export interface IUpdateTenantBillingDto {
+  address: ITenantRegisterAddressDto;
+  vatNumber?: string;
+}
+
 export interface IUpdateUserDto {
   firstName: string;
   lastName: string;
