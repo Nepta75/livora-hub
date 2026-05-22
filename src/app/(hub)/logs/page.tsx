@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { AuditLogCard } from '@/components/auditLogs/AuditLogCard';
 
-// base-ui Select requires a concrete value — use a sentinel to express "no filter".
+// base-ui Select requires a concrete value, use a sentinel to express "no filter".
 const ALL = '__all__';
 
 const ACTION_OPTIONS: Array<{ value: AuditLogAction; label: string }> = [

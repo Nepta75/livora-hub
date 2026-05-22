@@ -181,7 +181,7 @@ export default function BillingOverviewPage() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold">Dépassements — Vue d&apos;ensemble</h2>
+        <h2 className="text-2xl font-bold">Dépassements, Vue d&apos;ensemble</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Consommation et dépassements en cours, par tenant. Les montants sont projetés sur le
           cycle courant (anniversaire de souscription) et seront facturés à la prochaine clôture
@@ -324,7 +324,7 @@ function PendingRecordsBanner() {
   const { data: pending, isLoading } = useAdminBillingPendingRecords();
   const runCron = useRunBillingCron();
 
-  // Hide entirely while we don't know yet — avoids a flash of "0 pending"
+  // Hide entirely while we don't know yet, avoids a flash of "0 pending"
   // followed by the real banner.
   if (isLoading) return null;
 
@@ -344,11 +344,11 @@ function PendingRecordsBanner() {
         const billed = result.billed ?? 0;
         const errors = result.errors ?? 0;
         if (errors > 0) {
-          toast.warning(`Cron lancé — ${billed} facturé(s), ${errors} erreur(s). Vérifier les logs.`);
+          toast.warning(`Cron lancé, ${billed} facturé(s), ${errors} erreur(s). Vérifier les logs.`);
         } else if (billed === 0) {
-          toast.info('Cron lancé — aucun enregistrement dans la fenêtre éligible.');
+          toast.info('Cron lancé, aucun enregistrement dans la fenêtre éligible.');
         } else {
-          toast.success(`Cron lancé — ${billed} enregistrement(s) facturé(s).`);
+          toast.success(`Cron lancé, ${billed} enregistrement(s) facturé(s).`);
         }
       },
       onError: (err) => {
@@ -379,7 +379,7 @@ function PendingRecordsBanner() {
             {records.slice(0, 10).map((r) => (
               <li key={r.recordId} className="flex justify-between gap-4">
                 <span>
-                  <strong>{r.tenantName}</strong> — {featureLabel(r.featureKey)} (devait être
+                  <strong>{r.tenantName}</strong>, {featureLabel(r.featureKey)} (devait être
                   facturé le {formatDate(r.shouldHaveBeenBilledOn)})
                 </span>
                 <span className="font-mono">{formatEuro(r.totalAmountEuro)}</span>

@@ -24,7 +24,7 @@ interface ExtendTrialDialogProps {
 
 const QUICK_ADD_DAYS = [7, 14, 30];
 
-// `YYYY-MM-DD` in local time — the value shape an <input type="date"> expects.
+// `YYYY-MM-DD` in local time, the value shape an <input type="date"> expects.
 function toDateInputValue(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -44,7 +44,7 @@ export function ExtendTrialDialog({
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Quick-add buttons extend from the current trial end — but never from a
+  // Quick-add buttons extend from the current trial end, but never from a
   // date in the past (a lapsed manual trial), so the result always lands in
   // the future.
   const baseDate = useMemo(() => {

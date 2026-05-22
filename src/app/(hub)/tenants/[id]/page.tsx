@@ -79,8 +79,8 @@ const ACTION_LABELS: Record<string, string> = {
   OVERAGE_INVOICE_CREATED: 'Facture de dépassement',
   OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
   TAX_DELTA: 'Écart de TVA détecté',
-  DEVTOOLS_ADVANCE_BILLING: 'Outil dev — avance facturation',
-  DEVTOOLS_OVERAGE_INVOICES: 'Outil dev — factures de dépassement',
+  DEVTOOLS_ADVANCE_BILLING: 'Outil dev, avance facturation',
+  DEVTOOLS_OVERAGE_INVOICES: 'Outil dev, factures de dépassement',
 };
 
 function formatShortDateTime(iso?: string | null): string {
@@ -387,7 +387,7 @@ function SubscriptionSection({ tenantId, tenantName }: { tenantId: string; tenan
                       className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-50 text-xs"
                       title={
                         planBasePricesTooltip
-                          ? `Prix actuel du plan — ${planBasePricesTooltip}`
+                          ? `Prix actuel du plan, ${planBasePricesTooltip}`
                           : 'Le prix du plan a été mis à jour depuis'
                       }
                     >
@@ -718,7 +718,7 @@ function SubscriptionSection({ tenantId, tenantName }: { tenantId: string; tenan
                                       })
                                     }
                                     disabled={downloadFrPdfMutation.isPending}
-                                    title={`PDF FR — ${inv.mirrorInvoiceNumber}`}
+                                    title={`PDF FR, ${inv.mirrorInvoiceNumber}`}
                                     className="inline-flex items-center text-zinc-500 hover:text-zinc-900 disabled:opacity-50"
                                   >
                                     <FileText className="h-4 w-4" />

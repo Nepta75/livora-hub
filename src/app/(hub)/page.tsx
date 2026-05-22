@@ -89,7 +89,7 @@ const REFUND_STATUS_META: Record<string, { label: string; tone: string }> = {
 
 export default function DashboardPage() {
   const { data: metrics, isLoading, error } = useAdminDashboardMetrics();
-  // First page only — `total` is the hub user count we display below.
+  // First page only, `total` is the hub user count we display below.
   const { data: hubUsers } = useAdminUserList({}, 0);
   const seedMutation = useAdminSeed();
 
@@ -97,7 +97,7 @@ export default function DashboardPage() {
     try {
       const result = await seedMutation.mutateAsync();
       toast.success(
-        `Tenant "${result.tenant.name}" créé — login: ${result.user.email} / ${result.password}`,
+        `Tenant "${result.tenant.name}" créé, login: ${result.user.email} / ${result.password}`,
         { duration: 15000 },
       );
     } catch (err) {
@@ -128,7 +128,7 @@ export default function DashboardPage() {
         <p className="text-destructive mb-6">Impossible de charger les métriques du dashboard.</p>
       )}
 
-      {/* Revenue — realised cash + recurring run-rate */}
+      {/* Revenue, realised cash + recurring run-rate */}
       <SectionTitle>Revenus</SectionTitle>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <MetricCard
@@ -151,7 +151,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Tenants — lifecycle breakdown */}
+      {/* Tenants, lifecycle breakdown */}
       <SectionTitle>Tenants</SectionTitle>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
         <MetricCard
@@ -186,7 +186,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Refunds — money returned to tenants */}
+      {/* Refunds, money returned to tenants */}
       <SectionTitle>Remboursements</SectionTitle>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <MetricCard

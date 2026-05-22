@@ -106,7 +106,7 @@ export function PromoCodeRulesEditor({
   // Selected tenants always render at the top regardless of the search query,
   // so the operator never loses sight of what's already in their picklist.
   // Below them, unselected tenants matching the search show in a scrollable
-  // list — handles "we have ~hundreds of tenants and a name in mind" cleanly.
+  // list, handles "we have ~hundreds of tenants and a name in mind" cleanly.
   const filteredTenants = useMemo(() => {
     const query = tenantSearch.trim().toLowerCase();
     if ('' === query) return sortedTenants;

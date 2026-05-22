@@ -343,7 +343,7 @@ export default function EditPlanPage() {
       )}
       <PlanForm
         key={id}
-        title={`Modifier le plan — ${plan.name}`}
+        title={`Modifier le plan, ${plan.name}`}
         defaultValues={defaultValues}
         existingPlanFeatures={plan.planFeatures}
         stripeIds={{

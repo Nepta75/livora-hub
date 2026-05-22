@@ -63,7 +63,7 @@ export function useMigrateSubscriptionVersion(subscriptionId: string, planId?: s
         void queryClient.invalidateQueries({ queryKey: PLANS_KEYS.detail(planId) });
       }
       // Subscription cache keys live under ['admin', 'tenants', tenantId,
-      // 'subscription'] — invalidating the tenants prefix evicts every cached
+      // 'subscription'], invalidating the tenants prefix evicts every cached
       // tenant + subscription read in one shot, which is what we want after a
       // pinned-version change.
       void queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] });

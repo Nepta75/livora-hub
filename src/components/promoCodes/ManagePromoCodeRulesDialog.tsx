@@ -83,7 +83,7 @@ export function ManagePromoCodeRulesDialog({
         <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           <div>
-            <p className="font-medium">Attention — la modification ne resynchronise pas Stripe.</p>
+            <p className="font-medium">Attention, la modification ne resynchronise pas Stripe.</p>
             <p>
               Ajouter ou retirer une règle ici met à jour la base, mais le coupon Stripe garde
               son <code>applies_to</code> d&rsquo;origine. Pour que la nouvelle restriction soit

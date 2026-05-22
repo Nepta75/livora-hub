@@ -31,7 +31,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 import type { IPlan, IPlanFeature } from '@/types/generated/api-types';
 
-// Mirror of AdminPlanService::MAX_VISIBLE_STANDARD — backend is the source of truth
+// Mirror of AdminPlanService::MAX_VISIBLE_STANDARD, backend is the source of truth
 // (409 Conflict on create/update beyond cap); this drives the list page UX only.
 // Custom plans are negotiated 1-to-1 per client, never shown on the landing, uncapped.
 const MAX_VISIBLE_STANDARD = 4;

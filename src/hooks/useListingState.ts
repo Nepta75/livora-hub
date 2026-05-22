@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export interface ListingState {
-  /** Applied search term — the URL is the single source of truth. */
+  /** Applied search term, the URL is the single source of truth. */
   search: string;
   /** 0-indexed current page. */
   page: number;
@@ -21,7 +21,7 @@ export interface ListingState {
  * the listing survives reloads and back/forward navigation. Page is stored
  * 1-indexed in the URL (human-friendly) and exposed 0-indexed to callers.
  *
- * Must be rendered inside a `<Suspense>` boundary — `useSearchParams` requires
+ * Must be rendered inside a `<Suspense>` boundary, `useSearchParams` requires
  * it under the App Router.
  */
 export function useListingState(): ListingState {

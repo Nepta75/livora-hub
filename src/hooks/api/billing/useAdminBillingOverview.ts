@@ -25,7 +25,7 @@ export function useAdminBillingPendingRecords() {
 
   return useQuery({
     queryKey: BILLING_OVERVIEW_KEYS.pending,
-    // No backend cache on this one — the hub uses the count for an alert
+    // No backend cache on this one, the hub uses the count for an alert
     // banner, so a 30s freshness gives ops near-real-time visibility while
     // staying off the endpoint on every tab focus.
     staleTime: 30_000,

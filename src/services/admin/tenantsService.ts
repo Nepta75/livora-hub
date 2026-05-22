@@ -25,7 +25,7 @@ export interface ListPagination {
 }
 
 /**
- * One row of the hub tenants listing — the tenant plus the figures the table
+ * One row of the hub tenants listing, the tenant plus the figures the table
  * renders alongside it. `subscription` is `null` when the tenant has never
  * subscribed. Composed from generated entity types (no manual duplication).
  */
@@ -41,7 +41,7 @@ export interface AdminTenantListResponse {
   total: number;
 }
 
-/** Lightweight tenant entry for pickers — GET /admin/tenant/options. */
+/** Lightweight tenant entry for pickers, GET /admin/tenant/options. */
 export interface TenantOption {
   id: string;
   name: string;

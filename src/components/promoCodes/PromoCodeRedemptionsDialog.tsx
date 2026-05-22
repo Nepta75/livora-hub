@@ -55,7 +55,7 @@ export function PromoCodeRedemptionsDialog({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            Utilisations — <span className="font-mono">{promoCode?.code}</span>
+            Utilisations, <span className="font-mono">{promoCode?.code}</span>
           </DialogTitle>
           <DialogDescription>
             Liste des tenants ayant utilisé ce code, ordonnés du plus récent au plus ancien.

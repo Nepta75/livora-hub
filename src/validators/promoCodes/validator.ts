@@ -94,7 +94,7 @@ export const promoCodeSchema = yup.object({
     .nullable()
     .transform((value, original) => (original === '' ? null : value)),
   // null = no restriction (any period accepted). A non-null array narrows
-  // the promo to the listed periods only — useful for discount codes whose
+  // the promo to the listed periods only, useful for discount codes whose
   // semantics break in a given mode (legacy use case before trial codes).
   applicableBillingPeriods: yup
     .array()

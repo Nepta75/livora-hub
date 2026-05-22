@@ -79,7 +79,7 @@ export function EditPromoCodeDialog({ promoCode, onOpenChange }: EditPromoCodeDi
   const onSubmit = async (values: EditFormValues) => {
     if (!promoCode) return;
 
-    // Stripe does not allow unsetting max_redemptions once set — enforce here.
+    // Stripe does not allow unsetting max_redemptions once set, enforce here.
     if (hadMaxRedemptions && values.maxRedemptions == null) {
       toast.error(
         'Le nombre max de redemptions ne peut pas être retiré une fois défini (contrainte Stripe). Augmentez-le à la place.'
@@ -177,7 +177,7 @@ export function EditPromoCodeDialog({ promoCode, onOpenChange }: EditPromoCodeDi
               {formatBillingPeriods(promoCode?.applicableBillingPeriods)}
             </p>
             <p className="text-xs text-muted-foreground">
-              Lecture seule — figé à la création.
+              Lecture seule, figé à la création.
             </p>
           </div>
 

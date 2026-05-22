@@ -48,7 +48,7 @@ export function MigrateCohortDialog({
 }: Props) {
   // Pre-fetch a single page of source-version tenants so the admin sees a
   // headcount before triggering the bulk write. The migrate-cohort backend
-  // accepts an explicit subscriptionIds list — we read it from this same page,
+  // accepts an explicit subscriptionIds list, we read it from this same page,
   // which means cohorts > 100 must be migrated in batches. Acceptable for MVP.
   const { data: sourcePage } = usePlanVersionTenants(sourceVersionId, 100, 0);
   const migrate = useMigratePlanVersionCohort(targetVersionId, planId);
@@ -87,7 +87,7 @@ export function MigrateCohortDialog({
         toast.success(`${okCount} tenant${okCount > 1 ? 's' : ''} migré${okCount > 1 ? 's' : ''}`);
       } else {
         toast.warning(
-          `${okCount} migré${okCount > 1 ? 's' : ''}, ${failCount} en erreur — voir la console pour le détail`,
+          `${okCount} migré${okCount > 1 ? 's' : ''}, ${failCount} en erreur, voir la console pour le détail`,
         );
         // Aggregated error report logged so the admin can copy/inspect each
         // failure. The dialog stays open on partial failure so the admin can
@@ -114,7 +114,7 @@ export function MigrateCohortDialog({
           </DialogTitle>
           <DialogDescription>
             Repinne tous les tenants actuellement sur v{sourceVersionNumber} vers v
-            {targetVersionNumber}. Les Stripe Prices ne sont pas modifiés — seul le
+            {targetVersionNumber}. Les Stripe Prices ne sont pas modifiés, seul le
             droit applicatif change.
           </DialogDescription>
         </DialogHeader>
@@ -125,7 +125,7 @@ export function MigrateCohortDialog({
               {subscriptionIds.length} tenant{subscriptionIds.length > 1 ? 's' : ''} dans cette page
               {totalOnSource > subscriptionIds.length && (
                 <span className="ml-2 text-xs italic text-amber-700">
-                  ({totalOnSource} au total — au-delà de 100, migrez par batch)
+                  ({totalOnSource} au total, au-delà de 100, migrez par batch)
                 </span>
               )}
             </p>
@@ -153,7 +153,7 @@ export function MigrateCohortDialog({
                 <p className="mt-1 text-sm">
                   Le serveur refusera chaque tenant tant que le consentement n’est pas
                   enregistré. Cochez la case ci-dessous une fois l’accord obtenu pour
-                  l’ensemble de la cohorte — vous engagez votre responsabilité d’admin.
+                  l’ensemble de la cohorte, vous engagez votre responsabilité d’admin.
                 </p>
                 <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm">
                   <input

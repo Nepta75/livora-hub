@@ -40,7 +40,7 @@ interface Props {
 /**
  * Computes a synthetic diff using the `diffVsPrevious` chain stored on each
  * version. The hub list endpoint already returns each version with its diff
- * vs predecessor — for migrations between non-adjacent versions we surface
+ * vs predecessor, for migrations between non-adjacent versions we surface
  * the diff of the target itself for transparency. The legal gate (favorable
  * vs unfavorable) is enforced server-side regardless of what we show here.
  */
@@ -110,7 +110,7 @@ export function MigrateSubscriptionDialog({
           <DialogTitle>Migrer vers une autre version</DialogTitle>
           <DialogDescription>
             La migration épingle l’abonnement à une nouvelle PlanVersion. Stripe Price n’est
-            pas touché — ce flux concerne uniquement les droits applicatifs.
+            pas touché, ce flux concerne uniquement les droits applicatifs.
           </DialogDescription>
         </DialogHeader>
 
@@ -128,7 +128,7 @@ export function MigrateSubscriptionDialog({
               <SelectContent>
                 {candidates.map((version) => (
                   <SelectItem key={version.id} value={version.id}>
-                    v{version.versionNumber} — {version.tenantCount} tenant
+                    v{version.versionNumber}, {version.tenantCount} tenant
                     {version.tenantCount === 1 ? '' : 's'}
                   </SelectItem>
                 ))}

@@ -66,7 +66,7 @@ export function PlanVersionTimeline({ planId }: Props) {
           <ol className="space-y-4">
             {data.map((version, index) => {
               // The list is newest-first. The "older neighbour" of v(N) sits at
-              // index+1 — that's the cohort source when admin clicks "Migrer
+              // index+1, that's the cohort source when admin clicks "Migrer
               // depuis v(N-1)" on the v(N) row. The latest version (index 0)
               // therefore offers cohort migration if a previous version exists
               // and still has tenants pinned to it.

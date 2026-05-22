@@ -63,7 +63,7 @@ export function CancelSubscriptionDialog({
   const [acknowledgedRefund, setAcknowledgedRefund] = useState(false);
   const cancelMutation = useCancelTenantSubscription(tenantId);
   // `reset` is a stable reference in React Query v5; the mutation object
-  // itself is NOT — depending on the whole object re-runs this effect every
+  // itself is NOT, depending on the whole object re-runs this effect every
   // render and `reset()` re-renders, producing an infinite update loop.
   const { reset: resetCancelMutation } = cancelMutation;
 
@@ -124,7 +124,7 @@ export function CancelSubscriptionDialog({
                 </li>
                 <li>
                   Si le client a payé un cycle, vérifier <span className="font-mono">customer.balance</span>{' '}
-                  sur Stripe avant — un crédit non remboursé sera bloqué ci-dessous.
+                  sur Stripe avant, un crédit non remboursé sera bloqué ci-dessous.
                 </li>
               </ul>
             </AlertDescription>

@@ -192,7 +192,7 @@ export function CreatePromoCodeDialog({ open, onOpenChange }: CreatePromoCodeDia
     setDraftRules((prev) => [
       ...prev,
       {
-        // Client-only id — only used for React keys + local removal. The
+        // Client-only id, only used for React keys + local removal. The
         // backend assigns a real UUID when the code is created.
         id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         type: rule.type,

@@ -9,7 +9,7 @@ import { Users, Building2, Shield, LayoutDashboard, LogOut, X, CreditCard, Zap, 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
-// Dev tools are gated to non-live Stripe environments — backend already
+// Dev tools are gated to non-live Stripe environments, backend already
 // refuses POST /admin/dev-tools/advance-billing when APP_ENV=prod, this
 // just hides the entry point so a prod admin never sees a useless button.
 //

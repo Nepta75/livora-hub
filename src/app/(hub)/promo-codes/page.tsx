@@ -107,13 +107,13 @@ function PromoCodeRow({
   const rulesCount = promoCode.rules?.length ?? 0;
 
   // Hard delete is refused server-side as soon as a single redemption row
-  // exists — the audit trail outweighs the convenience of cleanup. Mirror
+  // exists, the audit trail outweighs the convenience of cleanup. Mirror
   // that here so the user sees why the button is disabled instead of getting
   // a 409 after clicking.
   const canDelete = promoCode.redemptionCount === 0;
   const deleteDisabledReason = canDelete
     ? 'Supprimer définitivement'
-    : `Suppression bloquée — ${promoCode.redemptionCount} utilisation${promoCode.redemptionCount > 1 ? 's' : ''} tracée${promoCode.redemptionCount > 1 ? 's' : ''}. Désactivez le code à la place.`;
+    : `Suppression bloquée, ${promoCode.redemptionCount} utilisation${promoCode.redemptionCount > 1 ? 's' : ''} tracée${promoCode.redemptionCount > 1 ? 's' : ''}. Désactivez le code à la place.`;
 
   function handleArchive() {
     archiveMutation.mutate(promoCode.id, {

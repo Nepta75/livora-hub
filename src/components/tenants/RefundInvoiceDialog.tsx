@@ -41,7 +41,7 @@ const REASON_LABELS: Record<RefundSubscriptionInvoiceReason, string> = {
 };
 
 // `refund.reason` is typed `string` (Stripe-origin refunds may carry a value
-// outside our enum) — fall back to the raw value rather than rendering blank.
+// outside our enum), fall back to the raw value rather than rendering blank.
 function reasonLabel(reason: string): string {
   return REASON_LABELS[reason as RefundSubscriptionInvoiceReason] ?? reason;
 }
@@ -191,12 +191,12 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
                       {(value) =>
                         value === 'partial'
                           ? 'Partiel'
-                          : `Total — ${formatAmount(refundable, currency)}`}
+                          : `Total, ${formatAmount(refundable, currency)}`}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="full">
-                      Total — {formatAmount(refundable, currency)}
+                      Total, {formatAmount(refundable, currency)}
                     </SelectItem>
                     <SelectItem value="partial">Partiel</SelectItem>
                   </SelectContent>
@@ -244,7 +244,7 @@ export function RefundInvoiceDialog({ tenantId, invoice, onOpenChange }: RefundI
                   maxLength={500}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Contexte interne — visible dans l'audit et Stripe"
+                  placeholder="Contexte interne, visible dans l'audit et Stripe"
                 />
               </div>
             </>

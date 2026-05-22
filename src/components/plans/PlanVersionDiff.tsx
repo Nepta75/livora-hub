@@ -26,7 +26,7 @@ function formatField(field: string): string {
       added: 'ajoutée',
       removed: 'supprimée',
     };
-    return `${niceKey} — ${subLabel[sub] ?? sub}`;
+    return `${niceKey}, ${subLabel[sub] ?? sub}`;
   }
 
   return field;

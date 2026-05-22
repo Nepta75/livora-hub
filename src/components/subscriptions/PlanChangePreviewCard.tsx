@@ -65,7 +65,7 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
           Changement programmé le {formatFrDate(preview.scheduledAt)}
         </p>
         <p className="text-xs">
-          Aucun frais aujourd&apos;hui — l&apos;offre actuelle reste active jusque-là.
+          Aucun frais aujourd&apos;hui, l&apos;offre actuelle reste active jusque-là.
         </p>
         <p className="text-sm">
           Prochaine facture :{' '}
@@ -108,7 +108,7 @@ export function PlanChangePreviewCard({ isPending, preview, errorMessage }: Prop
           )}
           <p className="mt-0.5 text-xs text-zinc-500">
             {isNetCredit
-              ? 'Reporté sur les prochaines factures — aucun remboursement sur la carte.'
+              ? 'Reporté sur les prochaines factures, aucun remboursement sur la carte.'
               : 'Prélevé immédiatement sur le moyen de paiement.'}
           </p>
         </div>

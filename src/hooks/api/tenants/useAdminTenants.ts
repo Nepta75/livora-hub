@@ -57,7 +57,7 @@ export function useAdminTenantList(filters: TenantListFilters, page = 0) {
   });
 }
 
-/** Full lightweight `{id, name}` tenant list — for tenant pickers. */
+/** Full lightweight `{id, name}` tenant list, for tenant pickers. */
 export function useAdminTenants() {
   const { token } = useAuth();
 

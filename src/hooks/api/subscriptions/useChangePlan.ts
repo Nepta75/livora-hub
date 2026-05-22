@@ -29,7 +29,7 @@ export function useChangePlanPreview({
     },
     enabled: enabled && !!tenantId && !!body,
     // The preview is a billable Stripe round-trip and locked to a specific
-    // proration_date — never reuse a stale result, refetch every time the
+    // proration_date, never reuse a stale result, refetch every time the
     // body changes.
     staleTime: 0,
     retry: false,

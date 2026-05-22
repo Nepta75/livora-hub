@@ -9,7 +9,7 @@ export function useAdvanceBilling() {
   return useMutation({
     mutationFn: () => devToolsService.advanceBilling(token),
     onSuccess: () => {
-      // Invalidate everything subscription/billing-related — webhooks
+      // Invalidate everything subscription/billing-related, webhooks
       // landed mid-run will repopulate with fresh data on next read.
       void queryClient.invalidateQueries({ queryKey: ['admin', 'tenants'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'billing'] });

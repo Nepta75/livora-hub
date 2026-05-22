@@ -17,7 +17,7 @@ const DEBOUNCE_MS = 300;
 /**
  * Search field for listing pages. Keeps a local draft so typing stays snappy
  * while debouncing the (URL-writing) `onChange`. Re-syncs when `value` changes
- * externally — e.g. back/forward navigation or a reset.
+ * externally, e.g. back/forward navigation or a reset.
  */
 export function SearchInput({ value, onChange, placeholder }: SearchInputProps) {
   const [draft, setDraft] = useState(value);

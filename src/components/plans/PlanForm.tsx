@@ -29,7 +29,7 @@ import type { IPlanFeature } from '@/types/generated/api-types';
 // Dashboard URL pattern: https://dashboard.stripe.com/{mode}/{resource}/{id}
 // (mode is prefixed only for test; live omits the /test/ segment, but keeping
 // explicit segments works for both and matches what Stripe redirects handle.)
-// Fail loud in production if misconfigured — silently falling back to "test"
+// Fail loud in production if misconfigured, silently falling back to "test"
 // would send admins to the wrong Stripe dashboard in live builds.
 const STRIPE_MODE: 'live' | 'test' = (() => {
   const mode = process.env.NEXT_PUBLIC_STRIPE_MODE;
@@ -318,7 +318,7 @@ export function PlanForm({
                   <Input
                     id="ctaLabel"
                     {...register('ctaLabel')}
-                    placeholder="Ex : Démarrer l'essai — laisser vide pour le libellé par défaut"
+                    placeholder="Ex : Démarrer l'essai, laisser vide pour le libellé par défaut"
                   />
                 </Field>
               </div>
@@ -351,7 +351,7 @@ export function PlanForm({
             {isCustom && (
               <div className="col-span-2 rounded-md border border-dashed border-border bg-muted/30 p-3 text-sm text-muted-foreground">
                 Les plans sur mesure sont négociés au cas par cas et ne sont jamais affichés sur la
-                landing — les options &laquo;&nbsp;visible&nbsp;&raquo;, &laquo;&nbsp;mis en
+                landing, les options &laquo;&nbsp;visible&nbsp;&raquo;, &laquo;&nbsp;mis en
                 avant&nbsp;&raquo; et le libellé de CTA sont masqués.
               </div>
             )}

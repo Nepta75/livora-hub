@@ -77,7 +77,7 @@ export function ChangePlanDialog({
   }, [open, currentBillingPeriod]);
 
   // Switching an annual subscription to monthly mid-cycle is an engagement
-  // break — the customer pre-paid 12 months at the annual discount. The hub
+  // break, the customer pre-paid 12 months at the annual discount. The hub
   // admin can still do it (commercial edge cases) but only after the
   // type-to-confirm gate in Mode avancé.
   const isPeriodDowngrade =
@@ -100,7 +100,7 @@ export function ChangePlanDialog({
 
   const periodAvailable = (period: ChangePlanBillingPeriod): boolean => {
     if (!targetPlan) return true;
-    // Annual → monthly is gated behind Mode avancé — keep the button reachable
+    // Annual → monthly is gated behind Mode avancé, keep the button reachable
     // only once the admin has explicitly opened the override panel.
     if (currentBillingPeriod === 'annual' && period === 'monthly' && !advancedOpen) {
       return false;
@@ -158,7 +158,7 @@ export function ChangePlanDialog({
         prorationBehavior,
         reason: reason.trim() === '' ? null : reason.trim(),
         previewedAt: previewQuery.data.previewedAt,
-        // Send `force` ONLY when the admin has typed ROMPRE — otherwise an
+        // Send `force` ONLY when the admin has typed ROMPRE, otherwise an
         // annual→monthly attempt could leak `force=true` purely from period
         // direction (defence-in-depth; the submit button is already disabled
         // by `submitDisabled` when bypass is not ready).
@@ -264,7 +264,7 @@ export function ChangePlanDialog({
             </div>
             {currentBillingPeriod === 'annual' && !advancedOpen && (
               <p className="text-xs text-zinc-500">
-                Le passage en mensuel rompt l’engagement annuel — déverrouillable via le mode avancé.
+                Le passage en mensuel rompt l’engagement annuel, déverrouillable via le mode avancé.
               </p>
             )}
           </div>
@@ -282,7 +282,7 @@ export function ChangePlanDialog({
               <AlertTitle>Rupture d’engagement annuel</AlertTitle>
               <AlertDescription>
                 <p>
-                  L’abonnement courant est annuel — le client a payé 12 mois d’avance au tarif
+                  L’abonnement courant est annuel, le client a payé 12 mois d’avance au tarif
                   remisé. Le bascule en mensuel génère un crédit Stripe (consommé sur les
                   prochaines factures, jamais remboursé sur la carte) et casse l’engagement.
                 </p>
@@ -329,13 +329,13 @@ export function ChangePlanDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="create_prorations">
-                      Proratiser (recommandé) — crédit ou charge sur la prochaine facture
+                      Proratiser (recommandé), crédit ou charge sur la prochaine facture
                     </SelectItem>
                     <SelectItem value="always_invoice">
                       Proratiser et facturer immédiatement
                     </SelectItem>
                     <SelectItem value="none">
-                      Pas de prorata — la nouvelle période démarre sans ajustement
+                      Pas de prorata, la nouvelle période démarre sans ajustement
                     </SelectItem>
                   </SelectContent>
                 </Select>

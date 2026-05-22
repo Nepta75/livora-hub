@@ -17,7 +17,7 @@ export interface ChangePlanPreviewPayload {
 export interface ChangePlanCommitPayload extends ChangePlanPreviewPayload {
   reason?: string | null;
   previewedAt: number;
-  // Admin override only — bypasses the annual→monthly mid-cycle guard.
+  // Admin override only, bypasses the annual→monthly mid-cycle guard.
   force?: boolean;
 }
 

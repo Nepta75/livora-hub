@@ -30,7 +30,7 @@ export default function DevToolsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [overageConfirmOpen, setOverageConfirmOpen] = useState(false);
 
-  // Defense in depth — sidebar already hides the entry, but a direct URL
+  // Defense in depth, sidebar already hides the entry, but a direct URL
   // hit on a non-test build should 404 rather than render a button that
   // would 403 anyway.
   if (!IS_TEST_MODE) {
@@ -51,7 +51,7 @@ export default function DevToolsPage() {
         setConfirmOpen(false);
         const summary = `${result.advanced} facture${result.advanced > 1 ? 's' : ''} générée${result.advanced > 1 ? 's' : ''}`;
         if (result.errors.length > 0) {
-          toast.warning(`${summary} — ${result.errors.length} erreur(s) Stripe, voir les logs.`);
+          toast.warning(`${summary}, ${result.errors.length} erreur(s) Stripe, voir les logs.`);
         } else {
           toast.success(`${summary}. Les webhooks Stripe arrivent.`);
         }
@@ -69,7 +69,7 @@ export default function DevToolsPage() {
         setOverageConfirmOpen(false);
         const summary = `${result.billed} dépassement${result.billed > 1 ? 's' : ''} facturé${result.billed > 1 ? 's' : ''}`;
         if (result.errors > 0) {
-          toast.warning(`${summary} — ${result.errors} erreur(s), voir les logs.`);
+          toast.warning(`${summary}, ${result.errors} erreur(s), voir les logs.`);
         } else if (result.billed === 0) {
           toast.info('Aucun dépassement non facturé à traiter.');
         } else {
