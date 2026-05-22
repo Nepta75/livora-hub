@@ -10,6 +10,7 @@ Next.js 14 (App Router) + Tailwind + shadcn/ui + React Hook Form + Yup + TanStac
 - English only for code comments
 - No dead code, no unused imports
 - Path aliases: toujours `@/` (jamais de chemins relatifs)
+- Pas d'em-dash (`—`) dans le code, virgule ou point à la place. Placeholder `'—'` de cellule vide OK.
 
 ## Architecture
 - `app/` — Pages (App Router, Server Components par défaut)
