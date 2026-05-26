@@ -14,6 +14,7 @@ export interface GenerateOverageInvoicesResult {
 
 export interface SeedTenantDataResult {
   tenantId: string;
+  adminUser: { email: string; password: string; created: boolean };
   vehicles: { created: number; reused: number };
   drivers: { created: number; reused: number };
   warehouses: { created: number; reused: number };

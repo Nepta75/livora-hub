@@ -85,10 +85,11 @@ export default function DevToolsPage() {
           `${result.ordersAppended} commande(s) ajoutée(s)`,
           `${result.schedulesAppended} planning(s) ajouté(s)`,
         ].join(', ');
+        const adminLine = `Admin: ${result.adminUser.email} / ${result.adminUser.password}`;
         if (result.warnings.length > 0) {
-          toast.warning(`${summary}. Warnings: ${result.warnings.join(' ')}`);
+          toast.warning(`${summary}. ${adminLine}. Warnings: ${result.warnings.join(' ')}`);
         } else {
-          toast.success(summary);
+          toast.success(`${summary}. ${adminLine}`);
         }
       },
       onError: (err) => {
