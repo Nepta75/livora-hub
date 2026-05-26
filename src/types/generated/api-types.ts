@@ -23,12 +23,14 @@ export type CreatePromoCodeRuleType = "ELIGIBLE_PLAN_IDS" | "ELIGIBLE_TENANT_IDS
 export type DriverScheduleStatus = "planned" | "active" | "completed" | "cancelled";
 export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" | "unavailable";
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
+export type GenerateMorningBatchObjective = "asap" | "min_delay" | "optimize_global";
 export type GlobalSettingPricingType = "distance" | "city";
 export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
+export type RecordDriverLocationSource = "simulated" | "gps" | "manual";
 export type RefundSubscriptionInvoiceReason = "duplicate" | "fraudulent" | "requested_by_customer";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
@@ -195,6 +197,11 @@ export interface ICityPricingConfig {
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
+}
+
+export interface ICommitSuggestionDto {
+  chosenDriverId?: string;
+  vehicleId?: string | null;
 }
 
 export interface IContactRequestDto {
@@ -374,8 +381,18 @@ export interface IFeature3 {
   type: string;
 }
 
+export interface IFinalizeFromSessionDto {
+  sessionId?: string;
+}
+
 export interface IForgotPasswordDto {
   email: string;
+}
+
+export interface IGenerateMorningBatchDto {
+  warehouseId?: string;
+  date?: string;
+  objective?: GenerateMorningBatchObjective;
 }
 
 export interface IGlobalSetting {
@@ -1037,6 +1054,14 @@ export interface IReadWarehouseOrderDto {
   daysInWarehouse?: number;
 }
 
+export interface IRecordDriverLocationDto {
+  latitude?: number;
+  longitude?: number;
+  source?: RecordDriverLocationSource;
+  speed?: number | null;
+  accuracy?: number | null;
+}
+
 export interface IRefundSubscriptionInvoiceDto {
   amount?: number | null;
   reason?: RefundSubscriptionInvoiceReason;
@@ -1231,6 +1256,11 @@ export interface ISubscriptionInvoiceTaxBreakdown {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
+}
+
+export interface ISuggestSingleInsertionDto {
+  orderId?: string;
+  objective?: GenerateMorningBatchObjective;
 }
 
 export interface ITenant {
@@ -1997,10 +2027,68 @@ export type GetSubscriptionPaymentMethodResponse = {
 export type PostSubscriptionSetupIntentResponse = {
   clientSecret?: string;
 };
+export type PostSubscriptionFinalizeFromSessionResponse = {
+  status?: string | null;
+  subscriptionId?: string | null;
+};
 export type PostMeAddTenantResponse = {
   checkoutUrl?: string;
   subscriptionId?: string;
   tenantId?: string;
+};
+export type GetMeDashboardSummaryResponse = {
+  counters?: {
+  currency?: string;
+  activeOrders?: number;
+  pendingOrders?: number;
+  deliveredThisMonth?: number;
+  deliveredPreviousMonth?: number;
+  deliveredTrendPercent?: number | null;
+  revenueThisMonthEuro?: number;
+  revenuePreviousMonthEuro?: number;
+  revenueTrendPercent?: number | null;
+};
+  subscription?: {
+  status?: string;
+  isActive?: boolean;
+  planName?: string;
+  trialEndsAt?: string | null;
+  trialDaysRemaining?: number | null;
+  currentPeriodEnd?: string | null;
+  canceledAt?: string | null;
+};
+  topQuotas?: {
+  featureKey?: string;
+  limit?: number;
+  effectiveLimit?: number;
+  currentUsage?: number | null;
+  percentUsed?: number | null;
+  status?: 'on_track' | 'approaching' | 'at_limit' | 'over_limit' | 'unlimited' | 'unknown';
+}[];
+  recentOrders?: {
+  orderId?: string;
+  reference?: string;
+  status?: string;
+  totalPrice?: number;
+  pickupDate?: string;
+  createdAt?: string | null;
+}[];
+  recentCustomers?: {
+  totalUsers?: number;
+  totalOrganizations?: number;
+  totalPrivateCustomers?: number;
+};
+  ordersByWeek?: {
+  weekStart?: string;
+  actives?: number;
+  livrees?: number;
+  annulees?: number;
+}[];
+  revenueByMonth?: {
+  monthStart?: string;
+  count?: number;
+  revenueEuro?: number;
+}[];
 };
 export type PostPublicActivateAccountResponse = {
   token?: string;
