@@ -319,6 +319,7 @@ export interface IDriverSchedule {
   excludedZones: IDeliveryZone[];
   maxDeliveryRadiusKm?: number | null;
   timeSlots: IDriverScheduleTimeSlot[];
+  vehicle?: IVehicle | null;
   notes?: string | null;
   isActive?: boolean;
   createdAt: string;
@@ -1415,6 +1416,7 @@ export interface IUpdateUserDto {
   picture?: string | null;
   organizationId?: string | null;
   privateCustomerId?: string | null;
+  defaultVehicleId?: string | null;
   customerRole: boolean;
 }
 
@@ -1436,6 +1438,7 @@ export interface IUser {
   userTenants: IUserTenantRead[];
   organization?: IOrganization | null;
   privateCustomer?: IPrivateCustomer | null;
+  defaultVehicle?: IVehicle | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
@@ -1471,6 +1474,7 @@ export interface IUserRead {
   userTenants: IUserTenant[];
   organization?: IOrganizationRef | null;
   privateCustomer?: IPrivateCustomerRef | null;
+  defaultVehicle?: IVehicle2 | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
@@ -1505,6 +1509,10 @@ export interface IVehicle {
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
+}
+
+export interface IVehicle2 {
+  id: string;
 }
 
 export interface IVehicleDto {
