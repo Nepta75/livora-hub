@@ -392,7 +392,7 @@ export interface IForgotPasswordDto {
 }
 
 export interface IGenerateMorningBatchDto {
-  warehouseId?: string;
+  pricingConfigId?: string;
   date?: string;
   objective?: GenerateMorningBatchObjective;
 }
