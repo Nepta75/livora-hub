@@ -333,6 +333,7 @@ export interface IDriverScheduleDto {
   status: DriverScheduleStatus;
   scheduleType: DriverScheduleType;
   preferredZoneId?: string | null;
+  vehicleId?: string | null;
   excludedZoneIds?: string[];
   maxDeliveryRadiusKm?: number | null;
   timeSlots?: IDriverScheduleTimeSlotDto[];
