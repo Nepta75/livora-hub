@@ -1873,6 +1873,16 @@ export type PostAdminDevToolsGenerateOverageInvoicesResponse = {
   skipped?: number;
   errors?: number;
 };
+export type PostAdminDevToolsSeedTenantDataResponse = {
+  tenantId?: string;
+  vehicles?: { [key: string]: unknown };
+  drivers?: { [key: string]: unknown };
+  warehouses?: { [key: string]: unknown };
+  customers?: { [key: string]: unknown };
+  ordersAppended?: number;
+  schedulesAppended?: number;
+  warnings?: string[];
+};
 export type GetAdminBillingPendingRecordsResponse = {
   recordId?: string;
   tenantId?: string;

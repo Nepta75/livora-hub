@@ -12,12 +12,29 @@ export interface GenerateOverageInvoicesResult {
   errors: number;
 }
 
+export interface SeedTenantDataResult {
+  tenantId: string;
+  vehicles: { created: number; reused: number };
+  drivers: { created: number; reused: number };
+  warehouses: { created: number; reused: number };
+  customers: { created: number; reused: number };
+  ordersAppended: number;
+  schedulesAppended: number;
+  warnings: string[];
+}
+
 export const devToolsService = {
   advanceBilling: (token: string) =>
     httpClient.post<AdvanceBillingResult>('/dev-tools/advance-billing', {}, { token }),
   generateOverageInvoices: (token: string) =>
     httpClient.post<GenerateOverageInvoicesResult>(
       '/dev-tools/generate-overage-invoices',
+      {},
+      { token },
+    ),
+  seedTenantData: (token: string, tenantId: string) =>
+    httpClient.post<SeedTenantDataResult>(
+      `/dev-tools/seed-tenant-data/${tenantId}`,
       {},
       { token },
     ),

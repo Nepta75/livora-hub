@@ -3,12 +3,21 @@
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { toast } from 'sonner';
-import { AlertTriangle, Receipt, Zap } from 'lucide-react';
+import { AlertTriangle, Database, Receipt, Zap } from 'lucide-react';
 import { useAdvanceBilling } from '@/hooks/api/devTools/useAdvanceBilling';
 import { useGenerateOverageInvoices } from '@/hooks/api/devTools/useGenerateOverageInvoices';
+import { useSeedTenantData } from '@/hooks/api/devTools/useSeedTenantData';
+import { useAdminTenants } from '@/hooks/api/tenants/useAdminTenants';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -27,8 +36,12 @@ export default function DevToolsPage() {
   const { userRoles } = useAuth();
   const advanceMutation = useAdvanceBilling();
   const overageMutation = useGenerateOverageInvoices();
+  const seedMutation = useSeedTenantData();
+  const { data: tenants = [] } = useAdminTenants();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [overageConfirmOpen, setOverageConfirmOpen] = useState(false);
+  const [seedConfirmOpen, setSeedConfirmOpen] = useState(false);
+  const [seedTenantId, setSeedTenantId] = useState<string>('');
 
   // Defense in depth, sidebar already hides the entry, but a direct URL
   // hit on a non-test build should 404 rather than render a button that
@@ -59,6 +72,28 @@ export default function DevToolsPage() {
       onError: (err) => {
         const message = err instanceof Error ? err.message : 'Erreur inattendue.';
         toast.error(message.includes('production') ? 'Refusé en production.' : message);
+      },
+    });
+  }
+
+  function handleSeedTenant() {
+    if (!seedTenantId) return;
+    seedMutation.mutate(seedTenantId, {
+      onSuccess: (result) => {
+        setSeedConfirmOpen(false);
+        const summary = [
+          `${result.ordersAppended} commande(s) ajoutée(s)`,
+          `${result.schedulesAppended} planning(s) ajouté(s)`,
+        ].join(', ');
+        if (result.warnings.length > 0) {
+          toast.warning(`${summary}. Warnings: ${result.warnings.join(' ')}`);
+        } else {
+          toast.success(summary);
+        }
+      },
+      onError: (err) => {
+        const message = err instanceof Error ? err.message : 'Erreur inattendue.';
+        toast.error(message.includes('live') ? 'Refusé en mode live.' : message);
       },
     });
   }
@@ -164,6 +199,51 @@ export default function DevToolsPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Database className="h-4 w-4 text-amber-600" />
+            Peupler un tenant avec des données de test
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Crée des refs stables (3 véhicules, 3 livreurs avec véhicule par défaut, 2
+            entrepôts, 5 clients) la première fois. Chaque relance ajoute 10 commandes
+            <span className="font-mono"> ready_for_shipping</span> pour aujourd&apos;hui et 3
+            plannings livreurs. Utilise une DeliveryPrestation et un PricingConfig
+            existants du tenant. Toutes les entités créées sont préfixées{' '}
+            <span className="font-mono">[SEED]</span> pour les distinguer.
+          </p>
+          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              Bloqué en production. Le tenant doit déjà avoir au moins une DeliveryPrestation
+              + un PricingConfig pour que les commandes soient créées.
+            </div>
+          </div>
+          <Select value={seedTenantId} onValueChange={(v) => setSeedTenantId(v ?? '')}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choisir un tenant" />
+            </SelectTrigger>
+            <SelectContent>
+              {tenants.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="default"
+            onClick={() => setSeedConfirmOpen(true)}
+            disabled={!seedTenantId || seedMutation.isPending}
+          >
+            {seedMutation.isPending ? 'Peuplement…' : 'Peupler ce tenant'}
+          </Button>
+        </CardContent>
+      </Card>
+
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent showCloseButton={false}>
           <DialogHeader>
@@ -199,6 +279,27 @@ export default function DevToolsPage() {
             </Button>
             <Button onClick={handleGenerateOverage} disabled={overageMutation.isPending}>
               {overageMutation.isPending ? 'Facturation…' : 'Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={seedConfirmOpen} onOpenChange={setSeedConfirmOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Confirmer le peuplement</DialogTitle>
+            <DialogDescription>
+              Le tenant sélectionné va recevoir des entités{' '}
+              <span className="font-mono">[SEED]</span> (idempotent) et 10 commandes du
+              jour + 3 plannings livreurs (append à chaque relance). Continuer ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSeedConfirmOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleSeedTenant} disabled={seedMutation.isPending}>
+              {seedMutation.isPending ? 'Peuplement…' : 'Confirmer'}
             </Button>
           </DialogFooter>
         </DialogContent>
