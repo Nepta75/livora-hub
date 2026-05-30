@@ -583,6 +583,7 @@ export interface IOrder {
   originalDeliveryDate?: string | null;
   rescheduledReason?: string | null;
   rescheduledCount?: number;
+  strictTimeWindow?: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
