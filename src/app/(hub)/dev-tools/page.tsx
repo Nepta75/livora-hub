@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { toast } from 'sonner';
-import { AlertTriangle, Database, Receipt, Zap } from 'lucide-react';
+import { AlertTriangle, Database, Receipt, Trash2, Zap } from 'lucide-react';
 import { useAdvanceBilling } from '@/hooks/api/devTools/useAdvanceBilling';
 import { useGenerateOverageInvoices } from '@/hooks/api/devTools/useGenerateOverageInvoices';
+import { usePurgeTenantSeedData } from '@/hooks/api/devTools/usePurgeTenantSeedData';
 import { useSeedTenantData } from '@/hooks/api/devTools/useSeedTenantData';
 import { useAdminTenants } from '@/hooks/api/tenants/useAdminTenants';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,10 +38,12 @@ export default function DevToolsPage() {
   const advanceMutation = useAdvanceBilling();
   const overageMutation = useGenerateOverageInvoices();
   const seedMutation = useSeedTenantData();
+  const purgeMutation = usePurgeTenantSeedData();
   const { data: tenants = [] } = useAdminTenants();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [overageConfirmOpen, setOverageConfirmOpen] = useState(false);
   const [seedConfirmOpen, setSeedConfirmOpen] = useState(false);
+  const [purgeConfirmOpen, setPurgeConfirmOpen] = useState(false);
   const [seedTenantId, setSeedTenantId] = useState<string>('');
 
   // Defense in depth, sidebar already hides the entry, but a direct URL
@@ -90,6 +93,47 @@ export default function DevToolsPage() {
           toast.warning(`${summary}. ${adminLine}. Warnings: ${result.warnings.join(' ')}`);
         } else {
           toast.success(`${summary}. ${adminLine}`);
+        }
+      },
+      onError: (err) => {
+        const message = err instanceof Error ? err.message : 'Erreur inattendue.';
+        toast.error(message.includes('live') ? 'Refusé en mode live.' : message);
+      },
+    });
+  }
+
+  function handlePurgeTenant() {
+    if (!seedTenantId) return;
+    purgeMutation.mutate(seedTenantId, {
+      onSuccess: (result) => {
+        setPurgeConfirmOpen(false);
+        const removed = [
+          `${result.orders} commande(s)`,
+          `${result.tours} tournée(s)`,
+          `${result.organizations} client(s)`,
+          `${result.warehouses} entrepôt(s)`,
+          `${result.vehicles} véhicule(s)`,
+          `${result.users} utilisateur(s)`,
+        ].join(', ');
+        const total =
+          result.orders +
+          result.tours +
+          result.assignmentSuggestions +
+          result.driverLocations +
+          result.driverSchedules +
+          result.orderAddresses +
+          result.deliveryPrestations +
+          result.pricingConfigs +
+          result.organizations +
+          result.organizationAddresses +
+          result.warehouses +
+          result.vehicles +
+          result.userTenants +
+          result.users;
+        if (total === 0) {
+          toast.info('Aucune donnée [SEED] à supprimer sur ce tenant.');
+        } else {
+          toast.success(`Purge effectuée: ${removed}.`);
         }
       },
       onError: (err) => {
@@ -235,13 +279,24 @@ export default function DevToolsPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button
-            variant="default"
-            onClick={() => setSeedConfirmOpen(true)}
-            disabled={!seedTenantId || seedMutation.isPending}
-          >
-            {seedMutation.isPending ? 'Peuplement…' : 'Peupler ce tenant'}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="default"
+              onClick={() => setSeedConfirmOpen(true)}
+              disabled={!seedTenantId || seedMutation.isPending}
+            >
+              {seedMutation.isPending ? 'Peuplement…' : 'Peupler ce tenant'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setPurgeConfirmOpen(true)}
+              disabled={!seedTenantId || purgeMutation.isPending}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {purgeMutation.isPending ? 'Purge…' : 'Purger [SEED]'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -280,6 +335,33 @@ export default function DevToolsPage() {
             </Button>
             <Button onClick={handleGenerateOverage} disabled={overageMutation.isPending}>
               {overageMutation.isPending ? 'Facturation…' : 'Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={purgeConfirmOpen} onOpenChange={setPurgeConfirmOpen}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Confirmer la purge</DialogTitle>
+            <DialogDescription>
+              Suppression de toutes les entités <span className="font-mono">[SEED]</span> du
+              tenant: véhicules, livreurs, entrepôts, clients, commandes, tournées,
+              suggestions, plannings, pricing config. Le compte admin{' '}
+              <span className="font-mono">admin.seed@livora.test</span> n&apos;est retiré que
+              s&apos;il n&apos;est plus lié à un autre tenant. Action irréversible. Continuer ?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPurgeConfirmOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handlePurgeTenant}
+              disabled={purgeMutation.isPending}
+            >
+              {purgeMutation.isPending ? 'Purge…' : 'Confirmer'}
             </Button>
           </DialogFooter>
         </DialogContent>

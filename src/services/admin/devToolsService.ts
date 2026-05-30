@@ -24,6 +24,24 @@ export interface SeedTenantDataResult {
   warnings: string[];
 }
 
+export interface PurgeTenantSeedDataResult {
+  tenantId: string;
+  tours: number;
+  assignmentSuggestions: number;
+  driverLocations: number;
+  driverSchedules: number;
+  orders: number;
+  orderAddresses: number;
+  deliveryPrestations: number;
+  pricingConfigs: number;
+  organizations: number;
+  organizationAddresses: number;
+  warehouses: number;
+  vehicles: number;
+  userTenants: number;
+  users: number;
+}
+
 export const devToolsService = {
   advanceBilling: (token: string) =>
     httpClient.post<AdvanceBillingResult>('/dev-tools/advance-billing', {}, { token }),
@@ -37,6 +55,11 @@ export const devToolsService = {
     httpClient.post<SeedTenantDataResult>(
       `/dev-tools/seed-tenant-data/${tenantId}`,
       {},
+      { token },
+    ),
+  purgeTenantSeedData: (token: string, tenantId: string) =>
+    httpClient.delete<PurgeTenantSeedDataResult>(
+      `/dev-tools/seed-tenant-data/${tenantId}`,
       { token },
     ),
 };
