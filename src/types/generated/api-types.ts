@@ -1105,6 +1105,7 @@ export interface IRegisterFinalizeDto {
 
 export interface IRescheduleOrderDto {
   newDeliveryDate: string;
+  newPickupDate?: string | null;
   reason: RescheduleOrderReason;
   notifyCustomer?: boolean;
 }
