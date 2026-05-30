@@ -3,8 +3,13 @@
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { toast } from 'sonner';
-import { AlertTriangle, Database, Receipt, Trash2, Zap } from 'lucide-react';
+import { AlertTriangle, Database, MapPin, Receipt, Square, Trash2, Zap } from 'lucide-react';
 import { useAdvanceBilling } from '@/hooks/api/devTools/useAdvanceBilling';
+import {
+  useDriverSimulationStatus,
+  useStartDriverSimulation,
+  useStopDriverSimulation,
+} from '@/hooks/api/devTools/useDriverSimulation';
 import { useGenerateOverageInvoices } from '@/hooks/api/devTools/useGenerateOverageInvoices';
 import { usePurgeTenantSeedData } from '@/hooks/api/devTools/usePurgeTenantSeedData';
 import { useSeedTenantData } from '@/hooks/api/devTools/useSeedTenantData';
@@ -45,6 +50,10 @@ export default function DevToolsPage() {
   const [seedConfirmOpen, setSeedConfirmOpen] = useState(false);
   const [purgeConfirmOpen, setPurgeConfirmOpen] = useState(false);
   const [seedTenantId, setSeedTenantId] = useState<string>('');
+  const [simTenantId, setSimTenantId] = useState<string>('');
+  const { data: simStatus } = useDriverSimulationStatus(simTenantId || null);
+  const startSimMutation = useStartDriverSimulation();
+  const stopSimMutation = useStopDriverSimulation();
 
   // Defense in depth, sidebar already hides the entry, but a direct URL
   // hit on a non-test build should 404 rather than render a button that
@@ -98,6 +107,38 @@ export default function DevToolsPage() {
       onError: (err) => {
         const message = err instanceof Error ? err.message : 'Erreur inattendue.';
         toast.error(message.includes('live') ? 'Refusé en mode live.' : message);
+      },
+    });
+  }
+
+  function handleStartSim() {
+    if (!simTenantId) return;
+    startSimMutation.mutate(simTenantId, {
+      onSuccess: (result) => {
+        toast.success(
+          result.alreadyRunning
+            ? 'Simulation déjà en cours pour ce tenant.'
+            : 'Simulation démarrée. Les livreurs vont avancer le long des tournées du jour.',
+        );
+      },
+      onError: (e) => {
+        toast.error(`Erreur démarrage: ${e instanceof Error ? e.message : 'inconnue'}`);
+      },
+    });
+  }
+
+  function handleStopSim() {
+    if (!simTenantId) return;
+    stopSimMutation.mutate(simTenantId, {
+      onSuccess: (result) => {
+        toast.success(
+          result.stopped
+            ? 'Simulation arrêtée. Le worker quitte au prochain tick.'
+            : 'Aucune simulation en cours pour ce tenant.',
+        );
+      },
+      onError: (e) => {
+        toast.error(`Erreur arrêt: ${e instanceof Error ? e.message : 'inconnue'}`);
       },
     });
   }
@@ -295,6 +336,102 @@ export default function DevToolsPage() {
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {purgeMutation.isPending ? 'Purge…' : 'Purger [SEED]'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-emerald-600" />
+            Simuler les tournées (drivers walker)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Démarre un worker CLI en arrière-plan qui ping{' '}
+            <span className="font-mono">/driver-location</span> toutes les 5s pour chaque
+            tournée du jour, en avançant le livreur le long du polyline Mapbox
+            proportionnellement au temps écoulé. La carte du dispatcher (
+            <span className="font-mono">/dashboard/dispatch</span>) s&apos;anime en temps
+            réel, sans app driver. Hard-stop automatique après 4h pour éviter de laisser
+            tourner indéfiniment.
+          </p>
+          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              Bloqué en production côté backend (refuse si clé Stripe live). Outil
+              preprod/local uniquement.
+            </div>
+          </div>
+          <Select value={simTenantId} onValueChange={(v) => setSimTenantId(v ?? '')}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choisir un tenant" />
+            </SelectTrigger>
+            <SelectContent>
+              {tenants.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {simTenantId && simStatus?.job && (
+            <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-xs space-y-1">
+              <div>
+                <span className="text-muted-foreground">Statut:</span>{' '}
+                <span className="font-medium">
+                  {simStatus.job.status === 'running' ? 'En cours' : 'Arrêté'}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Démarré:</span>{' '}
+                <span className="font-mono">
+                  {new Date(simStatus.job.startedAt).toLocaleTimeString('fr-FR')}
+                </span>
+              </div>
+              {simStatus.job.lastTickAt && (
+                <div>
+                  <span className="text-muted-foreground">Dernier tick:</span>{' '}
+                  <span className="font-mono">
+                    {new Date(simStatus.job.lastTickAt).toLocaleTimeString('fr-FR')}
+                  </span>
+                  {simStatus.job.lastTickMessage && (
+                    <span className="text-muted-foreground">
+                      {' '}
+                      ({simStatus.job.lastTickMessage})
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="default"
+              onClick={handleStartSim}
+              disabled={
+                !simTenantId ||
+                startSimMutation.isPending ||
+                simStatus?.job?.status === 'running'
+              }
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              {startSimMutation.isPending ? 'Démarrage…' : 'Démarrer la simulation'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleStopSim}
+              disabled={
+                !simTenantId ||
+                stopSimMutation.isPending ||
+                simStatus?.job?.status !== 'running'
+              }
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Square className="h-4 w-4 mr-2" />
+              {stopSimMutation.isPending ? 'Arrêt…' : 'Arrêter'}
             </Button>
           </div>
         </CardContent>

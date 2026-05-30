@@ -42,6 +42,29 @@ export interface PurgeTenantSeedDataResult {
   users: number;
 }
 
+export interface DriverSimulationJob {
+  id: string;
+  tenantId: string;
+  status: 'running' | 'stopped';
+  startedAt: string;
+  stoppedAt: string | null;
+  lastTickAt: string | null;
+  lastTickMessage: string | null;
+}
+
+export interface DriverSimulationStatusResult {
+  job: DriverSimulationJob | null;
+}
+
+export interface DriverSimulationStartResult {
+  jobId: string;
+  alreadyRunning: boolean;
+}
+
+export interface DriverSimulationStopResult {
+  stopped: boolean;
+}
+
 export const devToolsService = {
   advanceBilling: (token: string) =>
     httpClient.post<AdvanceBillingResult>('/dev-tools/advance-billing', {}, { token }),
@@ -60,6 +83,23 @@ export const devToolsService = {
   purgeTenantSeedData: (token: string, tenantId: string) =>
     httpClient.delete<PurgeTenantSeedDataResult>(
       `/dev-tools/seed-tenant-data/${tenantId}`,
+      { token },
+    ),
+  getDriverSimulationStatus: (token: string, tenantId: string) =>
+    httpClient.get<DriverSimulationStatusResult>(
+      `/dev-tools/driver-simulation/${tenantId}`,
+      { token },
+    ),
+  startDriverSimulation: (token: string, tenantId: string) =>
+    httpClient.post<DriverSimulationStartResult>(
+      `/dev-tools/driver-simulation/${tenantId}/start`,
+      {},
+      { token },
+    ),
+  stopDriverSimulation: (token: string, tenantId: string) =>
+    httpClient.post<DriverSimulationStopResult>(
+      `/dev-tools/driver-simulation/${tenantId}/stop`,
+      {},
       { token },
     ),
 };
