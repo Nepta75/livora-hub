@@ -391,12 +391,18 @@ export default function DevToolsPage() {
                   {new Date(simStatus.job.startedAt).toLocaleTimeString('fr-FR')}
                 </span>
               </div>
-              {simStatus.job.lastTickAt && (
+              {(simStatus.job.lastTickAt || simStatus.job.lastTickMessage) && (
                 <div>
-                  <span className="text-muted-foreground">Dernier tick:</span>{' '}
-                  <span className="font-mono">
-                    {new Date(simStatus.job.lastTickAt).toLocaleTimeString('fr-FR')}
-                  </span>
+                  {simStatus.job.lastTickAt ? (
+                    <>
+                      <span className="text-muted-foreground">Dernier tick:</span>{' '}
+                      <span className="font-mono">
+                        {new Date(simStatus.job.lastTickAt).toLocaleTimeString('fr-FR')}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">Diag spawn:</span>
+                  )}
                   {simStatus.job.lastTickMessage && (
                     <span className="text-muted-foreground">
                       {' '}
