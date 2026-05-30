@@ -38,6 +38,7 @@ export type RescheduleOrderReason = "LATE" | "CUSTOMER_REQUEST" | "CAPACITY";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+export type UpdateTourStopStatusStatus = "arrived" | "completed" | "failed";
 export type VehicleType = "bike" | "cargo_bike" | "scooter" | "motorbike" | "car" | "van" | "truck" | "electric_van" | "electric_bike" | "pedestrian";
 export type WeightPricingTierType = "fixed" | "per_kg";
 
@@ -1448,6 +1449,10 @@ export interface IUpdatePromoCodeDto {
 export interface IUpdateTenantBillingDto {
   address: ITenantRegisterAddressDto;
   vatNumber?: string;
+}
+
+export interface IUpdateTourStopStatusDto {
+  status: UpdateTourStopStatusStatus;
 }
 
 export interface IUpdateUserDto {
