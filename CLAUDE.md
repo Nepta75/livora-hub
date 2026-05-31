@@ -112,3 +112,10 @@ Resources that can be temporarily disabled AND permanently removed (e.g. promo c
 3. `delete` — `DELETE /{resource}/{id}` → hard, removes DB row + external refs + provider-side objects
 
 Do not reuse the HTTP `DELETE` verb for a soft archive — a dedicated `/archive` endpoint keeps the semantics honest and lets the same verb always mean "irreversible".
+
+## Dispatch engine reference
+
+The route optimization engine lives in the backend; its canonical spec is
+`../api-vista-app/DISPATCH_ALGORITHM.md`. The hub `/dev-tools` driver
+simulation and tenant seed exercise it end-to-end. Read that doc before
+changing anything that feeds or reads dispatch tours/suggestions from the hub.
