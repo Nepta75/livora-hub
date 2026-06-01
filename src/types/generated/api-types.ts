@@ -297,6 +297,8 @@ export interface IDispatchSetting {
   maxRescheduleCount: number;
   defaultReschedulePolicy: string;
   timezone: string;
+  maxDeliveryDelayMinutes: number;
+  etaDriftThresholdMinutes: number;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -307,6 +309,8 @@ export interface IDispatchSettingDto {
   lateModeTriggerMinutes: number;
   comfortableMarginMinutes: number;
   maxRescheduleCount: number;
+  maxDeliveryDelayMinutes?: number;
+  etaDriftThresholdMinutes?: number;
   defaultReschedulePolicy: DispatchSettingDefaultReschedulePolicy;
   timezone: DispatchSettingTimezone;
 }
@@ -538,6 +542,12 @@ export interface InvoiceDto {
   orderIds: string[];
   customerId: string;
   customerType: OrderCustomerType;
+}
+
+export interface IManualAssignOrderDto {
+  orderId?: string;
+  driverId?: string;
+  insertionPosition?: number | null;
 }
 
 export interface IMigrateCohortDto {
@@ -1102,6 +1112,10 @@ export interface IRefundSubscriptionInvoiceDto {
 
 export interface IRegisterFinalizeDto {
   sessionId?: string;
+}
+
+export interface IReorderTourDto {
+  stopIds?: string[];
 }
 
 export interface IRescheduleOrderDto {
