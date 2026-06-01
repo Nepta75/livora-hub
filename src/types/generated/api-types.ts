@@ -28,6 +28,7 @@ export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency
 export type GenerateMorningBatchObjective = "asap" | "min_delay" | "optimize_global";
 export type GlobalSettingPricingType = "distance" | "city";
 export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
+export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
@@ -484,6 +485,7 @@ export interface InviteUserDto {
   roles: InviteUserRoles[];
   organizationId?: string | null;
   privateCustomerId?: string | null;
+  payModel?: InviteUserPayModel;
   creditRate?: number | null;
   customerRole: boolean;
 }
@@ -1481,6 +1483,7 @@ export interface IUpdateUserDto {
   organizationId?: string | null;
   privateCustomerId?: string | null;
   defaultVehicleId?: string | null;
+  payModel?: InviteUserPayModel;
   creditRate?: number | null;
   customerRole: boolean;
 }
@@ -1522,6 +1525,8 @@ export interface IUser {
   roles: string[];
   rolesForTenant: string[];
   creditRate?: number | null;
+  payModel?: string | null;
+  payModelForTenant: string;
   creditRateForTenant: string;
   auditIdentifier: string;
   userName: string;
@@ -1556,6 +1561,7 @@ export interface IUserTenantRead {
   user: IUser;
   tenant: ITenant;
   roles?: string[];
+  payModel?: string;
   creditRate?: number | null;
   createdAt: string;
   updatedAt: string;
