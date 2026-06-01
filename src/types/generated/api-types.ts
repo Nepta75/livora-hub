@@ -484,6 +484,7 @@ export interface InviteUserDto {
   roles: InviteUserRoles[];
   organizationId?: string | null;
   privateCustomerId?: string | null;
+  creditRate?: number | null;
   customerRole: boolean;
 }
 
@@ -1480,6 +1481,7 @@ export interface IUpdateUserDto {
   organizationId?: string | null;
   privateCustomerId?: string | null;
   defaultVehicleId?: string | null;
+  creditRate?: number | null;
   customerRole: boolean;
 }
 
@@ -1519,6 +1521,8 @@ export interface IUser {
   tenants: ITenant[];
   roles: string[];
   rolesForTenant: string[];
+  creditRate?: number | null;
+  creditRateForTenant: string;
   auditIdentifier: string;
   userName: string;
   salt?: string | null;
@@ -1552,6 +1556,7 @@ export interface IUserTenantRead {
   user: IUser;
   tenant: ITenant;
   roles?: string[];
+  creditRate?: number | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
