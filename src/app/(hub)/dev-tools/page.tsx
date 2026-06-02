@@ -149,20 +149,18 @@ export default function DevToolsPage() {
     if (!simTenantId) return;
     deviationMutation.mutate(simTenantId, {
       onSuccess: (result) => {
+        if (result.alreadyDeviating) {
+          toast.info('Une déviation est déjà en cours pour ce tenant.');
+          return;
+        }
         if (!result.liveRerouteEnabled) {
           toast.warning(
-            `Position hors trajet poussée pour ${result.driverName}, mais le recalcul sur déviation est désactivé pour ce tenant (Réglages dispatch côté app).`,
+            'Déviation lancée, mais le recalcul sur déviation est désactivé pour ce tenant : le livreur va dévier sans que le tracé se recalcule. Active-le dans les Réglages dispatch de l\'app.',
           );
           return;
         }
-        if (result.rerouteTriggered) {
-          toast.success(
-            `${result.driverName} a dévié: tracé et ETA recalculés. Regarde la carte dispatch, le tracé doit se redessiner.`,
-          );
-          return;
-        }
-        toast.info(
-          `Position hors trajet poussée pour ${result.driverName}, mais le recalcul n'a pas tiré (debounce de 3 min ou plafond par tournée atteint). Réessaie dans quelques minutes.`,
+        toast.success(
+          'Déviation lancée : le livreur va quitter son tracé dans les prochaines secondes, la détection tombera vers ~500 m d\'écart, puis la carte se recalculera.',
         );
       },
       onError: (e) => {

@@ -66,11 +66,9 @@ export interface DriverSimulationStopResult {
 }
 
 export interface DriverSimulationDeviationResult {
-  driverName: string;
-  tourId: string;
+  requested: boolean;
+  alreadyDeviating: boolean;
   liveRerouteEnabled: boolean;
-  rerouteTriggered: boolean;
-  position: { latitude: number; longitude: number };
 }
 
 export const devToolsService = {
