@@ -41,3 +41,11 @@ export function useStopDriverSimulation() {
     },
   });
 }
+
+export function useSimulateDriverDeviation() {
+  const { token } = useAuth();
+
+  return useMutation({
+    mutationFn: (tenantId: string) => devToolsService.simulateDriverDeviation(token, tenantId),
+  });
+}

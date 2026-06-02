@@ -65,6 +65,14 @@ export interface DriverSimulationStopResult {
   stopped: boolean;
 }
 
+export interface DriverSimulationDeviationResult {
+  driverName: string;
+  tourId: string;
+  liveRerouteEnabled: boolean;
+  rerouteTriggered: boolean;
+  position: { latitude: number; longitude: number };
+}
+
 export const devToolsService = {
   advanceBilling: (token: string) =>
     httpClient.post<AdvanceBillingResult>('/dev-tools/advance-billing', {}, { token }),
@@ -99,6 +107,12 @@ export const devToolsService = {
   stopDriverSimulation: (token: string, tenantId: string) =>
     httpClient.post<DriverSimulationStopResult>(
       `/dev-tools/driver-simulation/${tenantId}/stop`,
+      {},
+      { token },
+    ),
+  simulateDriverDeviation: (token: string, tenantId: string) =>
+    httpClient.post<DriverSimulationDeviationResult>(
+      `/dev-tools/driver-simulation/${tenantId}/deviate`,
       {},
       { token },
     ),

@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { toast } from 'sonner';
-import { AlertTriangle, Database, MapPin, Receipt, Square, Trash2, Zap } from 'lucide-react';
+import { AlertTriangle, Database, MapPin, Navigation, Receipt, Square, Trash2, Zap } from 'lucide-react';
 import { useAdvanceBilling } from '@/hooks/api/devTools/useAdvanceBilling';
 import {
   useDriverSimulationStatus,
+  useSimulateDriverDeviation,
   useStartDriverSimulation,
   useStopDriverSimulation,
 } from '@/hooks/api/devTools/useDriverSimulation';
@@ -54,6 +55,7 @@ export default function DevToolsPage() {
   const { data: simStatus } = useDriverSimulationStatus(simTenantId || null);
   const startSimMutation = useStartDriverSimulation();
   const stopSimMutation = useStopDriverSimulation();
+  const deviationMutation = useSimulateDriverDeviation();
 
   // Defense in depth, sidebar already hides the entry, but a direct URL
   // hit on a non-test build should 404 rather than render a button that
@@ -139,6 +141,32 @@ export default function DevToolsPage() {
       },
       onError: (e) => {
         toast.error(`Erreur arrêt: ${e instanceof Error ? e.message : 'inconnue'}`);
+      },
+    });
+  }
+
+  function handleSimulateDeviation() {
+    if (!simTenantId) return;
+    deviationMutation.mutate(simTenantId, {
+      onSuccess: (result) => {
+        if (!result.liveRerouteEnabled) {
+          toast.warning(
+            `Position hors trajet poussée pour ${result.driverName}, mais le recalcul sur déviation est désactivé pour ce tenant (Réglages dispatch côté app).`,
+          );
+          return;
+        }
+        if (result.rerouteTriggered) {
+          toast.success(
+            `${result.driverName} a dévié: tracé et ETA recalculés. Regarde la carte dispatch, le tracé doit se redessiner.`,
+          );
+          return;
+        }
+        toast.info(
+          `Position hors trajet poussée pour ${result.driverName}, mais le recalcul n'a pas tiré (debounce de 3 min ou plafond par tournée atteint). Réessaie dans quelques minutes.`,
+        );
+      },
+      onError: (e) => {
+        toast.error(`Erreur déviation: ${e instanceof Error ? e.message : 'inconnue'}`);
       },
     });
   }
@@ -438,6 +466,16 @@ export default function DevToolsPage() {
             >
               <Square className="h-4 w-4 mr-2" />
               {stopSimMutation.isPending ? 'Arrêt…' : 'Arrêter'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSimulateDeviation}
+              disabled={!simTenantId || deviationMutation.isPending}
+              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+              title="Pousse une position GPS à ~1-2 km du trajet prévu pour un livreur en tournée, via le vrai endpoint d'ingestion. Teste le recalcul du tracé sur déviation (à activer dans les Réglages dispatch du tenant)."
+            >
+              <Navigation className="h-4 w-4 mr-2" />
+              {deviationMutation.isPending ? 'Déviation…' : 'Simuler une déviation'}
             </Button>
           </div>
         </CardContent>
