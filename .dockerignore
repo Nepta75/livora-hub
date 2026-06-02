@@ -1,0 +1,10 @@
+# Never send these to the Docker build context: keeps builds fast, keeps
+# locally-installed deps from overwriting the ones installed inside the image,
+# and keeps local-only env files out of image layers.
+.git
+.github
+node_modules
+.next
+.env.local
+.idea
+.vscode

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 ARG NODE_VERSION=20
 
 FROM node:${NODE_VERSION} AS dependencies
@@ -6,7 +7,10 @@ WORKDIR /usr/src/app
 
 COPY package.json yarn.lock ./
 
-RUN yarn install --frozen-lockfile
+# Cache mount keeps the yarn package cache warm across builds even when
+# yarn.lock changes (layer cache miss), so only new packages are downloaded.
+RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
+    yarn install --frozen-lockfile
 
 FROM node:${NODE_VERSION} AS builder
 
@@ -23,7 +27,10 @@ COPY . .
 # precedence) would override the chosen .env silently.
 RUN rm -f .env .env.local .env.preprod .env.production
 COPY .env.${ENV} .env
-RUN yarn build
+# Cache mount on .next/cache enables incremental Next.js builds and keeps
+# the build cache out of the image layer copied into the production stage.
+RUN --mount=type=cache,target=/usr/src/app/.next/cache \
+    yarn build
 
 FROM node:${NODE_VERSION}-slim AS production
 
