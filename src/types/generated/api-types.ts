@@ -248,6 +248,7 @@ export interface IDeliveryPrestation {
   pricingType: string;
   timeSlots: IDeliveryPrestationTimeSlot[];
   vehicle: IVehicle;
+  urgency?: number;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -300,6 +301,7 @@ export interface IDispatchSetting {
   timezone: string;
   maxDeliveryDelayMinutes: number;
   etaDriftThresholdMinutes: number;
+  liveRerouteEnabled: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -314,6 +316,7 @@ export interface IDispatchSettingDto {
   etaDriftThresholdMinutes?: number;
   defaultReschedulePolicy: DispatchSettingDefaultReschedulePolicy;
   timezone: DispatchSettingTimezone;
+  liveRerouteEnabled?: boolean;
 }
 
 export interface IDistancePricing {
