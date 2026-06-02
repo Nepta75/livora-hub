@@ -69,6 +69,8 @@ export interface DriverSimulationDeviationResult {
   requested: boolean;
   alreadyDeviating: boolean;
   liveRerouteEnabled: boolean;
+  /** Driver who will play the excursion; null when alreadyDeviating. */
+  driverName: string | null;
 }
 
 export const devToolsService = {

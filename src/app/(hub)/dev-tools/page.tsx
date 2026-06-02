@@ -153,14 +153,15 @@ export default function DevToolsPage() {
           toast.info('Une déviation est déjà en cours pour ce tenant.');
           return;
         }
+        const driver = result.driverName ?? 'Le livreur';
         if (!result.liveRerouteEnabled) {
           toast.warning(
-            'Déviation lancée, mais le recalcul sur déviation est désactivé pour ce tenant : le livreur va dévier sans que le tracé se recalcule. Active-le dans les Réglages dispatch de l\'app.',
+            `Déviation lancée pour ${driver}, mais le recalcul sur déviation est désactivé pour ce tenant : il va dévier sans que le tracé se recalcule. Active-le dans les Réglages dispatch de l'app.`,
           );
           return;
         }
         toast.success(
-          'Déviation lancée : le livreur va quitter son tracé dans les prochaines secondes, la détection tombera vers ~500 m d\'écart, puis la carte se recalculera.',
+          `${driver} va quitter son tracé dans les prochaines secondes. Sélectionne sa tournée sur la carte dispatch : la détection tombera vers ~500 m d'écart, puis le tracé se recalculera.`,
         );
       },
       onError: (e) => {
