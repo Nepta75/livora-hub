@@ -321,12 +321,13 @@ export default function DevToolsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Crée des refs stables (3 véhicules, 3 livreurs avec véhicule par défaut, 2
-            entrepôts, 5 clients) la première fois. Chaque relance ajoute 10 commandes
+            Crée des refs stables (3 véhicules de types différents : vélo cargo, van,
+            scooter, 3 livreurs avec véhicule par défaut, 2 entrepôts, 5 clients) la
+            première fois. Chaque relance ajoute 10 commandes
             <span className="font-mono"> ready_for_shipping</span> pour aujourd&apos;hui et 3
-            plannings livreurs. Utilise une DeliveryPrestation et un PricingConfig
-            existants du tenant. Toutes les entités créées sont préfixées{' '}
-            <span className="font-mono">[SEED]</span> pour les distinguer.
+            plannings livreurs, dont 2 commandes volumineuses que seul le livreur en van
+            peut prendre (test du garde-fou véhicule). Toutes les entités créées sont
+            préfixées <span className="font-mono">[SEED]</span> pour les distinguer.
           </p>
           <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
