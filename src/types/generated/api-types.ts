@@ -302,6 +302,7 @@ export interface IDispatchSetting {
   maxDeliveryDelayMinutes: number;
   etaDriftThresholdMinutes: number;
   liveRerouteEnabled: boolean;
+  urgencyLatenessMultiplier: number;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -317,6 +318,7 @@ export interface IDispatchSettingDto {
   defaultReschedulePolicy: DispatchSettingDefaultReschedulePolicy;
   timezone: DispatchSettingTimezone;
   liveRerouteEnabled?: boolean;
+  urgencyLatenessMultiplier?: number;
 }
 
 export interface IDistancePricing {
