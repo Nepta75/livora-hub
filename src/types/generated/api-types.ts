@@ -589,6 +589,8 @@ export interface IOrder {
   deliveryDate: string;
   status: string;
   totalCredit: number;
+  collectionCredit?: number;
+  deliveryCredit?: number;
   totalPrice?: number;
   pricingConfig?: IPricingConfig | null;
   customer?: IHistoryInterface | null;
@@ -1447,6 +1449,8 @@ export interface ITripSummaryDto {
   trips: ITripDto[];
   totalDistance: number;
   totalCredit: number;
+  collectionCredit?: number;
+  deliveryCredit?: number;
 }
 
 export interface IUpdateHubUserDto {
