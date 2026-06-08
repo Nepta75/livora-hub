@@ -303,6 +303,7 @@ export interface IDispatchSetting {
   etaDriftThresholdMinutes: number;
   liveRerouteEnabled: boolean;
   urgencyLatenessMultiplier: number;
+  shiftOverrunToleranceMinutes: number;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -319,6 +320,7 @@ export interface IDispatchSettingDto {
   timezone: DispatchSettingTimezone;
   liveRerouteEnabled?: boolean;
   urgencyLatenessMultiplier?: number;
+  shiftOverrunToleranceMinutes?: number;
 }
 
 export interface IDistancePricing {
@@ -492,6 +494,7 @@ export interface InviteUserDto {
   privateCustomerId?: string | null;
   payModel?: InviteUserPayModel;
   creditRate?: number | null;
+  defaultVehicleId?: string | null;
   customerRole: boolean;
 }
 
@@ -884,6 +887,7 @@ export interface IPricingConfig {
   startingPoint?: IAddress | null;
   distancePricingConfig?: IDistancePricingConfig | null;
   cityPricingConfig?: ICityPricingConfig | null;
+  pricingMode?: string | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
