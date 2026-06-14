@@ -31,11 +31,11 @@ export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
-export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
+export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_dispatch_sectors" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
 export type RecordDriverLocationSource = "simulated" | "gps" | "manual";
 export type RefundSubscriptionInvoiceReason = "duplicate" | "fraudulent" | "requested_by_customer";
-export type RescheduleOrderReason = "LATE" | "CUSTOMER_REQUEST" | "CAPACITY";
+export type RescheduleOrderReason = "LATE" | "CUSTOMER_REQUEST" | "CAPACITY" | "FAILED_DELIVERY";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
 export type TimeSlotDayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
@@ -291,6 +291,26 @@ export interface IDeliveryZoneDto {
   isActive?: boolean;
 }
 
+export interface IDispatchSector {
+  id: string;
+}
+
+export interface IDispatchSector2 {
+  id: string;
+  tenantId: string;
+  label: string;
+  pricingConfigs: IPricingConfig[];
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+  auditIdentifier: string;
+}
+
+export interface IDispatchSectorDto {
+  label?: string;
+  pricingConfigIds?: string[];
+}
+
 export interface IDispatchSetting {
   id: string;
   tenantId: string;
@@ -346,6 +366,12 @@ export interface IDistancePricingConfig {
   auditIdentifier: string;
 }
 
+export interface IDriverBaseDto {
+  latitude: number | null;
+  longitude: number | null;
+  label?: string | null;
+}
+
 export interface IDriverSchedule {
   id: string;
   tenant: ITenant;
@@ -358,11 +384,14 @@ export interface IDriverSchedule {
   maxDeliveryRadiusKm?: number | null;
   timeSlots: IDriverScheduleTimeSlot[];
   vehicle?: IVehicle | null;
+  base: IGeoPoint2;
+  dispatchSector?: IDispatchSector2 | null;
   notes?: string | null;
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
+  effectiveDispatchSector?: IDispatchSector2 | null;
 }
 
 export interface IDriverScheduleDto {
@@ -372,6 +401,8 @@ export interface IDriverScheduleDto {
   scheduleType: DriverScheduleType;
   preferredZoneId?: string | null;
   vehicleId?: string | null;
+  dispatchSectorId?: string | null;
+  base?: IDriverBaseDto | null;
   excludedZoneIds?: string[];
   maxDeliveryRadiusKm?: number | null;
   timeSlots?: IDriverScheduleTimeSlotDto[];
@@ -430,9 +461,22 @@ export interface IForgotPasswordDto {
 }
 
 export interface IGenerateMorningBatchDto {
-  pricingConfigId?: string;
+  sectorId?: string;
   date?: string;
   objective?: GenerateMorningBatchObjective;
+}
+
+export interface IGeoPoint {
+  latitude?: number | null;
+  longitude?: number | null;
+  label?: string | null;
+}
+
+export interface IGeoPoint2 {
+  latitude?: number | null;
+  longitude?: number | null;
+  label?: string | null;
+  coordinates: boolean;
 }
 
 export interface IGlobalSetting {
@@ -495,6 +539,8 @@ export interface InviteUserDto {
   payModel?: InviteUserPayModel;
   creditRate?: number | null;
   defaultVehicleId?: string | null;
+  defaultDispatchSectorId?: string | null;
+  defaultBase?: IDriverBaseDto | null;
   customerRole: boolean;
 }
 
@@ -888,6 +934,7 @@ export interface IPricingConfig {
   distancePricingConfig?: IDistancePricingConfig | null;
   cityPricingConfig?: ICityPricingConfig | null;
   pricingMode?: string | null;
+  sector?: IDispatchSector2 | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1130,6 +1177,13 @@ export interface IRegisterFinalizeDto {
 
 export interface IReorderTourDto {
   stopIds?: string[];
+}
+
+export interface IRescheduleCarryOverDto {
+  orderIds?: string[];
+  targetDate?: string;
+  reason?: RescheduleOrderReason;
+  notifyCustomer?: boolean;
 }
 
 export interface IRescheduleOrderDto {
@@ -1496,6 +1550,8 @@ export interface IUpdateUserDto {
   organizationId?: string | null;
   privateCustomerId?: string | null;
   defaultVehicleId?: string | null;
+  defaultDispatchSectorId?: string | null;
+  defaultBase?: IDriverBaseDto | null;
   payModel?: InviteUserPayModel;
   creditRate?: number | null;
   customerRole: boolean;
@@ -1520,6 +1576,8 @@ export interface IUser {
   organization?: IOrganization | null;
   privateCustomer?: IPrivateCustomer | null;
   defaultVehicle?: IVehicle | null;
+  defaultBase: IGeoPoint2;
+  defaultDispatchSector?: IDispatchSector2 | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
@@ -1560,6 +1618,8 @@ export interface IUserRead {
   organization?: IOrganizationRef | null;
   privateCustomer?: IPrivateCustomerRef | null;
   defaultVehicle?: IVehicle2 | null;
+  defaultBase: IGeoPoint;
+  defaultDispatchSector?: IDispatchSector | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
