@@ -37,6 +37,7 @@ const FEATURE_LABELS: Record<string, string> = {
   can_manage_fleet: 'Gestion flotte',
   can_view_audit_logs: "Logs d'audit",
   can_use_api: 'Accès API',
+  can_use_embedded_ordering: 'Commande en ligne (embarquée)',
   can_configure_stripe: 'Config Stripe',
   can_use_premium_address_search: 'Adresse premium',
   can_use_route_optimization: 'Optimisation itinéraires',

@@ -31,7 +31,7 @@ export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
-export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_dispatch_sectors" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
+export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_dispatch_sectors" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_use_embedded_ordering" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
 export type RecordDriverLocationSource = "simulated" | "gps" | "manual";
 export type RefundSubscriptionInvoiceReason = "duplicate" | "fraudulent" | "requested_by_customer";
@@ -1053,6 +1053,26 @@ export interface IPromoPreviewDto {
   billingPeriod: ChangePlanBillingPeriod;
 }
 
+export interface IPublicCustomerDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+}
+
+export interface IPublicOrderDto {
+  customer: IPublicCustomerDto;
+  pickupDate: string;
+  deliveryDate: string;
+  pickupAsSoonAsPossible?: boolean;
+  deliveryAsSoonAsPossible?: boolean;
+  pickupPoints: IOrderPickupPointDto[];
+  deliveryPoints: IOrderDeliveryPointDto[];
+  pricingConfigId: string;
+  deliveryPrestationId: string;
+  pricingConfig?: IPricingConfig | null;
+}
+
 export interface IQuote {
   id: string;
   tenant: ITenant;
@@ -1443,6 +1463,21 @@ export interface ITenant5 {
   name: string;
 }
 
+export interface ITenantApiKey {
+  id: string;
+  tenantId: string;
+  type: string;
+  prefix: string;
+  allowedOrigins?: string[];
+  scopes?: string[];
+  label?: string | null;
+  lastUsedAt?: string | null;
+  revokedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+}
+
 export interface ITenantRegisterAddressDto {
   streetNumber?: string;
   street?: string;
@@ -1475,6 +1510,7 @@ export interface ITenantRegisterPlanDto {
 
 export interface ITenantRegisterStartDto {
   email: string;
+  turnstileToken?: string;
 }
 
 export interface ITenantRegisterUserDto {
@@ -2273,6 +2309,7 @@ export type GetMeDashboardSummaryResponse = {
   revenueEuro?: number;
 }[];
 };
+export type GetMeListApiKeysResponse = ITenantApiKey[];
 export type PostPublicActivateAccountResponse = {
   token?: string;
   message?: string;
