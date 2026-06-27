@@ -637,11 +637,13 @@ export interface IOrder {
   pickupDate: string;
   deliveryDate: string;
   status: string;
+  source?: string;
   totalCredit: number;
   collectionCredit?: number;
   deliveryCredit?: number;
   totalPrice?: number;
   pricingConfig?: IPricingConfig | null;
+  requiresManualPricing?: boolean;
   customer?: IHistoryInterface | null;
   invoice?: Invoice | null;
   quote?: IQuote | null;
@@ -703,7 +705,7 @@ export interface IOrderDto {
   adjustments?: IOrderAdjustmentDto[];
   pickupPoints: IOrderPickupPointDto[];
   deliveryPoints: IOrderDeliveryPointDto[];
-  pricingConfigId: string;
+  pricingConfigId?: string | null;
   deliveryPrestationId: string;
   pricingConfig?: IPricingConfig | null;
 }
@@ -711,7 +713,7 @@ export interface IOrderDto {
 export interface IOrderMandatoryDto {
   pickupPoints?: IOrderPickupPointDto[];
   deliveryPoints?: IOrderDeliveryPointDto[];
-  pricingConfigId: string;
+  pricingConfigId: string | null;
   deliveryPrestationId: string;
   pricingConfig?: IPricingConfig | null;
 }
@@ -935,6 +937,8 @@ export interface IPricingConfig {
   cityPricingConfig?: ICityPricingConfig | null;
   pricingMode?: string | null;
   sector?: IDispatchSector2 | null;
+  priority?: number;
+  serviceRadiusKm?: number | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -956,6 +960,7 @@ export interface IPricingSummaryDto {
   warehousePrice?: number | null;
   tvaPrice: number;
   adjustmentsTotal?: number;
+  requiresManualPricing?: boolean;
 }
 
 export interface IPrivateCustomer {
@@ -1068,7 +1073,7 @@ export interface IPublicOrderDto {
   deliveryAsSoonAsPossible?: boolean;
   pickupPoints: IOrderPickupPointDto[];
   deliveryPoints: IOrderDeliveryPointDto[];
-  pricingConfigId: string;
+  pricingConfigId?: string | null;
   deliveryPrestationId: string;
   pricingConfig?: IPricingConfig | null;
 }
@@ -1419,6 +1424,9 @@ export interface ITenant {
   tenantAdminUser?: IUser | null;
   name: string;
   logo?: string | null;
+  brandColor?: string | null;
+  publicEmbedId?: string | null;
+  allowedEmbedOrigins?: string[];
   email: string;
   userTenants: IUserTenantRead[];
   privateCustomerTenants: IPrivateCustomerTenant[];
@@ -1545,6 +1553,11 @@ export interface ITripSummaryDto {
   totalCredit: number;
   collectionCredit?: number;
   deliveryCredit?: number;
+}
+
+export interface IUpdateEmbeddedOrderingDto {
+  brandColor?: string | null;
+  allowedEmbedOrigins?: string[];
 }
 
 export interface IUpdateHubUserDto {
