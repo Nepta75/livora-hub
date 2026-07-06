@@ -1427,6 +1427,7 @@ export interface ITenant {
   brandColor?: string | null;
   publicEmbedId?: string | null;
   allowedEmbedOrigins?: string[];
+  embeddedOnlinePaymentEnabled?: boolean;
   email: string;
   userTenants: IUserTenantRead[];
   privateCustomerTenants: IPrivateCustomerTenant[];
@@ -1484,6 +1485,16 @@ export interface ITenantApiKey {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
+}
+
+export interface ITenantPaymentAccount {
+  id: string;
+  tenantId: string;
+  provider: string;
+  externalAccountId?: string | null;
+  status?: string;
+  chargesEnabled?: boolean;
+  payoutsEnabled?: boolean;
 }
 
 export interface ITenantRegisterAddressDto {
@@ -2323,6 +2334,8 @@ export type GetMeDashboardSummaryResponse = {
 }[];
 };
 export type GetMeListApiKeysResponse = ITenantApiKey[];
+export type PostMeConnectRefreshResponse = ITenantPaymentAccount;
+export type GetMeReadPaymentAccountResponse = ITenantPaymentAccount;
 export type PostPublicActivateAccountResponse = {
   token?: string;
   message?: string;
