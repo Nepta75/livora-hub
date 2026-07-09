@@ -485,6 +485,7 @@ export interface IGlobalSetting {
   customerDefaultCreditPrice: number;
   orderMinimumCreditAmount: number;
   pricingType: string;
+  embeddedApplicationFeeRate?: number;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1428,6 +1429,7 @@ export interface ITenant {
   publicEmbedId?: string | null;
   allowedEmbedOrigins?: string[];
   embeddedOnlinePaymentEnabled?: boolean;
+  embeddedApplicationFeeRate?: number | null;
   email: string;
   userTenants: IUserTenantRead[];
   privateCustomerTenants: IPrivateCustomerTenant[];
