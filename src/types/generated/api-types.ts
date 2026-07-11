@@ -622,6 +622,12 @@ export interface IMigrateSubscriptionVersionDto {
   tenantConsentObtainedAtImmutable?: string | null;
 }
 
+export interface IOnlinePaymentSettingsDto {
+  enabled: boolean;
+  applicationFeeRate: number;
+  chargesEnabled: boolean;
+}
+
 export interface IOrder {
   id: string;
   reference: string;
@@ -1583,6 +1589,10 @@ export interface IUpdateHubUserRolesDto {
   roles: HubUserRoles[];
 }
 
+export interface IUpdateOnlinePaymentSettingsDto {
+  enabled: boolean | null;
+}
+
 export interface IUpdatePasswordDto {
   password: string;
 }
@@ -2338,6 +2348,8 @@ export type GetMeDashboardSummaryResponse = {
 export type GetMeListApiKeysResponse = ITenantApiKey[];
 export type PostMeConnectRefreshResponse = ITenantPaymentAccount;
 export type GetMeReadPaymentAccountResponse = ITenantPaymentAccount;
+export type GetMeReadOnlinePaymentResponse = IOnlinePaymentSettingsDto;
+export type PatchMeUpdateOnlinePaymentResponse = IOnlinePaymentSettingsDto;
 export type PostPublicActivateAccountResponse = {
   token?: string;
   message?: string;
