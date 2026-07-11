@@ -725,6 +725,23 @@ export interface IOrderMandatoryDto {
   pricingConfig?: IPricingConfig | null;
 }
 
+export interface IOrderPayment {
+  id: string;
+  tenantId: string;
+  provider?: string;
+  channel?: string;
+  providerSessionRef?: string | null;
+  providerPaymentIntentRef?: string | null;
+  connectAccountId?: string | null;
+  amount?: number;
+  currency?: string;
+  applicationFeeAmount?: number | null;
+  status?: string;
+  refundedAmount?: number;
+  createdOrderId?: string | null;
+  paidAt?: string | null;
+}
+
 export interface IOrderPickupPackageDimension {
   id: string;
   pickupPoint: IOrderPickupPoint;
@@ -1195,6 +1212,10 @@ export interface IRecordDriverLocationDto {
   source?: RecordDriverLocationSource;
   speed?: number | null;
   accuracy?: number | null;
+}
+
+export interface IRefundOrderPaymentDto {
+  amount?: number | null;
 }
 
 export interface IRefundSubscriptionInvoiceDto {
@@ -2164,6 +2185,7 @@ export type GetPrivateCustomerReadResponse = (IPrivateCustomer | {
   total?: number;
 });
 export type PostOrderCreateResponse = IOrder;
+export type GetOrderPaymentReadResponse = IOrderPayment;
 export type PostOrderCalculateTripResponse = ITripSummaryDto;
 export type PostOrderCalculatePricingResponse = IPricingSummaryDto;
 export type PostInvoiceCreateResponse = Invoice;
