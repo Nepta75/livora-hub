@@ -10,6 +10,8 @@ import type {
   ITenant,
   IUser,
   GetAdminTenantSubscriptionInvoiceReadResponse,
+  GetAdminTenantEmbeddedPaymentReadResponse,
+  PatchAdminTenantEmbeddedPaymentUpdateResponse,
 } from '@/types/generated/api-types';
 
 export type { IAuditLog, ImpersonationLog, ISubscriptionInvoice, ISubscriptionInvoiceRefund };
@@ -229,6 +231,21 @@ export const tenantsService = {
   cancelSubscription: (tenantId: string, force: boolean, token: string) =>
     httpClient.delete(
       `/tenant/${tenantId}/subscription${force ? '?force=true' : ''}`,
+      { token },
+    ),
+
+  getEmbeddedPayment: (tenantId: string, token: string) =>
+    httpClient.get<GetAdminTenantEmbeddedPaymentReadResponse>(
+      `/tenant/${tenantId}/embedded-payment`,
+      { token },
+    ),
+
+  // Reservation rollout switch (auth-then-capture). Off puts new embedded orders
+  // back on an immediate charge; holds already placed keep their own lifecycle.
+  setAuthCaptureEnabled: (tenantId: string, authCaptureEnabled: boolean, token: string) =>
+    httpClient.patch<PatchAdminTenantEmbeddedPaymentUpdateResponse>(
+      `/tenant/${tenantId}/embedded-payment`,
+      { authCaptureEnabled },
       { token },
     ),
 };

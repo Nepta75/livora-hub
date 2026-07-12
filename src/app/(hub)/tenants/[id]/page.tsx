@@ -67,6 +67,7 @@ import { ExtendTrialDialog } from '@/components/subscriptions/ExtendTrialDialog'
 import { useCancelPendingPlanChange } from '@/hooks/api/subscriptions/useChangePlan';
 import { cn } from '@/lib/utils';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
+import { EmbeddedPaymentSection } from '@/components/tenants/EmbeddedPaymentSection';
 
 const ACTION_LABELS: Record<string, string> = {
   CREATE: 'Création',
@@ -1235,6 +1236,8 @@ export default function TenantDetailPage() {
       <SubscriptionSection tenantId={id} tenantName={tenant?.name ?? ''} />
 
       <SubscriptionInvoicesSection tenantId={id} />
+
+      <EmbeddedPaymentSection tenantId={id} />
 
       {impersonationLogs && impersonationLogs.length > 0 && (
         <Card>

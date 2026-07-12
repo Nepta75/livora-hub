@@ -29,6 +29,7 @@ export const TENANTS_KEYS = {
   options: ['admin', 'tenants', 'options'] as const,
   detail: (id: string) => ['admin', 'tenants', id] as const,
   users: (id: string) => ['admin', 'tenants', id, 'users'] as const,
+  embeddedPayment: (id: string) => ['admin', 'tenants', id, 'embedded-payment'] as const,
   impersonationLogs: (id: string) => ['admin', 'tenants', id, 'impersonation-logs'] as const,
   auditLogs: (id: string, filters?: TenantAuditLogFilters) =>
     ['admin', 'tenants', id, 'audit-logs', filters] as const,
@@ -273,6 +274,34 @@ export function useRefundAdminTenantSubscriptionInvoice(tenantId: string) {
       });
       void queryClient.invalidateQueries({ queryKey: TENANTS_KEYS.detail(tenantId) });
       void queryClient.invalidateQueries({ queryKey: DASHBOARD_METRICS_KEYS.all });
+    },
+  });
+}
+
+/**
+ * Reservation (auth-then-capture) settings for one tenant: whether Livora enrolled
+ * them, plus the tenant-side state that decides whether a reservation would
+ * actually happen (online payment on, account collecting, no opt-out).
+ */
+export function useAdminTenantEmbeddedPayment(tenantId: string) {
+  const { token } = useAuth();
+
+  return useQuery({
+    queryKey: TENANTS_KEYS.embeddedPayment(tenantId),
+    queryFn: () => tenantsService.getEmbeddedPayment(tenantId, token),
+    enabled: !!tenantId,
+  });
+}
+
+export function useSetAdminTenantAuthCapture(tenantId: string) {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (authCaptureEnabled: boolean) =>
+      tenantsService.setAuthCaptureEnabled(tenantId, authCaptureEnabled, token),
+    onSuccess: (settings) => {
+      queryClient.setQueryData(TENANTS_KEYS.embeddedPayment(tenantId), settings);
     },
   });
 }

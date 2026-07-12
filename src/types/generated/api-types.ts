@@ -110,6 +110,13 @@ export interface IAddTenantDto {
   acceptedTermsAt?: string;
 }
 
+export interface IAdminEmbeddedPaymentSettingsDto {
+  authCaptureEnabled: boolean;
+  forceImmediatePayment: boolean;
+  onlinePaymentEnabled: boolean;
+  chargesEnabled: boolean;
+}
+
 export interface IAdminReplacePromoCodeDto {
   code?: string;
   reason?: string;
@@ -486,6 +493,7 @@ export interface IGlobalSetting {
   orderMinimumCreditAmount: number;
   pricingType: string;
   embeddedApplicationFeeRate?: number;
+  embeddedAuthCaptureEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -626,6 +634,8 @@ export interface IOnlinePaymentSettingsDto {
   enabled: boolean;
   applicationFeeRate: number;
   chargesEnabled: boolean;
+  authCaptureEnabled: boolean;
+  forceImmediatePayment: boolean;
 }
 
 export interface IOrder {
@@ -740,6 +750,8 @@ export interface IOrderPayment {
   refundedAmount?: number;
   createdOrderId?: string | null;
   paidAt?: string | null;
+  authorizedAmount?: number | null;
+  authorizedAt?: string | null;
 }
 
 export interface IOrderPickupPackageDimension {
@@ -1457,6 +1469,7 @@ export interface ITenant {
   allowedEmbedOrigins?: string[];
   embeddedOnlinePaymentEnabled?: boolean;
   embeddedApplicationFeeRate?: number | null;
+  embeddedForceImmediatePayment?: boolean;
   email: string;
   userTenants: IUserTenantRead[];
   privateCustomerTenants: IPrivateCustomerTenant[];
@@ -1595,6 +1608,10 @@ export interface ITripSummaryDto {
   deliveryCredit?: number;
 }
 
+export interface IUpdateAdminEmbeddedPaymentSettingsDto {
+  authCaptureEnabled: boolean | null;
+}
+
 export interface IUpdateEmbeddedOrderingDto {
   brandColor?: string | null;
   allowedEmbedOrigins?: string[];
@@ -1611,7 +1628,8 @@ export interface IUpdateHubUserRolesDto {
 }
 
 export interface IUpdateOnlinePaymentSettingsDto {
-  enabled: boolean | null;
+  enabled?: boolean | null;
+  forceImmediatePayment?: boolean | null;
 }
 
 export interface IUpdatePasswordDto {
@@ -1953,6 +1971,8 @@ export type GetAdminTenantSubscriptionInvoiceReadResponse = {
   data?: ISubscriptionInvoice[];
   total?: number;
 };
+export type GetAdminTenantEmbeddedPaymentReadResponse = IAdminEmbeddedPaymentSettingsDto;
+export type PatchAdminTenantEmbeddedPaymentUpdateResponse = IAdminEmbeddedPaymentSettingsDto;
 export type GetAdminFeatureReadResponse = IFeature | IFeature[];
 export type GetAdminPlanReadResponse = IPlan | IPlan[];
 export type GetAdminPlanSubscriptionsReadResponse = {
@@ -2186,6 +2206,7 @@ export type GetPrivateCustomerReadResponse = (IPrivateCustomer | {
 });
 export type PostOrderCreateResponse = IOrder;
 export type GetOrderPaymentReadResponse = IOrderPayment;
+export type PostOrderPaymentLinkResponse = IOrderPayment;
 export type PostOrderCalculateTripResponse = ITripSummaryDto;
 export type PostOrderCalculatePricingResponse = IPricingSummaryDto;
 export type PostInvoiceCreateResponse = Invoice;
