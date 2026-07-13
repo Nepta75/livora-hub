@@ -11,7 +11,7 @@ export type IPricingType = 'distance' | 'city';
 
 
 // Enum Types (extracted from inline enum properties in OpenAPI schemas)
-export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing";
+export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing" | "warehouse";
 export type AppliedPromoCodeType = "discount" | "trial";
 export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE";
 export type ChangePlanBillingPeriod = "monthly" | "annual";
@@ -579,13 +579,18 @@ export interface Invoice {
   bankCode: string;
   bankAccountNumber: string;
   bankAccountHolderName: string;
-  invoiceNumber: string;
+  invoiceNumber?: string | null;
+  issuedAt?: string | null;
+  sequenceNumber?: number | null;
+  sequenceYear?: number | null;
+  series?: string | null;
   dueDate: string;
   sentDate?: string | null;
   paymentDate?: string | null;
   creditPrice: number;
   totalCredit?: number;
   subTotal: number;
+  tvaRate?: number | null;
   totalPrice: number;
   status: string;
   orders: IOrder[];
@@ -1151,6 +1156,7 @@ export interface IQuote {
   creditPrice: number;
   totalCredit?: number;
   subTotal: number;
+  tvaRate?: number | null;
   totalPrice: number;
   status: string;
   cancellationReason?: string | null;
@@ -1195,6 +1201,7 @@ export interface IQuoteVersion {
   creditPrice: number;
   totalCredit?: number;
   subTotal: number;
+  tvaRate?: number | null;
   totalPrice: number;
   totalWeight?: number;
   totalVolume?: number;
@@ -1481,6 +1488,7 @@ export interface ITenant {
   rcsCity: string;
   address?: IAddress | null;
   vatNumber?: string | null;
+  vatRate?: number | null;
   defaultBankDetail?: IBankDetail | null;
   createdAt: string;
   updatedAt: string;
@@ -1647,6 +1655,7 @@ export interface IUpdatePromoCodeDto {
 export interface IUpdateTenantBillingDto {
   address: ITenantRegisterAddressDto;
   vatNumber?: string;
+  vatRate?: number | null;
 }
 
 export interface IUpdateTourStopStatusDto {
