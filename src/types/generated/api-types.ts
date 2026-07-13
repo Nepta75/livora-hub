@@ -75,7 +75,7 @@ export interface IAddress {
 }
 
 export interface IAddressDto {
-  phoneNumber?: string | null;
+  phoneNumber: string | null;
   secondaryPhoneNumber?: string | null;
   additionalInformation?: string | null;
   name: string;
@@ -661,6 +661,9 @@ export interface IOrder {
   totalPrice?: number;
   pricingConfig?: IPricingConfig | null;
   requiresManualPricing?: boolean;
+  paymentState?: string;
+  paymentAmount?: number | null;
+  paymentRefundedAmount?: number | null;
   customer?: IHistoryInterface | null;
   invoice?: Invoice | null;
   quote?: IQuote | null;
@@ -1807,7 +1810,7 @@ export interface IWarehouse {
 export interface IWarehouseDto {
   address: IAddressDto;
   label: string;
-  timeSlots?: ITimeSlotDto[];
+  timeSlots?: ITimeSlotDto[] | null;
   volumeCapacity: number;
   currentVolume?: number;
   weightCapacity: number;
@@ -2205,7 +2208,16 @@ export type GetPrivateCustomerReadResponse = (IPrivateCustomer | {
   total?: number;
 });
 export type PostOrderCreateResponse = IOrder;
-export type GetOrderPaymentReadResponse = IOrderPayment;
+export type GetOrderPaymentReadResponse = {
+  payment?: { [key: string]: unknown } | null;
+  recipientEmail?: string | null;
+  canSendLink?: boolean;
+  blockedReason?: 
+    | 'already_collected'
+    | 'account_cannot_collect'
+    | 'zero_amount'
+    | 'customer_has_no_email' | null;
+};
 export type PostOrderPaymentLinkResponse = IOrderPayment;
 export type PostOrderCalculateTripResponse = ITripSummaryDto;
 export type PostOrderCalculatePricingResponse = IPricingSummaryDto;
