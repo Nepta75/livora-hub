@@ -573,12 +573,12 @@ export interface Invoice {
   customerLogo?: string | null;
   customerSiretNumber?: string | null;
   customerVatNumber?: string | null;
-  bankName: string;
-  bankIban: string;
-  bankBic: string;
-  bankCode: string;
-  bankAccountNumber: string;
-  bankAccountHolderName: string;
+  bankName?: string | null;
+  bankIban?: string | null;
+  bankBic?: string | null;
+  bankCode?: string | null;
+  bankAccountNumber?: string | null;
+  bankAccountHolderName?: string | null;
   invoiceNumber?: string | null;
   issuedAt?: string | null;
   sequenceNumber?: number | null;
@@ -1071,9 +1071,8 @@ export interface IPricingSummaryDto {
 }
 
 export interface IPrivateCustomer {
-  tenant?: ITenant;
   id: string;
-  privateCustomerTenants: IPrivateCustomerTenant[];
+  tenantId: string;
   email: string;
   firstName: string;
   lastName: string;
@@ -1089,11 +1088,9 @@ export interface IPrivateCustomer {
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
-  tenants: ITenant[];
 }
 
 export interface IPrivateCustomerRef {
-  tenant?: ITenant;
   id: string;
 }
 
@@ -1106,15 +1103,6 @@ export interface IPrivateCustomerDto {
   picture?: string | null;
   creditPrice?: number | null;
   defaultBillingAddress: IAddressDto;
-}
-
-export interface IPrivateCustomerTenant {
-  id: string;
-  privateCustomer: IPrivateCustomer;
-  tenant: ITenant;
-  createdAt: string;
-  updatedAt: string;
-  archivedAt?: string | null;
 }
 
 export interface IPromoCodeCouponDto {
@@ -1531,7 +1519,6 @@ export interface ISuggestSingleInsertionDto {
 
 export interface ITenant {
   user?: IUser;
-  privateCustomer?: IPrivateCustomer[];
   id: string;
   apiKey: string;
   tenantAdminUser?: IUser | null;
@@ -1545,7 +1532,6 @@ export interface ITenant {
   embeddedForceImmediatePayment?: boolean;
   email: string;
   userTenants: IUserTenantRead[];
-  privateCustomerTenants: IPrivateCustomerTenant[];
   bankDetails: IBankDetail[];
   siretNumber: string;
   rcsCity: string;
@@ -1559,17 +1545,14 @@ export interface ITenant {
   auditIdentifier: string;
   sirenNumber: string;
   users: IUser[];
-  privateCustomers: IPrivateCustomer[];
 }
 
 export interface ITenant2 {
   user?: IUser;
-  privateCustomer?: IPrivateCustomer[];
 }
 
 export interface ITenant3 {
   user?: IUser;
-  privateCustomer?: IPrivateCustomer[];
   id: string;
   createdAt: string;
   updatedAt: string;
@@ -1578,13 +1561,11 @@ export interface ITenant3 {
 
 export interface ITenant4 {
   user?: IUser;
-  privateCustomer?: IPrivateCustomer[];
   id: string;
 }
 
 export interface ITenant5 {
   user?: IUser;
-  privateCustomer?: IPrivateCustomer[];
   name: string;
 }
 
