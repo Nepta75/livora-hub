@@ -164,6 +164,15 @@ export interface IBankDetail {
   auditIdentifier: string;
 }
 
+export interface IBillingIdentity {
+  line1?: string | null;
+  line2?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  country?: string | null;
+  complete: boolean;
+}
+
 export interface IChangePlanDto {
   targetPlanId?: string;
   billingPeriod?: ChangePlanBillingPeriod;
@@ -870,7 +879,8 @@ export interface IOrganization {
   defaultPickupAddress?: IAddress | null;
   defaultDeliveryAddress?: IAddress | null;
   creditPrice: number;
-  vatNumber: string;
+  vatNumber?: string | null;
+  billingIdentity: IBillingIdentity;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -892,7 +902,7 @@ export interface IOrganizationDto {
   secondaryPhoneNumber?: string | null;
   siretNumber: string;
   creditPrice?: number | null;
-  vatNumber: string;
+  vatNumber?: string | null;
   defaultBillingAddress: IAddressDto;
   sirenNumber: string;
 }
@@ -1084,6 +1094,7 @@ export interface IPrivateCustomer {
   defaultPickupAddress?: IAddress | null;
   defaultDeliveryAddress?: IAddress | null;
   creditPrice: number;
+  billingIdentity: IBillingIdentity;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1154,10 +1165,14 @@ export interface IPromoPreviewDto {
 }
 
 export interface IPublicCustomerDto {
+  isCompany?: boolean;
+  companyName?: string | null;
+  siretNumber?: string | null;
   firstName: string;
   lastName: string;
   email: string;
   phoneNumber: string;
+  company: boolean;
 }
 
 export interface IPublicOrderDto {
