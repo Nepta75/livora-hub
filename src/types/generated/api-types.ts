@@ -587,32 +587,83 @@ export interface Invoice {
   dueDate: string;
   sentDate?: string | null;
   paymentDate?: string | null;
-  creditPrice: number;
+  creditPriceCents?: number;
   totalCredit?: number;
-  subTotal: number;
+  subTotalCents?: number;
   tvaRate?: number | null;
-  totalPrice: number;
+  tvaPriceCents?: number;
+  totalPriceCents?: number;
   status: string;
   orders: IOrder[];
   relanceCount?: number;
   relancedAt?: string | null;
   totalWeight?: number;
   deliveryPrestationLabel?: string | null;
-  deliveryPrestationPrice?: number;
-  weightPrice?: number;
+  deliveryPrestationPriceCents?: number;
+  weightPriceCents?: number;
+  creditTotalCents?: number;
   totalVolume?: number;
-  warehousePrice?: number | null;
-  adjustmentsTotal?: number;
+  warehousePriceCents?: number | null;
+  adjustmentsTotalCents?: number;
+  lines: InvoiceLine[];
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  contentHash?: string | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
+  creditPrice: number;
+  subTotal: number;
+  tvaPrice: number;
+  totalPrice: number;
+  deliveryPrestationPrice: number;
+  weightPrice: number;
+  creditTotal: number;
+  warehousePrice?: number | null;
+  adjustmentsTotal: number;
 }
 
 export interface InvoiceDto {
   orderIds: string[];
   customerId: string;
   customerType: OrderCustomerType;
+}
+
+export interface InvoiceLine {
+  id: string;
+  invoice: Invoice;
+  position?: number;
+  type: string;
+  orderId: string;
+  orderReference?: string | null;
+  description: string;
+  pickupDate?: string | null;
+  deliveryDate?: string | null;
+  pickupAddress?: string | null;
+  deliveryAddress?: string | null;
+  quantity?: number;
+  unitAmountCents?: number;
+  amountCents?: number;
+  vatRateBps?: number | null;
+  vatAmountCents?: number;
+  weightKg?: number;
+  volumeM3?: number;
+  credits?: number;
+  warehouseCents?: number | null;
+  weightCents?: number;
+  creditCents?: number;
+  creditPriceCents?: number;
+  prestationCents?: number;
+  prestationLabel?: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+  amount: number;
+  unitAmount: number;
+  vatRate?: number | null;
+  creditPrice: number;
+  prestation: number;
 }
 
 export interface IManualAssignOrderDto {
@@ -664,6 +715,16 @@ export interface IOrder {
   collectionCredit?: number;
   deliveryCredit?: number;
   totalPrice?: number;
+  pricedAt?: string | null;
+  priceHt?: number;
+  tvaPrice?: number;
+  tvaRate?: number | null;
+  warehousePrice?: number | null;
+  deliveryPrestationPrice?: number;
+  deliveryPrestationLabel?: string;
+  creditPrice?: number;
+  totalCreditPrice?: number;
+  adjustmentsTotal?: number;
   pricingConfig?: IPricingConfig | null;
   requiresManualPricing?: boolean;
   paymentState?: string;
@@ -688,6 +749,7 @@ export interface IOrder {
   shortReference: string;
   pickupFormattedDate: string;
   totalCreditAmount: number;
+  frozenPricing: boolean;
 }
 
 export interface IOrderAdjustment {
@@ -1003,6 +1065,7 @@ export interface IPricingSummaryDto {
   totalCreditPrice: number;
   warehousePrice?: number | null;
   tvaPrice: number;
+  tvaRate?: number | null;
   adjustmentsTotal?: number;
   requiresManualPricing?: boolean;
 }
