@@ -596,10 +596,14 @@ export interface Invoice {
   dueDate: string;
   sentDate?: string | null;
   paymentDate?: string | null;
+  collectedOnlineCents?: number;
+  heldOnlineCents?: number;
+  collectedOnlineAt?: string | null;
   creditPriceCents?: number;
   totalCredit?: number;
   subTotalCents?: number;
   tvaRate?: number | null;
+  fuelChargeShareRate?: number | null;
   tvaPriceCents?: number;
   totalPriceCents?: number;
   status: string;
@@ -624,8 +628,15 @@ export interface Invoice {
   auditIdentifier: string;
   creditPrice: number;
   subTotal: number;
+  fuelChargeAmount?: number | null;
   tvaPrice: number;
   totalPrice: number;
+  remainingDueCents: number;
+  remainingDue: number;
+  collectedOnline: number;
+  heldOnline: number;
+  settledOnline: boolean;
+  acquitted: boolean;
   deliveryPrestationPrice: number;
   weightPrice: number;
   creditTotal: number;
@@ -1553,6 +1564,7 @@ export interface ITenant {
   address?: IAddress | null;
   vatNumber?: string | null;
   vatRate?: number | null;
+  fuelChargeShareRate?: number | null;
   defaultBankDetail?: IBankDetail | null;
   createdAt: string;
   updatedAt: string;
@@ -1715,6 +1727,7 @@ export interface IUpdateTenantBillingDto {
   address: ITenantRegisterAddressDto;
   vatNumber?: string;
   vatRate?: number | null;
+  fuelChargeShareRate?: number | null;
 }
 
 export interface IUpdateTourStopStatusDto {
