@@ -650,6 +650,7 @@ export interface Invoice {
   tvaPriceCents?: number;
   totalPriceCents?: number;
   status: string;
+  reviewReasons?: string[] | null;
   orders: IOrder[];
   relanceCount?: number;
   relancedAt?: string | null;
