@@ -28,6 +28,7 @@ export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" 
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
 export type GenerateMorningBatchObjective = "asap" | "min_delay" | "optimize_global";
 export type GlobalSettingPricingType = "distance" | "city";
+export type GlobalSettingRecapAutomationLevel = "off" | "auto";
 export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
@@ -538,6 +539,7 @@ export interface IGlobalSetting {
   embeddedApplicationFeeRate?: number;
   embeddedAuthCaptureEnabled?: boolean;
   defaultBillingDayOfMonth?: number | null;
+  recapAutomationLevel?: string;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -549,6 +551,7 @@ export interface IGlobalSettingDto {
   orderMinimumCreditAmount: number;
   pricingType: GlobalSettingPricingType;
   defaultBillingDayOfMonth?: number | null;
+  recapAutomationLevel?: GlobalSettingRecapAutomationLevel | null;
 }
 
 export interface IHistoryInterface {
@@ -741,6 +744,11 @@ export interface InvoiceLine {
   vatRate?: number | null;
   creditPrice: number;
   prestation: number;
+}
+
+export interface IssueInvoiceDto {
+  acknowledgeOverage?: boolean;
+  acknowledgedDocumentCount?: number | null;
 }
 
 export interface IssueOrderInvoiceDto {
