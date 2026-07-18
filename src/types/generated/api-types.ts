@@ -956,6 +956,7 @@ export interface IOrganization {
   vatNumber?: string | null;
   billingIdentity: IBillingIdentity;
   billingMode?: string;
+  billingDayOfMonth?: number | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -979,6 +980,7 @@ export interface IOrganizationDto {
   creditPrice?: number | null;
   vatNumber?: string | null;
   billingMode?: OrganizationBillingMode | null;
+  billingDayOfMonth?: number | null;
   defaultBillingAddress: IAddressDto;
   sirenNumber: string;
 }
@@ -1172,6 +1174,7 @@ export interface IPrivateCustomer {
   creditPrice: number;
   billingIdentity: IBillingIdentity;
   billingMode?: string;
+  billingDayOfMonth?: number | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1191,6 +1194,7 @@ export interface IPrivateCustomerDto {
   picture?: string | null;
   creditPrice?: number | null;
   billingMode?: OrganizationBillingMode | null;
+  billingDayOfMonth?: number | null;
   defaultBillingAddress: IAddressDto;
 }
 
