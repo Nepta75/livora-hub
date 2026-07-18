@@ -537,6 +537,7 @@ export interface IGlobalSetting {
   pricingType: string;
   embeddedApplicationFeeRate?: number;
   embeddedAuthCaptureEnabled?: boolean;
+  defaultBillingDayOfMonth?: number | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -547,6 +548,7 @@ export interface IGlobalSettingDto {
   customerDefaultCreditPrice: number;
   orderMinimumCreditAmount: number;
   pricingType: GlobalSettingPricingType;
+  defaultBillingDayOfMonth?: number | null;
 }
 
 export interface IHistoryInterface {
