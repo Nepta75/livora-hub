@@ -32,6 +32,7 @@ export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
+export type OrganizationBillingMode = "per_order" | "monthly";
 export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_dispatch_sectors" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_use_embedded_ordering" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
 export type RecordDriverLocationSource = "simulated" | "gps" | "manual";
@@ -554,6 +555,10 @@ export interface IHistoryInterface {
   archivedAt: string;
 }
 
+export interface IHoldOrderBillingDto {
+  reason: string;
+}
+
 export interface IHubUser {
   id: string;
   email: string;
@@ -655,6 +660,10 @@ export interface Invoice {
   periodStart?: string | null;
   periodEnd?: string | null;
   contentHash?: string | null;
+  orderCount?: number | null;
+  recipientEmail?: string | null;
+  mailPendingSince?: string | null;
+  mailAttempts?: number;
   creditNotes: ICreditNote[];
   creditedCents?: number;
   createdAt: string;
@@ -683,10 +692,16 @@ export interface Invoice {
   fullyCredited: boolean;
 }
 
-export interface InvoiceDto {
-  orderIds: string[];
+export interface InvoiceBatchCustomerDto {
   customerId: string;
   customerType: OrderCustomerType;
+}
+
+export interface InvoiceBatchDto {
+  month: string;
+  customers?: InvoiceBatchCustomerDto[];
+  acknowledgeOverage?: boolean;
+  acknowledgedDocumentCount?: number | null;
 }
 
 export interface InvoiceLine {
@@ -695,6 +710,7 @@ export interface InvoiceLine {
   position?: number;
   type: string;
   orderId: string;
+  releasedAt?: string | null;
   orderReference?: string | null;
   description: string;
   pickupDate?: string | null;
@@ -723,6 +739,11 @@ export interface InvoiceLine {
   vatRate?: number | null;
   creditPrice: number;
   prestation: number;
+}
+
+export interface IssueOrderInvoiceDto {
+  acknowledgeOverage?: boolean;
+  acknowledgedDocumentCount?: number | null;
 }
 
 export interface IManualAssignOrderDto {
@@ -791,6 +812,8 @@ export interface IOrder {
   paymentRefundedAmount?: number | null;
   customer?: IHistoryInterface | null;
   invoice?: Invoice | null;
+  billingHeldAt?: string | null;
+  billingHoldReason?: string | null;
   quote?: IQuote | null;
   pickupAsSoonAsPossible?: boolean;
   deliveryAsSoonAsPossible?: boolean;
@@ -809,6 +832,7 @@ export interface IOrder {
   pickupFormattedDate: string;
   totalCreditAmount: number;
   frozenPricing: boolean;
+  heldFromBilling: boolean;
 }
 
 export interface IOrderAdjustment {
@@ -931,6 +955,7 @@ export interface IOrganization {
   creditPrice: number;
   vatNumber?: string | null;
   billingIdentity: IBillingIdentity;
+  billingMode?: string;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -953,6 +978,7 @@ export interface IOrganizationDto {
   siretNumber: string;
   creditPrice?: number | null;
   vatNumber?: string | null;
+  billingMode?: OrganizationBillingMode | null;
   defaultBillingAddress: IAddressDto;
   sirenNumber: string;
 }
@@ -1145,6 +1171,7 @@ export interface IPrivateCustomer {
   defaultDeliveryAddress?: IAddress | null;
   creditPrice: number;
   billingIdentity: IBillingIdentity;
+  billingMode?: string;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1163,6 +1190,7 @@ export interface IPrivateCustomerDto {
   secondaryPhoneNumber?: string | null;
   picture?: string | null;
   creditPrice?: number | null;
+  billingMode?: OrganizationBillingMode | null;
   defaultBillingAddress: IAddressDto;
 }
 
@@ -2341,11 +2369,99 @@ export type GetOrderPaymentReadResponse = {
 export type PostOrderPaymentLinkResponse = IOrderPayment;
 export type PostOrderCalculateTripResponse = ITripSummaryDto;
 export type PostOrderCalculatePricingResponse = IPricingSummaryDto;
-export type PostInvoiceCreateResponse = Invoice;
+export type GetInvoiceListResponse = {
+  data: Invoice[];
+  total: number;
+  summary: {
+  outstandingCents: number;
+  overdueCents: number;
+  overdueCount: number;
+  collectedThisMonthCents: number;
+  draftCount: number;
+};
+};
+export type PostInvoiceOrderIssueResponse = Invoice;
+export type GetInvoiceBillableReadResponse = {
+  month: string;
+  groups: {
+  customerId: string;
+  customerType: string;
+  customerName: string;
+  customerEmail: string;
+  billingMode: OrganizationBillingMode;
+  documentCount: number;
+  orderCount: number;
+  subTotalCents: number;
+  vatCents: number;
+  totalCents: number;
+  periodStart: string;
+  periodEnd: string;
+  courses: {
+  orderId: string;
+  reference: string;
+  subTotalCents: number;
+  vatCents: number;
+  totalCents: number;
+  pickupDate: string;
+  deliveryDate: string;
+  estimated: boolean;
+}[];
+  blockedReason: string | null;
+  estimated: boolean;
+}[];
+  orderCount: number;
+  documentCount: number;
+  totalCents: number;
+  backlog: {
+  month: string;
+  orderCount: number;
+}[];
+  held: {
+  orderId: string;
+  reference: string;
+  customerId: string;
+  customerName: string;
+  totalCents: number;
+  month: string;
+  deliveryDate: string;
+  heldAt: string;
+  reason: string | null;
+}[];
+};
+export type PostInvoiceBatchCreateResponse = {
+  issued: {
+  customerId: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  totalCents: number;
+  orderCount: number;
+}[];
+  failed: {
+  customerId: string;
+  reason: string;
+}[];
+  skipped: {
+  customerId: string;
+  reason: string;
+}[];
+  aborted: boolean;
+};
 export type PostInvoiceCreditNoteCreateResponse = {
-  creditNote?: ICreditNote;
-  refundedCents?: number;
-  refundError?: string | null;
+  creditNote: ICreditNote;
+  refundedCents: number;
+  refundError: string | null;
+  delivered: boolean;
+};
+export type GetQuoteListResponse = {
+  data: IQuote[];
+  total: number;
+  summary: {
+  awaitingResponseCount: number;
+  awaitingResponseTotal: number;
+  wonThisMonthCount: number;
+  wonThisMonthTotal: number;
+  draftCount: number;
+};
 };
 export type PostQuoteCreateResponse = IQuote;
 export type PostPackageCategoryCreateResponse = IPackageCategory;
