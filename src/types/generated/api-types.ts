@@ -28,7 +28,7 @@ export type DriverScheduleTimeSlotType = "work" | "break" | "lunch" | "meeting" 
 export type DriverScheduleType = "regular" | "overtime" | "on_call" | "emergency";
 export type GenerateMorningBatchObjective = "asap" | "min_delay" | "optimize_global";
 export type GlobalSettingPricingType = "distance" | "city";
-export type GlobalSettingRecapAutomationLevel = "off" | "auto";
+export type GlobalSettingRecapAutomationLevel = "off" | "prepare" | "auto";
 export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
@@ -2393,6 +2393,7 @@ export type GetInvoiceListResponse = {
   overdueCount: number;
   collectedThisMonthCents: number;
   draftCount: number;
+  reviewNeededDraftCount: number;
 };
 };
 export type PostInvoiceOrderIssueResponse = Invoice;
