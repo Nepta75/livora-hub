@@ -540,6 +540,7 @@ export interface IGlobalSetting {
   embeddedAuthCaptureEnabled?: boolean;
   defaultBillingDayOfMonth?: number | null;
   recapAutomationLevel?: string;
+  recapAutomationLevelChangedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -552,6 +553,7 @@ export interface IGlobalSettingDto {
   pricingType: GlobalSettingPricingType;
   defaultBillingDayOfMonth?: number | null;
   recapAutomationLevel?: GlobalSettingRecapAutomationLevel | null;
+  acknowledgeUnreviewed?: boolean;
 }
 
 export interface IHistoryInterface {
