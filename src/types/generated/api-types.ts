@@ -1903,7 +1903,6 @@ export interface IUserRead {
   defaultDispatchSector?: IDispatchSector | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
-  currentTenantId?: string | null;
   roles: string[];
   creditRate?: number | null;
   payModel?: string | null;
