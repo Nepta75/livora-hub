@@ -596,6 +596,8 @@ export interface ImpersonationLog {
 
 export interface InviteUserDto {
   email: string;
+  firstName?: string | null;
+  lastName?: string | null;
   roles: InviteUserRoles[];
   organizationId?: string | null;
   privateCustomerId?: string | null;
@@ -1902,6 +1904,9 @@ export interface IUserRead {
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
+  roles: string[];
+  creditRate?: number | null;
+  payModel?: string | null;
 }
 
 export interface IUserTenant {
@@ -2659,11 +2664,29 @@ export type GetMeDashboardSummaryResponse = {
   revenueEuro?: number;
 }[];
 };
+export type GetMeSetupStatusResponse = {
+  items?: {
+  key?: string;
+  severity?: 'blocking' | 'recommended';
+  label?: string;
+  description?: string;
+  href?: string;
+  blocks?: string[];
+}[];
+  blockingCount?: number;
+  recommendedCount?: number;
+};
 export type GetMeListApiKeysResponse = ITenantApiKey[];
 export type PostMeConnectRefreshResponse = ITenantPaymentAccount;
 export type GetMeReadPaymentAccountResponse = ITenantPaymentAccount;
 export type GetMeReadOnlinePaymentResponse = IOnlinePaymentSettingsDto;
 export type PatchMeUpdateOnlinePaymentResponse = IOnlinePaymentSettingsDto;
+export type GetPublicInvitationStateResponse = {
+  status?: 'valid' | 'expired' | 'consumed';
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+};
 export type PostPublicActivateAccountResponse = {
   token?: string;
   message?: string;
