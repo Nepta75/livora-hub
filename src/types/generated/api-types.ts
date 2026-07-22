@@ -852,6 +852,7 @@ export interface IOrder {
   reviewedBy?: IUser | null;
   reviewRejectionReason?: string | null;
   reviewRejectionNote?: string | null;
+  reviewHoldReason?: string | null;
   quotaConsumedAt?: string | null;
   quotaCycleStart?: string | null;
   quote?: IQuote | null;
@@ -1003,6 +1004,7 @@ export interface IOrganization {
   billingDayOfMonth?: number | null;
   paymentTermDays?: number | null;
   paymentRegime?: string | null;
+  outstandingCapCents?: number | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1029,6 +1031,7 @@ export interface IOrganizationDto {
   billingDayOfMonth?: number | null;
   paymentTermDays?: number | null;
   paymentRegime?: OrganizationPaymentRegime | null;
+  outstandingCapCents?: number | null;
   defaultBillingAddress: IAddressDto;
   sirenNumber: string;
 }
@@ -1225,6 +1228,7 @@ export interface IPrivateCustomer {
   billingDayOfMonth?: number | null;
   paymentTermDays?: number | null;
   paymentRegime?: string | null;
+  outstandingCapCents?: number | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1247,6 +1251,7 @@ export interface IPrivateCustomerDto {
   billingDayOfMonth?: number | null;
   paymentTermDays?: number | null;
   paymentRegime?: OrganizationPaymentRegime | null;
+  outstandingCapCents?: number | null;
   defaultBillingAddress: IAddressDto;
 }
 
@@ -2447,6 +2452,7 @@ export type GetInvoiceListResponse = {
   collectedThisMonthCents: number;
   draftCount: number;
   reviewNeededDraftCount: number;
+  uninvoicedCents: number | null;
 };
 };
 export type PostInvoiceOrderIssueResponse = Invoice;
