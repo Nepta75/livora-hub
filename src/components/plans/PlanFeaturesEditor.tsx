@@ -16,16 +16,21 @@ export interface PlanFeatureState {
   enabled: boolean;
 }
 
-const FEATURE_LABELS: Record<string, string> = {
+// A FULL Record over the generated union: a key added on the backend fails the build
+// instead of rendering as raw snake_case on the screen that DEFINES the commercial offer.
+// max_customer_accounts and max_dispatch_sectors were missing here for exactly that reason.
+const FEATURE_LABELS: Record<PlanFeatureKey, string> = {
   max_users: 'Utilisateurs max',
   max_drivers: 'Chauffeurs max',
   max_orders_per_month: 'Commandes / mois',
   max_quotes_per_month: 'Devis / mois',
   max_invoices_per_month: 'Factures / mois',
   max_customers: 'Clients max',
+  max_customer_accounts: 'Accès clients max',
   max_vehicles: 'Véhicules max',
   max_warehouses: 'Entrepôts max',
   max_pricing_configs: 'Configs tarifs max',
+  max_dispatch_sectors: 'Secteurs dispatch max',
   max_prestations: 'Prestations max',
   max_address_searches_per_month: 'Recherches adresse / mois',
   max_route_calculations_per_month: 'Calculs itinéraire / mois',
