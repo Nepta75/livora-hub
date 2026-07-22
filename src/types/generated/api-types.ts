@@ -34,10 +34,12 @@ export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
 export type OrganizationBillingMode = "per_order" | "monthly";
-export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_dispatch_sectors" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_use_embedded_ordering" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
+export type OrganizationPaymentRegime = "on_account" | "per_order_payment";
+export type PlanFeatureKey = "max_users" | "max_drivers" | "max_orders_per_month" | "max_quotes_per_month" | "max_invoices_per_month" | "max_customers" | "max_customer_accounts" | "max_vehicles" | "max_warehouses" | "max_pricing_configs" | "max_dispatch_sectors" | "max_prestations" | "max_address_searches_per_month" | "max_route_calculations_per_month" | "can_create_quotes" | "can_create_invoices" | "can_use_dispatch" | "can_use_planning" | "can_use_messaging" | "can_manage_fleet" | "can_view_audit_logs" | "can_use_api" | "can_use_embedded_ordering" | "can_configure_stripe" | "can_use_premium_address_search" | "can_use_route_optimization";
 export type PlanType = "standard" | "custom";
 export type RecordDriverLocationSource = "simulated" | "gps" | "manual";
 export type RefundSubscriptionInvoiceReason = "duplicate" | "fraudulent" | "requested_by_customer";
+export type RejectLeadReason = "UNREACHABLE" | "OUT_OF_SCOPE" | "DUPLICATE" | "SPAM" | "CUSTOMER_DECLINED" | "OTHER";
 export type RescheduleOrderReason = "LATE" | "CUSTOMER_REQUEST" | "CAPACITY" | "FAILED_DELIVERY";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
@@ -288,6 +290,18 @@ export interface ICreditNoteDto {
   reason: string;
   amountHtCents?: number | null;
   refundOnline?: boolean;
+}
+
+export interface ICustomerOrderDto {
+  pickupDate: string;
+  deliveryDate: string;
+  pickupAsSoonAsPossible: boolean;
+  deliveryAsSoonAsPossible: boolean;
+  pickupPoints: IOrderPickupPointDto[];
+  deliveryPoints: IOrderDeliveryPointDto[];
+  pricingConfigId?: string | null;
+  deliveryPrestationId: string;
+  pricingConfig?: IPricingConfig | null;
 }
 
 export interface IDeliveryPrestation {
@@ -641,6 +655,7 @@ export interface Invoice {
   sequenceYear?: number | null;
   series?: string | null;
   dueDate: string;
+  paymentTermDays?: number;
   sentDate?: string | null;
   paymentDate?: string | null;
   collectedOnlineCents?: number;
@@ -687,6 +702,8 @@ export interface Invoice {
   totalPrice: number;
   remainingDueCents: number;
   demandingPayment: boolean;
+  overdue: boolean;
+  daysOverdue?: number | null;
   remainingDue: number;
   collectedOnline: number;
   heldOnline: number;
@@ -805,6 +822,7 @@ export interface IOrder {
   pickupDate: string;
   deliveryDate: string;
   status: string;
+  pricingAddressVerdict?: string | null;
   source?: string;
   totalCredit: number;
   collectionCredit?: number;
@@ -829,6 +847,13 @@ export interface IOrder {
   invoice?: Invoice | null;
   billingHeldAt?: string | null;
   billingHoldReason?: string | null;
+  pricingResolutionReason?: string | null;
+  reviewedAt?: string | null;
+  reviewedBy?: IUser | null;
+  reviewRejectionReason?: string | null;
+  reviewRejectionNote?: string | null;
+  quotaConsumedAt?: string | null;
+  quotaCycleStart?: string | null;
   quote?: IQuote | null;
   pickupAsSoonAsPossible?: boolean;
   deliveryAsSoonAsPossible?: boolean;
@@ -847,6 +872,8 @@ export interface IOrder {
   pickupFormattedDate: string;
   totalCreditAmount: number;
   frozenPricing: boolean;
+  reviewed: boolean;
+  consumedQuota: boolean;
   heldFromBilling: boolean;
 }
 
@@ -961,7 +988,9 @@ export interface IOrganization {
   email: string;
   phoneNumber: string;
   secondaryPhoneNumber?: string | null;
-  siretNumber: string;
+  siretNumber?: string | null;
+  declaredSiretNumber?: string | null;
+  duplicateSuspectedAt?: string | null;
   users: IUser[];
   addresses: IAddress[];
   defaultBillingAddress?: IAddress | null;
@@ -972,11 +1001,13 @@ export interface IOrganization {
   billingIdentity: IBillingIdentity;
   billingMode?: string;
   billingDayOfMonth?: number | null;
+  paymentTermDays?: number | null;
+  paymentRegime?: string | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
-  sirenNumber: string;
+  effectiveSiretNumber?: string | null;
 }
 
 export interface IOrganizationRef {
@@ -996,6 +1027,8 @@ export interface IOrganizationDto {
   vatNumber?: string | null;
   billingMode?: OrganizationBillingMode | null;
   billingDayOfMonth?: number | null;
+  paymentTermDays?: number | null;
+  paymentRegime?: OrganizationPaymentRegime | null;
   defaultBillingAddress: IAddressDto;
   sirenNumber: string;
 }
@@ -1190,6 +1223,8 @@ export interface IPrivateCustomer {
   billingIdentity: IBillingIdentity;
   billingMode?: string;
   billingDayOfMonth?: number | null;
+  paymentTermDays?: number | null;
+  paymentRegime?: string | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1210,6 +1245,8 @@ export interface IPrivateCustomerDto {
   creditPrice?: number | null;
   billingMode?: OrganizationBillingMode | null;
   billingDayOfMonth?: number | null;
+  paymentTermDays?: number | null;
+  paymentRegime?: OrganizationPaymentRegime | null;
   defaultBillingAddress: IAddressDto;
 }
 
@@ -1276,8 +1313,8 @@ export interface IPublicOrderDto {
   customer: IPublicCustomerDto;
   pickupDate: string;
   deliveryDate: string;
-  pickupAsSoonAsPossible?: boolean;
-  deliveryAsSoonAsPossible?: boolean;
+  pickupAsSoonAsPossible: boolean;
+  deliveryAsSoonAsPossible: boolean;
   pickupPoints: IOrderPickupPointDto[];
   deliveryPoints: IOrderDeliveryPointDto[];
   pricingConfigId?: string | null;
@@ -1413,6 +1450,11 @@ export interface IRegisterFinalizeDto {
   sessionId?: string;
 }
 
+export interface IRejectLeadDto {
+  reason: RejectLeadReason;
+  note?: string | null;
+}
+
 export interface IReorderTourDto {
   stopIds?: string[];
 }
@@ -1541,6 +1583,7 @@ export interface ISubscriptionInvoice {
   dueAt?: string | null;
   paidAt?: string | null;
   voidedAt?: string | null;
+  issuedEmailSentAt?: string | null;
   provider: string;
   issuerLegalName: string;
   issuerLegalAddress: string;
@@ -2375,6 +2418,10 @@ export type PostPrivateCustomerCreateResponse = IPrivateCustomer;
 export type GetPrivateCustomerReadResponse = (IPrivateCustomer | {
   data?: IPrivateCustomer[];
   total?: number;
+  counts?: {
+  client?: number;
+  requester?: number;
+};
 });
 export type PostOrderCreateResponse = IOrder;
 export type GetOrderPaymentReadResponse = {
