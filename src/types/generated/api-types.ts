@@ -60,7 +60,7 @@ export interface IActivateAccountDto {
 
 export interface IAddress {
   id: string;
-  tenant?: ITenant | null;
+  tenant?: ITenant3 | null;
   name: string;
   streetNumber: string;
   street: string;
@@ -155,7 +155,7 @@ export interface IAuditLog {
 
 export interface IBankDetail {
   id: string;
-  tenant?: ITenant | null;
+  tenant?: ITenant3 | null;
   bankLabel: string;
   bankName: string;
   iban: string;
@@ -262,7 +262,7 @@ export interface ICreatePromoCodeRuleDto {
 
 export interface ICreditNote {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   invoice: Invoice;
   creditNoteNumber: string;
   series: string;
@@ -306,7 +306,7 @@ export interface ICustomerOrderDto {
 
 export interface IDeliveryPrestation {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   label: string;
   description?: string | null;
   amount: number;
@@ -332,7 +332,7 @@ export interface IDeliveryPrestationTimeSlot {
 
 export interface IDeliveryZone {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   name: string;
   color?: string | null;
   description?: string | null;
@@ -439,7 +439,7 @@ export interface IDriverBaseDto {
 
 export interface IDriverSchedule {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   driver: IUser;
   scheduledDate: string;
   status: string;
@@ -607,7 +607,7 @@ export interface ImpersonationLog {
   impersonatedUserFirstName?: string;
   impersonatedUserLastName?: string;
   createdAt?: string;
-  tenant: ITenant2;
+  tenant: ITenant;
 }
 
 export interface InviteUserDto {
@@ -627,7 +627,7 @@ export interface InviteUserDto {
 
 export interface Invoice {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   customerType: string;
   customerId: string;
   customerPhone?: string | null;
@@ -994,7 +994,6 @@ export interface IOrganization {
   siretNumber?: string | null;
   declaredSiretNumber?: string | null;
   duplicateSuspectedAt?: string | null;
-  users: IUser[];
   addresses: IAddress[];
   defaultBillingAddress?: IAddress | null;
   defaultPickupAddress?: IAddress | null;
@@ -1020,6 +1019,8 @@ export interface IOrganizationRef {
   name: string;
 }
 
+export interface IOrganization3 { [key: string]: unknown }
+
 export interface IOrganizationDto {
   name: string;
   logo?: string | null;
@@ -1044,7 +1045,7 @@ export interface IOverageDto {
 
 export interface IPackageCategory {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   label: string;
   weight: number;
   height: number;
@@ -1241,6 +1242,8 @@ export interface IPrivateCustomerRef {
   id: string;
 }
 
+export interface IPrivateCustomer3 { [key: string]: unknown }
+
 export interface IPrivateCustomerDto {
   firstName: string;
   lastName: string;
@@ -1331,7 +1334,7 @@ export interface IPublicOrderDto {
 
 export interface IQuote {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   customerType: string;
   customerId: string;
   orders: IOrder[];
@@ -1502,7 +1505,7 @@ export interface ISetDefaultPaymentMethodDto {
 
 export interface IStoragePricing {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   warehouses: IWarehouse[];
   pricingType: string;
   storagePricingTiers: IStoragePricingTier[];
@@ -1513,7 +1516,7 @@ export interface IStoragePricing {
 
 export interface IStoragePricingTier {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   storagePricing: IStoragePricing;
   minDays: number;
   maxDays?: number | null;
@@ -1572,7 +1575,7 @@ export interface ISubscriptionDto {
 
 export interface ISubscriptionInvoice {
   id: string;
-  tenant: ITenant3;
+  tenant: ITenant2;
   subscription?: ISubscription2 | null;
   invoiceNumber: string;
   status: string;
@@ -1681,6 +1684,18 @@ export interface ISuggestSingleInsertionDto {
 
 export interface ITenant {
   user?: IUser;
+}
+
+export interface ITenant2 {
+  user?: IUser;
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+}
+
+export interface ITenant3 {
+  user?: IUser;
   id: string;
   apiKey: string;
   tenantAdminUser?: IUser | null;
@@ -1708,18 +1723,6 @@ export interface ITenant {
   auditIdentifier: string;
   sirenNumber: string;
   users: IUser[];
-}
-
-export interface ITenant2 {
-  user?: IUser;
-}
-
-export interface ITenant3 {
-  user?: IUser;
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  archivedAt?: string | null;
 }
 
 export interface ITenant4 {
@@ -1904,8 +1907,6 @@ export interface IUser {
   secondaryPhoneNumber?: string | null;
   picture?: string | null;
   userTenants: IUserTenantRead[];
-  organization?: IOrganization | null;
-  privateCustomer?: IPrivateCustomer | null;
   defaultVehicle?: IVehicle | null;
   defaultBase: IGeoPoint2;
   defaultDispatchSector?: IDispatchSector2 | null;
@@ -1923,7 +1924,11 @@ export interface IUser {
   accountActivated: boolean;
   invitationTokenValid: boolean;
   passwordResetTokenValid: boolean;
-  tenants: ITenant[];
+  organization?: IOrganization | null;
+  privateCustomer?: IPrivateCustomer | null;
+  organizationForTenant: string;
+  privateCustomerForTenant: string;
+  tenants: ITenant3[];
   roles: string[];
   rolesForTenant: string[];
   creditRate?: number | null;
@@ -1946,13 +1951,13 @@ export interface IUserRead {
   secondaryPhoneNumber?: string | null;
   picture?: string | null;
   userTenants: IUserTenant[];
-  organization?: IOrganizationRef | null;
-  privateCustomer?: IPrivateCustomerRef | null;
   defaultVehicle?: IVehicle2 | null;
   defaultBase: IGeoPoint;
   defaultDispatchSector?: IDispatchSector | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
+  organization?: IOrganizationRef | null;
+  privateCustomer?: IPrivateCustomerRef | null;
   roles: string[];
   creditRate?: number | null;
   payModel?: string | null;
@@ -1965,19 +1970,27 @@ export interface IUserTenant {
 export interface IUserTenantRead {
   id: string;
   user: IUser;
-  tenant: ITenant;
+  tenant: ITenant3;
   roles?: string[];
   payModel?: string;
   creditRate?: number | null;
+  organization?: IOrganization | null;
+  privateCustomer?: IPrivateCustomer | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
 }
 
+export interface IUserTenantLinkDto {
+  id: string;
+  name: string;
+  roles?: string[];
+}
+
 export interface IVehicle {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   label: string;
   vehicleType: string;
   description?: string | null;
@@ -2009,7 +2022,7 @@ export interface IVehicleDto {
 
 export interface IWarehouse {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   address?: IAddress | null;
   label: string;
   timeSlots: IWarehouseTimeSlot[];
@@ -2051,7 +2064,7 @@ export interface IWarehouseTimeSlot {
 
 export interface IWeightPricingTier {
   id: string;
-  tenant: ITenant;
+  tenant: ITenant3;
   minWeight: number;
   maxWeight: number;
   pricePerKg: number;
@@ -2434,7 +2447,7 @@ export type PostUserInviteResponse = {
   user?: IUserRead;
   message?: string;
 };
-export type GetUserGetTenantsResponse = ITenant[];
+export type GetUserGetTenantsResponse = IUserTenantLinkDto[];
 export type PatchUserSwitchTenantResponse = {
   token?: string;
 };
@@ -2475,6 +2488,7 @@ export type GetInvoiceListResponse = {
   draftCount: number;
   reviewNeededDraftCount: number;
   uninvoicedCents: number | null;
+  pendingQuoteCents: number | null;
 };
 };
 export type PostInvoiceOrderIssueResponse = Invoice;

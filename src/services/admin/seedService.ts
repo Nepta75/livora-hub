@@ -1,5 +1,5 @@
 import { httpClient } from '@/services/http/httpClient';
-import type { ITenant, IUser } from '@/types/generated/api-types';
+import type { ITenant3 as ITenant, IUser } from '@/types/generated/api-types';
 
 export interface SeedResult {
   tenant: ITenant;

@@ -7,7 +7,10 @@ import type {
   ISubscription,
   ISubscriptionInvoice,
   ISubscriptionInvoiceRefund,
-  ITenant,
+  // The generator numbers duplicate schemas by first encounter across the spec, so which of
+  // ITenant / ITenant2 / ITenant3 is the FULL tenant moves whenever a controller stops or starts
+  // referencing a variant. Alias it here rather than spreading the number over every consumer.
+  ITenant3 as ITenant,
   IUser,
   GetAdminTenantSubscriptionInvoiceReadResponse,
   GetAdminTenantEmbeddedPaymentReadResponse,
