@@ -555,6 +555,7 @@ export interface IGlobalSetting {
   defaultBillingDayOfMonth?: number | null;
   recapAutomationLevel?: string;
   recapAutomationLevelChangedAt?: string | null;
+  invoiceRelanceEnabled?: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -567,6 +568,7 @@ export interface IGlobalSettingDto {
   pricingType: GlobalSettingPricingType;
   defaultBillingDayOfMonth?: number | null;
   recapAutomationLevel?: GlobalSettingRecapAutomationLevel | null;
+  invoiceRelanceEnabled?: boolean | null;
   acknowledgeUnreviewed?: boolean;
 }
 
