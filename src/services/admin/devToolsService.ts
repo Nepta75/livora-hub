@@ -73,6 +73,31 @@ export interface DriverSimulationDeviationResult {
   driverName: string | null;
 }
 
+export interface AgeInvoicesResult {
+  aged: number;
+  /** Drafts, cancelled and already-settled invoices: exactly what the chase must ignore. */
+  skipped: number;
+}
+
+export interface ToggleInvoiceRelanceResult {
+  enabled: boolean;
+}
+
+export interface RunInvoiceRelanceResult {
+  sent: number;
+  skipped: number;
+  undeliverable: number;
+  errors: number;
+  lockHeld: boolean;
+}
+
+export interface RunInvoiceRelancePreviewResult {
+  tenantsWarned: number;
+  invoicesAnnounced: number;
+  errors: number;
+  lockHeld: boolean;
+}
+
 export const devToolsService = {
   advanceBilling: (token: string) =>
     httpClient.post<AdvanceBillingResult>('/dev-tools/advance-billing', {}, { token }),
@@ -91,6 +116,26 @@ export const devToolsService = {
   purgeTenantSeedData: (token: string, tenantId: string) =>
     httpClient.delete<PurgeTenantSeedDataResult>(
       `/dev-tools/seed-tenant-data/${tenantId}`,
+      { token },
+    ),
+  ageInvoices: (token: string, tenantId: string, days: number) =>
+    httpClient.post<AgeInvoicesResult>(
+      `/dev-tools/invoice-relance/${tenantId}/age`,
+      { days },
+      { token },
+    ),
+  toggleInvoiceRelance: (token: string, tenantId: string, enabled: boolean) =>
+    httpClient.post<ToggleInvoiceRelanceResult>(
+      `/dev-tools/invoice-relance/${tenantId}/toggle`,
+      { enabled },
+      { token },
+    ),
+  runInvoiceRelance: (token: string) =>
+    httpClient.post<RunInvoiceRelanceResult>('/dev-tools/invoice-relance/run', {}, { token }),
+  runInvoiceRelancePreview: (token: string) =>
+    httpClient.post<RunInvoiceRelancePreviewResult>(
+      '/dev-tools/invoice-relance/run-preview',
+      {},
       { token },
     ),
   getDriverSimulationStatus: (token: string, tenantId: string) =>

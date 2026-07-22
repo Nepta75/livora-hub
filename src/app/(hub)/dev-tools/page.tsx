@@ -12,6 +12,12 @@ import {
   useStopDriverSimulation,
 } from '@/hooks/api/devTools/useDriverSimulation';
 import { useGenerateOverageInvoices } from '@/hooks/api/devTools/useGenerateOverageInvoices';
+import {
+  useAgeInvoices,
+  useRunInvoiceRelance,
+  useRunInvoiceRelancePreview,
+  useToggleInvoiceRelance,
+} from '@/hooks/api/devTools/useInvoiceRelance';
 import { usePurgeTenantSeedData } from '@/hooks/api/devTools/usePurgeTenantSeedData';
 import { useSeedTenantData } from '@/hooks/api/devTools/useSeedTenantData';
 import { useAdminTenants } from '@/hooks/api/tenants/useAdminTenants';
@@ -56,6 +62,11 @@ export default function DevToolsPage() {
   const startSimMutation = useStartDriverSimulation();
   const stopSimMutation = useStopDriverSimulation();
   const deviationMutation = useSimulateDriverDeviation();
+  const [relanceTenantId, setRelanceTenantId] = useState<string>('');
+  const ageInvoicesMutation = useAgeInvoices();
+  const toggleRelanceMutation = useToggleInvoiceRelance();
+  const runRelanceMutation = useRunInvoiceRelance();
+  const runPreviewMutation = useRunInvoiceRelancePreview();
 
   // Defense in depth, sidebar already hides the entry, but a direct URL
   // hit on a non-test build should 404 rather than render a button that
@@ -207,6 +218,91 @@ export default function DevToolsPage() {
       onError: (err) => {
         const message = err instanceof Error ? err.message : 'Erreur inattendue.';
         toast.error(message.includes('live') ? 'Refusé en mode live.' : message);
+      },
+    });
+  }
+
+  function handleToggleRelance(enabled: boolean) {
+    toggleRelanceMutation.mutate(
+      { tenantId: relanceTenantId, enabled },
+      {
+        onSuccess: (result) => {
+          toast.success(
+            result.enabled
+              ? 'Relance activée pour ce tenant. Ses clients peuvent désormais recevoir un mail.'
+              : 'Relance éteinte, état par défaut du produit rétabli.',
+          );
+        },
+        onError: (err) => {
+          const message = err instanceof Error ? err.message : 'Erreur inattendue.';
+          toast.error(message.includes('settings row') ? 'Ce tenant n’a pas encore de réglages.' : message);
+        },
+      },
+    );
+  }
+
+  function handleAgeInvoices(days: number) {
+    ageInvoicesMutation.mutate(
+      { tenantId: relanceTenantId, days },
+      {
+        onSuccess: (result) => {
+          if (result.aged === 0) {
+            // The common first-run case, and the message has to say what to do about it: the tool
+            // ages, it never creates, so an empty result means there is nothing issued yet.
+            toast.info(
+              `Aucune facture à vieillir (${result.skipped} ignorée(s) : brouillon, avoirée ou déjà payée). Émettez d’abord une facture depuis l’app.`,
+            );
+          } else {
+            toast.success(
+              `${result.aged} facture(s) vieillie(s) de ${days} jours, ${result.skipped} ignorée(s).`,
+            );
+          }
+        },
+        onError: (err) => {
+          const message = err instanceof Error ? err.message : 'Erreur inattendue.';
+          toast.error(message.includes('preprod') ? 'Refusé en production.' : message);
+        },
+      },
+    );
+  }
+
+  function handleRunPreview() {
+    runPreviewMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.lockHeld) {
+          toast.info('Un autre passage tient le verrou, rien n’a été fait.');
+        } else if (result.tenantsWarned === 0) {
+          toast.info('Aucun transporteur à prévenir : rien ne sera relancé demain.');
+        } else {
+          toast.success(
+            `${result.tenantsWarned} transporteur(s) prévenu(s), ${result.invoicesAnnounced} facture(s) annoncée(s).`,
+          );
+        }
+      },
+      onError: (err) => {
+        const message = err instanceof Error ? err.message : 'Erreur inattendue.';
+        toast.error(message.includes('preprod') ? 'Refusé en production.' : message);
+      },
+    });
+  }
+
+  function handleRunRelance() {
+    runRelanceMutation.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.lockHeld) {
+          toast.info('Un autre passage tient le verrou, rien n’a été fait.');
+        } else if (result.sent === 0) {
+          toast.info(
+            `Aucune relance envoyée (${result.skipped} pas encore due(s)). Vérifiez l’interrupteur et le vieillissement.`,
+          );
+        } else {
+          const tail = result.undeliverable > 0 ? `, ${result.undeliverable} adresse(s) refusée(s)` : '';
+          toast.success(`${result.sent} relance(s) envoyée(s)${tail}.`);
+        }
+      },
+      onError: (err) => {
+        const message = err instanceof Error ? err.message : 'Erreur inattendue.';
+        toast.error(message.includes('preprod') ? 'Refusé en production.' : message);
       },
     });
   }
@@ -478,6 +574,109 @@ export default function DevToolsPage() {
               {deviationMutation.isPending ? 'Déviation…' : 'Simuler une déviation'}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* The chase is close to untestable by hand: it wants an invoice issued, delivered, seven
+          days past due and unpaid, on a tenant who opted in, fired from a 06:00 crontab. That is
+          why it shipped having never sent a mail, and why a DQL error in its query survived to
+          production. These four actions collapse that into an afternoon, in the order they are
+          listed. */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-rose-600" />
+            Simuler la relance des factures impayées
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Émettez d&apos;abord une vraie facture depuis l&apos;app (Facturation → À facturer →
+            valider), puis déroulez ici. <strong>Rien n&apos;est fabriqué</strong> : émettre une
+            facture réserve un numéro dans une série légalement séquentielle, et un document créé
+            hors du vrai chemin y laisserait un trou. On fait vieillir l&apos;existant.
+          </p>
+          <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              La relance écrit <strong>aux clients du transporteur, sous son nom</strong>. Elle est
+              opt-in et éteinte partout : sans l&apos;interrupteur ci-dessous, «&nbsp;Lancer la
+              relance&nbsp;» ne fait rien et ne signale rien.
+            </div>
+          </div>
+
+          <Select value={relanceTenantId} onValueChange={(v) => setRelanceTenantId(v ?? '')}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choisir un tenant" />
+            </SelectTrigger>
+            <SelectContent>
+              {tenants.map((tenant) => (
+                <SelectItem key={tenant.id} value={tenant.id}>
+                  {tenant.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => handleToggleRelance(true)}
+              disabled={!relanceTenantId || toggleRelanceMutation.isPending}
+              title="Active GlobalSetting.invoiceRelanceEnabled pour ce tenant. Sans ça, le cron ignore le tenant en silence."
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              1. Activer la relance
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => handleAgeInvoices(10)}
+              disabled={!relanceTenantId || ageInvoicesMutation.isPending}
+              title="Recule l'échéance de 10 jours et la date d'envoi de 17, et remet le compteur de relances à zéro. Ignore brouillons, avoirées et déjà payées."
+            >
+              <Database className="h-4 w-4 mr-2" />
+              {ageInvoicesMutation.isPending ? 'Vieillissement…' : '2. Vieillir de 10 jours'}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleRunPreview}
+              disabled={runPreviewMutation.isPending}
+              title="Lance le cron de 06:30. Il décrit la relance de DEMAIN, donc il annonce ce que l'étape 4 enverra."
+            >
+              <Receipt className="h-4 w-4 mr-2" />
+              {runPreviewMutation.isPending ? 'Préavis…' : '3. Envoyer le préavis'}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={handleRunRelance}
+              disabled={runRelanceMutation.isPending}
+              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+              title="Lance le cron de 06:00 pour de vrai. Envoie une relance au CLIENT de chaque tenant opt-in dont une facture est due."
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              {runRelanceMutation.isPending ? 'Relance…' : '4. Lancer la relance'}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => handleToggleRelance(false)}
+              disabled={!relanceTenantId || toggleRelanceMutation.isPending}
+              title="Remet le tenant dans l'état par défaut du produit."
+            >
+              <Square className="h-4 w-4 mr-2" />
+              Éteindre
+            </Button>
+          </div>
+          {/* The two run actions are global on purpose: they call the real cron services, which
+              iterate every tenant and read each opt-in themselves. A per-tenant variant would be a
+              second implementation of the selection, free to disagree with what it tests. */}
+          <p className="text-xs text-muted-foreground">
+            Les étapes 3 et 4 tournent sur <strong>tous</strong> les tenants, comme le vrai cron.
+            C&apos;est l&apos;interrupteur qui délimite le test, exactement comme en production.
+          </p>
         </CardContent>
       </Card>
 

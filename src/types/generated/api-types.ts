@@ -670,7 +670,7 @@ export interface Invoice {
   fuelChargeShareRate?: number | null;
   tvaPriceCents?: number;
   totalPriceCents?: number;
-  status: string;
+  status?: string;
   reviewReasons?: string[] | null;
   orders: IOrder[];
   relanceCount?: number;
@@ -2353,6 +2353,26 @@ export type PostAdminDevToolsGenerateOverageInvoicesResponse = {
   billed?: number;
   skipped?: number;
   errors?: number;
+};
+export type PostAdminDevToolsInvoiceRelanceAgeResponse = {
+  aged?: number;
+  skipped?: number;
+};
+export type PostAdminDevToolsInvoiceRelanceToggleResponse = {
+  enabled?: boolean;
+};
+export type PostAdminDevToolsInvoiceRelanceRunResponse = {
+  sent?: number;
+  skipped?: number;
+  undeliverable?: number;
+  errors?: number;
+  lockHeld?: boolean;
+};
+export type PostAdminDevToolsInvoiceRelanceRunPreviewResponse = {
+  tenantsWarned?: number;
+  invoicesAnnounced?: number;
+  errors?: number;
+  lockHeld?: boolean;
 };
 export type PostAdminDevToolsSeedTenantDataResponse = {
   tenantId?: string;
