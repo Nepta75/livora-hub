@@ -371,6 +371,8 @@ export interface IDispatchSector2 {
   auditIdentifier: string;
 }
 
+export interface IDispatchSector3 { [key: string]: unknown }
+
 export interface IDispatchSectorDto {
   label?: string;
   pricingConfigIds?: string[];
@@ -543,6 +545,8 @@ export interface IGeoPoint2 {
   label?: string | null;
   coordinates: boolean;
 }
+
+export interface IGeoPoint3 { [key: string]: unknown }
 
 export interface IGlobalSetting {
   id: string;
@@ -1907,9 +1911,6 @@ export interface IUser {
   secondaryPhoneNumber?: string | null;
   picture?: string | null;
   userTenants: IUserTenantRead[];
-  defaultVehicle?: IVehicle | null;
-  defaultBase: IGeoPoint2;
-  defaultDispatchSector?: IDispatchSector2 | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   currentTenantId?: string | null;
@@ -1928,6 +1929,12 @@ export interface IUser {
   privateCustomer?: IPrivateCustomer | null;
   organizationForTenant: string;
   privateCustomerForTenant: string;
+  defaultVehicle?: IVehicle | null;
+  defaultDispatchSector?: IDispatchSector2 | null;
+  defaultBase: IGeoPoint2;
+  defaultVehicleForTenant: string;
+  defaultDispatchSectorForTenant: string;
+  defaultBaseForTenant: string;
   tenants: ITenant3[];
   roles: string[];
   rolesForTenant: string[];
@@ -1951,13 +1958,13 @@ export interface IUserRead {
   secondaryPhoneNumber?: string | null;
   picture?: string | null;
   userTenants: IUserTenant[];
-  defaultVehicle?: IVehicle2 | null;
-  defaultBase: IGeoPoint;
-  defaultDispatchSector?: IDispatchSector | null;
   ssoProvider?: string | null;
   ssoExternalId?: string | null;
   organization?: IOrganizationRef | null;
   privateCustomer?: IPrivateCustomerRef | null;
+  defaultVehicle?: IVehicle2 | null;
+  defaultDispatchSector?: IDispatchSector | null;
+  defaultBase: IGeoPoint;
   roles: string[];
   creditRate?: number | null;
   payModel?: string | null;
@@ -1976,6 +1983,9 @@ export interface IUserTenantRead {
   creditRate?: number | null;
   organization?: IOrganization | null;
   privateCustomer?: IPrivateCustomer | null;
+  defaultVehicle?: IVehicle | null;
+  defaultDispatchSector?: IDispatchSector2 | null;
+  defaultBase: IGeoPoint2;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -2007,6 +2017,8 @@ export interface IVehicle {
 export interface IVehicle2 {
   id: string;
 }
+
+export interface IVehicle3 { [key: string]: unknown }
 
 export interface IVehicleDto {
   label: string;
