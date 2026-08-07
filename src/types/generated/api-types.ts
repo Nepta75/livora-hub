@@ -2781,6 +2781,20 @@ export type PostMeConnectRefreshResponse = ITenantPaymentAccount;
 export type GetMeReadPaymentAccountResponse = ITenantPaymentAccount;
 export type GetMeReadOnlinePaymentResponse = IOnlinePaymentSettingsDto;
 export type PatchMeUpdateOnlinePaymentResponse = IOnlinePaymentSettingsDto;
+export type PostOrderApiPricingResponse = {
+  totalPrice?: number;
+  totalPriceHt?: number;
+  tvaPrice?: number;
+  tvaRate?: number | null;
+  deliveryPrestationLabel?: string;
+  deliveryPrestationPrice?: number;
+  transportPrice?: number;
+  weightPrice?: number;
+  warehousePrice?: number | null;
+  totalWeight?: number;
+  totalVolume?: number;
+  requiresManualPricing?: boolean;
+};
 export type GetPublicInvitationStateResponse = {
   status?: 'valid' | 'expired' | 'consumed';
   email?: string | null;
