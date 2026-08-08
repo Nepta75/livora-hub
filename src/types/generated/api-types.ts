@@ -1346,9 +1346,11 @@ export interface IQuote {
   quoteNumber: string;
   version?: number;
   validUntil?: string | null;
-  otpCode?: string | null;
+  otpCodeHash?: string | null;
   otpExpiry?: string | null;
   otpAttempts?: number;
+  otpRotations?: number;
+  otpLockedUntil?: string | null;
   validatedAt?: string | null;
   validatedIp?: string | null;
   relanceCount?: number;
@@ -1386,6 +1388,7 @@ export interface IQuote {
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
+  exhaustedOtpAttempts: boolean;
 }
 
 export interface IQuoteDto {
