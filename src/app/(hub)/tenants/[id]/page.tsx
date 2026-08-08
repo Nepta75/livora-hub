@@ -80,6 +80,8 @@ const ACTION_LABELS: Record<string, string> = {
   OVERAGE_INVOICE_CREATED: 'Facture de dépassement',
   OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
   TAX_DELTA: 'Écart de TVA détecté',
+  QUOTE_OTP_SPENT: 'Code de signature renvoyé',
+  QUOTE_OTP_LOCKED: 'Signature bloquée',
   DEVTOOLS_ADVANCE_BILLING: 'Outil dev, avance facturation',
   DEVTOOLS_OVERAGE_INVOICES: 'Outil dev, factures de dépassement',
 };
