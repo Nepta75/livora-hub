@@ -1921,6 +1921,7 @@ export interface IUser {
   impersonatedByEmail?: string | null;
   impersonatedByName?: string | null;
   impersonationSessionId?: string | null;
+  impersonationTenantId?: string | null;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
