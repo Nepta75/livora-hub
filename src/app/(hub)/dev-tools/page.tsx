@@ -209,8 +209,16 @@ export default function DevToolsPage() {
           result.vehicles +
           result.userTenants +
           result.users;
+        // A purge that kept rows still says 200, so the count is the only thing telling the admin
+        // that [SEED] data is still there. Silence would read as "everything is gone".
+        const retained =
+          result.retainedInUse > 0
+            ? ` ${result.retainedInUse} élément(s) [SEED] conservé(s), encore utilisés par des données réelles.`
+            : '';
         if (total === 0) {
-          toast.info('Aucune donnée [SEED] à supprimer sur ce tenant.');
+          toast.info(`Aucune donnée [SEED] à supprimer sur ce tenant.${retained}`);
+        } else if (retained) {
+          toast.warning(`Purge partielle: ${removed}.${retained}`);
         } else {
           toast.success(`Purge effectuée: ${removed}.`);
         }

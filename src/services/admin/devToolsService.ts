@@ -40,6 +40,12 @@ export interface PurgeTenantSeedDataResult {
   vehicles: number;
   userTenants: number;
   users: number;
+  /**
+   * Seed rows kept because real (non-seed) data still references them: a catalogue row a real
+   * order uses, a tour whose stop carries driver pay, a driver another tenant still employs.
+   * Non-zero means [SEED] rows survived a purge that reported success, so it has to be said.
+   */
+  retainedInUse: number;
 }
 
 export interface DriverSimulationJob {
