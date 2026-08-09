@@ -211,14 +211,17 @@ export default function DevToolsPage() {
           result.users;
         // A purge that kept rows still says 200, so the count is the only thing telling the admin
         // that [SEED] data is still there. Silence would read as "everything is gone".
-        const retained =
-          result.retainedInUse > 0
-            ? ` ${result.retainedInUse} élément(s) [SEED] conservé(s), encore utilisés par des données réelles.`
-            : '';
-        if (total === 0) {
-          toast.info(`Aucune donnée [SEED] à supprimer sur ce tenant.${retained}`);
-        } else if (retained) {
-          toast.warning(`Purge partielle: ${removed}.${retained}`);
+        //
+        // Retention is tested BEFORE the total, and that order is the whole point: once a tenant
+        // has carried real data, every subsequent purge deletes nothing and retains something, so
+        // `total === 0` and `retainedInUse > 0` hold together. That is the stable state of any
+        // tenant worth warning about. Reading the total first announced "nothing to delete" and
+        // then listed what was kept, in the same sentence.
+        if (result.retainedInUse > 0) {
+          const kept = `${result.retainedInUse} élément(s) [SEED] conservé(s), encore utilisés par des données réelles.`;
+          toast.warning(total === 0 ? `Rien de plus à supprimer: ${kept}` : `Purge partielle: ${removed}. ${kept}`);
+        } else if (total === 0) {
+          toast.info('Aucune donnée [SEED] à supprimer sur ce tenant.');
         } else {
           toast.success(`Purge effectuée: ${removed}.`);
         }
