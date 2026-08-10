@@ -78,7 +78,12 @@ export interface TenantAuditLogFilters {
   action?: AuditLogAction | '';
   dateFrom?: string;
   dateTo?: string;
-  isImpersonated?: boolean;
+  /**
+   * Everything Livora did: an impersonation session OR a direct write from the hub back office.
+   * Replaces an `isImpersonated` parameter the server no longer accepts, which selected only the
+   * first of the two and therefore excluded most of what Livora actually does on a tenant.
+   */
+  byLivora?: boolean;
 }
 
 export interface TenantAuditLogPagination {

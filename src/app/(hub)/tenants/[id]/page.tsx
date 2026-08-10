@@ -86,14 +86,80 @@ const ACTION_LABELS: Record<string, string> = {
   DEVTOOLS_OVERAGE_INVOICES: 'Outil dev, factures de dépassement',
 };
 
+/**
+ * Seconds and year are not decoration here. One impersonation session writes a row per tenant it
+ * visits, so two rows of the same journey land seconds apart, and without the seconds they rendered
+ * byte-for-byte identical: same hub admin, same impersonated user, same displayed minute. The year
+ * matters for the same reason a register does, a row from last January must not read like today's.
+ * Debt 41 of MULTI_TENANT_AUDIT.md.
+ */
 function formatShortDateTime(iso?: string | null): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleString('fr-FR', {
     day: '2-digit',
     month: 'short',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
   });
+}
+
+/**
+ * Everything Livora did on this tenant, which is NOT what the session drill-down above answers.
+ *
+ * That one filters on `impersonationSessionId`, so by construction it only reaches writes made from
+ * inside an impersonation session and never a direct back-office edit, which is the larger half and
+ * the one debt 42 of MULTI_TENANT_AUDIT.md exists to surface. `byLivora` is the server-side
+ * predicate that covers both, defined once in `AuditLogRepository::livoraExpression()`.
+ */
+function LivoraActivitySection({ tenantId }: { tenantId: string }) {
+  const [open, setOpen] = useState(false);
+  const { data: logs, isLoading } = useAdminTenantAuditLogs(
+    tenantId,
+    { byLivora: true },
+    open,
+    { limit: 100 },
+  );
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+          Actions de Livora sur ce tenant
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <button
+          type="button"
+          onClick={() => setOpen(p => !p)}
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          {open ? 'Masquer' : 'Afficher'} les écritures faites par Livora, impersonation et back
+          office confondus
+        </button>
+        {open && (
+          <div className="mt-2">
+            {isLoading && <p className="text-xs text-muted-foreground">Chargement…</p>}
+            {!isLoading && logs && logs.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Livora n&apos;a rien écrit sur ce tenant.
+              </p>
+            )}
+            {!isLoading && logs && logs.length > 0 && (
+              <div className="max-h-[600px] overflow-y-auto">
+                {logs.map(entry => (
+                  <AuditLogEntry key={entry.id} log={entry} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 function AuditLogEntry({ log }: { log: IAuditLog }) {
@@ -180,7 +246,14 @@ function ImpersonationSessionRow({
             <span className="font-medium">
               {log.hubUserFirstName} {log.hubUserLastName}
             </span>
-            <span className="text-muted-foreground"> a accédé en tant que </span>
+            <span className="text-muted-foreground">
+              {' '}
+              {log.eventType === 'TENANT_SWITCH'
+                ? 'a basculé sur ce tenant en tant que'
+                : log.eventType === 'OPEN'
+                  ? 'a ouvert une session en tant que'
+                  : 'a accédé en tant que'}{' '}
+            </span>
             <span className="font-medium">
               {log.impersonatedUserFirstName} {log.impersonatedUserLastName}
             </span>
@@ -1240,6 +1313,8 @@ export default function TenantDetailPage() {
       <SubscriptionInvoicesSection tenantId={id} />
 
       <EmbeddedPaymentSection tenantId={id} />
+
+      <LivoraActivitySection tenantId={id} />
 
       {impersonationLogs && impersonationLogs.length > 0 && (
         <Card>

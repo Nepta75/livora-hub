@@ -57,6 +57,10 @@ export function AuditLogCard({ log }: { log: IAuditLog }) {
   const hasChanges = log.changes && Object.keys(log.changes).length > 0;
   const action = log.action;
   const date = log.createdAt ? new Date(log.createdAt).toLocaleString('fr-FR') : '—';
+  // Read from the server, never recomposed here: `isImpersonated` alone is false on a direct
+  // back-office write, and a second definition on this card is how the badge comes to disagree with
+  // the filter that selects the same rows.
+  const byHubAdmin = log.byLivora === true;
 
   return (
     <Card size="sm">
@@ -74,10 +78,10 @@ export function AuditLogCard({ log }: { log: IAuditLog }) {
               {log.entityType}
             </Badge>
           )}
-          {log.isImpersonated && (
+          {byHubAdmin && (
             <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800">
               <ShieldCheck className="h-3 w-3" />
-              Via hub admin
+              {log.isImpersonated ? 'Via impersonation' : 'Via hub admin'}
             </Badge>
           )}
           <span className="ml-auto text-xs text-muted-foreground">{date}</span>

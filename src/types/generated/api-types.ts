@@ -14,6 +14,7 @@ export type IPricingType = 'distance' | 'city';
 export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing" | "warehouse";
 export type AppliedPromoCodeType = "discount" | "trial";
 export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE";
+export type AuditLogActorType = "USER" | "HUB_USER" | "PUBLIC_API" | "SYSTEM";
 export type ChangePlanBillingPeriod = "monthly" | "annual";
 export type ChangePlanProrationBehavior = "create_prorations" | "none" | "always_invoice";
 export type ContactRequestContext = "founding-setup" | "enterprise" | "demo";
@@ -30,6 +31,7 @@ export type GenerateMorningBatchObjective = "asap" | "min_delay" | "optimize_glo
 export type GlobalSettingPricingType = "distance" | "city";
 export type GlobalSettingRecapAutomationLevel = "off" | "prepare" | "auto";
 export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
+export type ImpersonationLogEventType = "OPEN" | "TENANT_SWITCH";
 export type InviteUserPayModel = "fixed" | "per_credit";
 export type InviteUserRoles = "ROLE_CUSTOMER" | "ROLE_CUSTOMER_ADMIN" | "ROLE_DELIVERER" | "ROLE_MANAGER" | "ROLE_MANAGER_ADMIN";
 export type OrderCustomerType = "private_customer" | "organization";
@@ -144,7 +146,9 @@ export interface IAuditLog {
   userEmail?: string;
   userId?: string | null;
   tenantId?: string | null;
+  actorType?: AuditLogActorType | null;
   isImpersonated?: boolean;
+  byLivora?: boolean;
   impersonatedByEmail?: string | null;
   impersonatedByName?: string | null;
   ip?: string | null;
@@ -610,6 +614,7 @@ export interface ImpersonationLog {
   impersonatedUserEmail?: string;
   impersonatedUserFirstName?: string;
   impersonatedUserLastName?: string;
+  eventType?: ImpersonationLogEventType | null;
   createdAt?: string;
   tenant: ITenant;
 }
@@ -2429,6 +2434,7 @@ export type DeleteAdminDevToolsPurgeTenantSeedDataResponse = {
   vehicles?: number;
   userTenants?: number;
   users?: number;
+  retainedInUse?: number;
 };
 export type GetAdminBillingPendingRecordsResponse = {
   recordId?: string;
