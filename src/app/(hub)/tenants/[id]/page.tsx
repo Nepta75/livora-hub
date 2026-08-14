@@ -69,23 +69,8 @@ import { cn } from '@/lib/utils';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
 import { EmbeddedPaymentSection } from '@/components/tenants/EmbeddedPaymentSection';
 import { WindowSummary } from '@/components/auditLogs/WindowSummary';
-
-const ACTION_LABELS: Record<string, string> = {
-  CREATE: 'Création',
-  UPDATE: 'Modification',
-  DELETE: 'Suppression',
-  PLAN_CHANGE: 'Changement de plan',
-  PLAN_CHANGE_SCHEDULED: 'Changement de plan programmé',
-  UPDATE_PAYMENT_METHOD: 'Moyen de paiement modifié',
-  TRIAL_EXTENDED: 'Essai prolongé',
-  OVERAGE_INVOICE_CREATED: 'Facture de dépassement',
-  OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
-  TAX_DELTA: 'Écart de TVA détecté',
-  QUOTE_OTP_SPENT: 'Code de signature renvoyé',
-  QUOTE_OTP_LOCKED: 'Signature bloquée',
-  DEVTOOLS_ADVANCE_BILLING: 'Outil dev, avance facturation',
-  DEVTOOLS_OVERAGE_INVOICES: 'Outil dev, factures de dépassement',
-};
+import { LoadMoreRows, lastWindowTotal } from '@/components/auditLogs/LoadMoreRows';
+import { AUDIT_ACTION_LABELS } from '@/lib/audit-actions';
 
 /**
  * Seconds and year are not decoration here. One impersonation session writes a row per tenant it
@@ -116,12 +101,15 @@ function formatShortDateTime(iso?: string | null): string {
  */
 function LivoraActivitySection({ tenantId }: { tenantId: string }) {
   const [open, setOpen] = useState(false);
-  const { data: logs, isLoading } = useAdminTenantAuditLogs(
-    tenantId,
-    { byLivora: true },
-    open,
-    { limit: 100 },
-  );
+  const {
+    data,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useAdminTenantAuditLogs(tenantId, { byLivora: true }, open);
+
+  const logs = data ? { data: data.pages.flatMap(page => page.data), total: lastWindowTotal(data) } : null;
 
   return (
     <Card>
@@ -161,6 +149,12 @@ function LivoraActivitySection({ tenantId }: { tenantId: string }) {
                     <AuditLogEntry key={entry.id} log={entry} />
                   ))}
                 </div>
+                {hasNextPage && (
+                  <LoadMoreRows
+                    onClick={() => void fetchNextPage()}
+                    isFetching={isFetchingNextPage}
+                  />
+                )}
               </>
             )}
           </div>
@@ -181,7 +175,7 @@ function AuditLogEntry({ log }: { log: IAuditLog }) {
           <div className="flex items-center gap-1.5 flex-wrap">
             {log.action && (
               <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
-                {ACTION_LABELS[log.action] ?? log.action}
+                {AUDIT_ACTION_LABELS[log.action] ?? log.action}
               </span>
             )}
             {log.entityType && (
@@ -236,12 +230,26 @@ function ImpersonationSessionRow({
   tenantId: string;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const { data: auditLogs, isLoading } = useAdminTenantAuditLogs(
+  // ⚠️ The query is gated on the id existing, not just on the panel being open. `id` is optional in
+  // the generated type, and an empty string is DROPPED from the query string by the service, so a
+  // row without one would ask for the tenant's whole journal and render it as "the changes of this
+  // session". Capped at one window before this lot; now "Charger plus" would page through all of it.
+  const sessionId = log.id ?? null;
+  const {
+    data,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useAdminTenantAuditLogs(
     tenantId,
-    { impersonationSessionId: log.id ?? '' },
-    expanded,
-    { limit: 100 },
+    { impersonationSessionId: sessionId ?? '' },
+    expanded && null !== sessionId,
   );
+
+  const auditLogs = data
+    ? { data: data.pages.flatMap(page => page.data), total: lastWindowTotal(data) }
+    : null;
 
   return (
     <div className="border-b last:border-0">
@@ -289,7 +297,13 @@ function ImpersonationSessionRow({
       </div>
       {expanded && (
         <div className="px-6 pb-3">
-          {isLoading && (
+          {null === sessionId && (
+            <p className="text-xs text-muted-foreground">
+              Cette ligne ne porte pas d&apos;identifiant de session, ses changements ne sont pas
+              rattachables.
+            </p>
+          )}
+          {null !== sessionId && isLoading && (
             <p className="text-xs text-muted-foreground">Chargement…</p>
           )}
           {!isLoading && auditLogs && auditLogs.data.length === 0 && (
@@ -307,6 +321,12 @@ function ImpersonationSessionRow({
                   <AuditLogEntry key={entry.id} log={entry} />
                 ))}
               </div>
+              {hasNextPage && (
+                <LoadMoreRows
+                  onClick={() => void fetchNextPage()}
+                  isFetching={isFetchingNextPage}
+                />
+              )}
             </>
           )}
         </div>
@@ -852,7 +872,19 @@ export default function TenantDetailPage() {
   const updateMutation = useUpdateTenantUser(id);
   const removeMutation = useRemoveTenantUser(id);
   const impersonateMutation = useImpersonateTenant();
-  const { data: impersonationLogs } = useImpersonationLogs(id);
+  const {
+    data: impersonationPages,
+    hasNextPage: hasMoreImpersonationLogs,
+    isFetchingNextPage: isFetchingMoreImpersonationLogs,
+    fetchNextPage: fetchMoreImpersonationLogs,
+  } = useImpersonationLogs(id);
+
+  const impersonationLogs = impersonationPages
+    ? {
+        data: impersonationPages.pages.flatMap(page => page.data),
+        total: lastWindowTotal(impersonationPages),
+      }
+    : null;
 
   const [isEditing, setIsEditing] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -1342,8 +1374,12 @@ export default function TenantDetailPage() {
                   register has no column grouping the rows of one journey. Reading `data.length`
                   and calling the result sessions was doubly wrong, it also stopped at the window.
                   Debt 41 of MULTI_TENANT_AUDIT.md. */}
+              {/* Never below what is on screen. The listing and the count are two queries, so a
+                  purge under the read can hand back a total lower than the rows already loaded, and
+                  a badge saying "45 accès" above 50 visible lines reads as a bug in the register
+                  itself. WindowSummary hides itself in that state; this is its other half. */}
               <Badge variant="secondary" className="ml-auto font-mono text-xs">
-                {impersonationLogs.total} accès
+                {Math.max(impersonationLogs.total, impersonationLogs.data.length)} accès
               </Badge>
             </CardTitle>
           </CardHeader>
@@ -1360,6 +1396,14 @@ export default function TenantDetailPage() {
                 <ImpersonationSessionRow key={log.id} log={log} tenantId={id} />
               ))}
             </div>
+            {hasMoreImpersonationLogs && (
+              <div className="px-6 pb-3">
+                <LoadMoreRows
+                  onClick={() => void fetchMoreImpersonationLogs()}
+                  isFetching={isFetchingMoreImpersonationLogs}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

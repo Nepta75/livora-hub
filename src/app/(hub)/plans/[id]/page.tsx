@@ -13,6 +13,7 @@ import { usePlanSubscriptions } from '@/hooks/api/plans/usePlanSubscriptions';
 import { useAdminAuditLogs } from '@/hooks/api/auditLogs/useAdminAuditLogs';
 import { AuditLogCard } from '@/components/auditLogs/AuditLogCard';
 import { WindowSummary } from '@/components/auditLogs/WindowSummary';
+import { LoadMoreRows, lastWindowTotal } from '@/components/auditLogs/LoadMoreRows';
 import { PlanForm } from '@/components/plans/PlanForm';
 import { PlanVersionTimeline } from '@/components/plans/PlanVersionTimeline';
 import { buildPlanFeaturesPayload, type PlanFeatureState } from '@/components/plans/PlanFeaturesEditor';
@@ -28,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Users, ExternalLink, Copy, AlertTriangle, Loader2, ScrollText } from 'lucide-react';
+import { Users, ExternalLink, Copy, AlertTriangle, ScrollText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -183,7 +184,7 @@ function PlanHistoryCard({ planId }: { planId: string }) {
   // Was `logs.length` with a "+" glued on when another page existed, which is as much as the
   // endpoint could say before it served a total. Debt 45 of MULTI_TENANT_AUDIT.md. Taken from the
   // last page for the same reason as the /logs screen.
-  const total = data?.pages[data.pages.length - 1]?.total ?? 0;
+  const total = data ? lastWindowTotal(data) : 0;
 
   return (
     <Card>
@@ -216,17 +217,10 @@ function PlanHistoryCard({ planId }: { planId: string }) {
               <AuditLogCard key={log.id} log={log} />
             ))}
             {hasNextPage && (
-              <div className="flex justify-center pt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                >
-                  {isFetchingNextPage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isFetchingNextPage ? 'Chargement...' : 'Charger plus'}
-                </Button>
-              </div>
+              <LoadMoreRows
+                onClick={() => void fetchNextPage()}
+                isFetching={isFetchingNextPage}
+              />
             )}
           </div>
         )}

@@ -1,11 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import {
   tenantsService,
   type CreateTenantPayload,
   type InviteTenantUserPayload,
   type TenantAuditLogFilters,
-  type TenantAuditLogPagination,
   type TenantListFilters,
   type TenantSubscriptionInvoiceFilters,
   type UpdateTenantPayload,
@@ -31,11 +30,11 @@ export const TENANTS_KEYS = {
   users: (id: string) => ['admin', 'tenants', id, 'users'] as const,
   embeddedPayment: (id: string) => ['admin', 'tenants', id, 'embedded-payment'] as const,
   impersonationLogs: (id: string) => ['admin', 'tenants', id, 'impersonation-logs'] as const,
-  // The window is part of the key: two callers with the same filters and different limits would
-  // otherwise share one cache entry, and since the screens now render `total` beside `data.length`,
-  // that shows up as a truncation notice computed from two different requests.
-  auditLogs: (id: string, filters?: TenantAuditLogFilters, pagination?: TenantAuditLogPagination) =>
-    ['admin', 'tenants', id, 'audit-logs', filters, pagination] as const,
+  // No window in the key any more: every caller reads this feed through one infinite query with one
+  // page size, so the filters ARE the identity of the feed. Keeping the window here would give each
+  // "Charger plus" its own cache entry and the pages would stop accumulating.
+  auditLogs: (id: string, filters?: TenantAuditLogFilters) =>
+    ['admin', 'tenants', id, 'audit-logs', filters] as const,
   subscriptionInvoices: (
     id: string,
     filters?: TenantSubscriptionInvoiceFilters,
@@ -163,12 +162,62 @@ export function useImpersonateTenant() {
   });
 }
 
+/**
+ * ⚠️ Both routes clamp `limit` to 100 (`MAX_LIMIT` in `ReadImpersonationLogsController` and
+ * `ReadTenantAuditLogsController`). Past that the server serves 100 in silence, the first page comes
+ * back "short", `nextWindow` stops, and the screen goes back to a single window with a truncation
+ * notice and no way to reach the rest: debt 48 restored, gates green, nothing thrown. The whole
+ * design rests on "a short page means the end", so these constants can never exceed the server cap.
+ */
+export const TENANT_IMPERSONATION_LOGS_PAGE_SIZE = 50;
+
+export const TENANT_AUDIT_LOGS_PAGE_SIZE = 50;
+
+/**
+ * Both stop conditions, and both are load bearing. Same rule as `useAdminAuditLogs`, and it is
+ * repeated rather than shared because getting it wrong is silent in opposite ways.
+ *
+ * The total is what lets the screen say how much is behind the window. It does not terminate on its
+ * own: the listing and the count are two non-transactional queries, so a window can come back empty
+ * while the count still reads higher (a concurrent write, a seed purge deleting rows under the
+ * read). `loaded` would then not move, this callback would hand back the same offset, and
+ * react-query appends rather than dedupes, so "Charger plus" would refetch the same empty window
+ * for ever. The short-page rule beside the total is what closes that.
+ */
+function nextWindow<T extends { data: unknown[]; total: number }>(
+  pageSize: number,
+): (lastPage: T, allPages: T[]) => number | undefined {
+  return (lastPage, allPages) => {
+    if (lastPage.data.length < pageSize) {
+      return undefined;
+    }
+
+    const loaded = allPages.reduce((sum, page) => sum + page.data.length, 0);
+
+    return loaded < lastPage.total ? loaded : undefined;
+  };
+}
+
+/**
+ * The tenant's access register, one window at a time.
+ *
+ * It said how many rows it was leaving out since debt 41 and had no way to reach them, because
+ * nothing sent `limit` or `offset` to a route that has accepted them since 2026-08-14: a tenant at
+ * 250 accesses read "100 accès affichés sur 250" and stopped there. Debt 48.
+ */
 export function useImpersonationLogs(tenantId: string) {
   const { token } = useAuth();
 
-  return useQuery<GetAdminTenantImpersonationLogsResponse>({
+  return useInfiniteQuery<GetAdminTenantImpersonationLogsResponse>({
     queryKey: TENANTS_KEYS.impersonationLogs(tenantId),
-    queryFn: () => tenantsService.getImpersonationLogs(tenantId, token),
+    queryFn: ({ pageParam }) =>
+      tenantsService.getImpersonationLogs(tenantId, token, {
+        limit: TENANT_IMPERSONATION_LOGS_PAGE_SIZE,
+        offset: pageParam as number,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: nextWindow(TENANT_IMPERSONATION_LOGS_PAGE_SIZE),
+    enabled: !!tenantId,
   });
 }
 
@@ -176,13 +225,18 @@ export function useAdminTenantAuditLogs(
   tenantId: string,
   filters: TenantAuditLogFilters,
   enabled: boolean,
-  pagination?: TenantAuditLogPagination,
 ) {
   const { token } = useAuth();
 
-  return useQuery<GetAdminTenantAuditLogsResponse>({
-    queryKey: TENANTS_KEYS.auditLogs(tenantId, filters, pagination),
-    queryFn: () => tenantsService.getAuditLogs(tenantId, filters, token, pagination),
+  return useInfiniteQuery<GetAdminTenantAuditLogsResponse>({
+    queryKey: TENANTS_KEYS.auditLogs(tenantId, filters),
+    queryFn: ({ pageParam }) =>
+      tenantsService.getAuditLogs(tenantId, filters, token, {
+        limit: TENANT_AUDIT_LOGS_PAGE_SIZE,
+        offset: pageParam as number,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: nextWindow(TENANT_AUDIT_LOGS_PAGE_SIZE),
     enabled: enabled && !!tenantId,
   });
 }

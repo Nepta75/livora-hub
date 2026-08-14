@@ -4,19 +4,8 @@ import { useState } from 'react';
 import { ChevronDown, ChevronRight, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import type { AuditLogAction, IAuditLog } from '@/types/generated/api-types';
-
-const ACTION_LABEL: Record<AuditLogAction, string> = {
-  CREATE: 'Création',
-  UPDATE: 'Modification',
-  DELETE: 'Suppression',
-};
-
-const ACTION_CLASSNAME: Record<AuditLogAction, string> = {
-  CREATE: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  UPDATE: 'bg-blue-100 text-blue-800 border-blue-200',
-  DELETE: 'bg-red-100 text-red-800 border-red-200',
-};
+import type { IAuditLog } from '@/types/generated/api-types';
+import { AUDIT_ACTION_CLASSNAME, AUDIT_ACTION_LABELS } from '@/lib/audit-actions';
 
 function formatChangeValue(value: unknown): string {
   if (value === null || value === undefined) return '—';
@@ -68,9 +57,14 @@ export function AuditLogCard({ log }: { log: IAuditLog }) {
         <div className="flex flex-wrap items-center gap-2">
           {action && (
             <span
-              className={`inline-flex h-5 items-center rounded-full border px-2.5 text-xs font-medium ${ACTION_CLASSNAME[action]}`}
+              // Fallbacks, though the maps are total over `AuditLogAction`: the type is only true
+              // once `yarn generate:api-types` has run here, and the API ships first by rule. In
+              // that window a new verb arrives as a key neither map holds, and without these the
+              // badge renders as an empty uncoloured pill, which is the very defect this map
+              // closed. The tenant page's own row has always had the same `??`.
+              className={`inline-flex h-5 items-center rounded-full border px-2.5 text-xs font-medium ${AUDIT_ACTION_CLASSNAME[action] ?? 'bg-zinc-100 text-zinc-700 border-zinc-200'}`}
             >
-              {ACTION_LABEL[action]}
+              {AUDIT_ACTION_LABELS[action] ?? action}
             </span>
           )}
           {log.entityType && (

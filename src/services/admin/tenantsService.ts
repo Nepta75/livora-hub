@@ -177,12 +177,24 @@ export const tenantsService = {
    * The register window plus how many rows the tenant actually holds. The two differ as soon as a
    * tenant passes the server cap, and since one impersonation journey writes a row per tenant it
    * visits, that is reachable without anything unusual happening.
+   *
+   * The window is a parameter because saying "100 of 250" and stopping there is only half an
+   * answer: the route has taken `limit` and `offset` since 2026-08-14 and nothing was sending them
+   * (debt 48 of MULTI_TENANT_AUDIT.md).
    */
-  getImpersonationLogs: (tenantId: string, token: string) =>
-    httpClient.get<GetAdminTenantImpersonationLogsResponse>(
-      `/tenant/${tenantId}/impersonation-logs`,
+  getImpersonationLogs: (tenantId: string, token: string, pagination?: ListPagination) => {
+    const query = new URLSearchParams();
+    Object.entries({ ...pagination }).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        query.set(key, String(value));
+      }
+    });
+    const qs = query.toString();
+    return httpClient.get<GetAdminTenantImpersonationLogsResponse>(
+      `/tenant/${tenantId}/impersonation-logs${qs ? `?${qs}` : ''}`,
       { token },
-    ),
+    );
+  },
 
   getAuditLogs: (
     tenantId: string,

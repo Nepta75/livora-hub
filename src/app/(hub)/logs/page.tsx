@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, ScrollText } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
   useAdminAuditLogEntityTypes,
@@ -22,19 +22,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AuditLogCard } from '@/components/auditLogs/AuditLogCard';
+import { LoadMoreRows, lastWindowTotal } from '@/components/auditLogs/LoadMoreRows';
+import { AUDIT_ACTION_OPTIONS, isAuditLogAction } from '@/lib/audit-actions';
 
 // base-ui Select requires a concrete value, use a sentinel to express "no filter".
 const ALL = '__all__';
-
-const ACTION_OPTIONS: Array<{ value: AuditLogAction; label: string }> = [
-  { value: 'CREATE', label: 'Création' },
-  { value: 'UPDATE', label: 'Modification' },
-  { value: 'DELETE', label: 'Suppression' },
-];
-
-function isAuditLogAction(value: string): value is AuditLogAction {
-  return value === 'CREATE' || value === 'UPDATE' || value === 'DELETE';
-}
 
 function parseFiltersFromSearch(params: URLSearchParams): AdminAuditLogFilters {
   const str = (key: string) => {
@@ -146,7 +138,7 @@ function LogsPageContent() {
   // from the LAST page, which is the figure the pagination itself stops on: rows written while the
   // reader pages down move the count, and the first page's copy would then render "100 affichés sur
   // 60".
-  const total = data?.pages[data.pages.length - 1]?.total ?? 0;
+  const total = data ? lastWindowTotal(data) : 0;
 
   if (!isAdmin) {
     return (
@@ -201,7 +193,7 @@ function LogsPageContent() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL}>Toutes les actions</SelectItem>
-                  {ACTION_OPTIONS.map((opt) => (
+                  {AUDIT_ACTION_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>
@@ -318,17 +310,11 @@ function LogsPageContent() {
           ))}
 
           {hasNextPage && (
-            <div className="flex justify-center pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isFetchingNextPage ? 'Chargement...' : 'Charger plus'}
-              </Button>
-            </div>
+            <LoadMoreRows
+              onClick={() => void fetchNextPage()}
+              isFetching={isFetchingNextPage}
+              className="pt-2"
+            />
           )}
         </div>
       )}

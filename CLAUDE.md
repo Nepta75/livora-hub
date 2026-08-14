@@ -107,6 +107,27 @@ null when nothing is truncated. `useAdminAuditLogs` paginates against that total
 access register's badge counts **arrivals on the tenant, not sessions**: one impersonation journey
 writes a row per tenant it visits and nothing correlates the rows of one journey.
 
+**Saying what is left out and reaching it are two halves.** Since 2026-08-14 all five windowed
+journals paginate: `/logs`, a plan's history, and the tenant page's three (the access register,
+"Actions de Livora", and the per-session drill-down), each a `useInfiniteQuery` behind the shared
+`LoadMoreRows` beside `WindowSummary`. The stop rule is written twice, inline in `useAdminAuditLogs`
+and as `nextWindow` in `useAdminTenants`, and that repetition is deliberate rather than a missing
+abstraction. ⚠️ **It keeps TWO stop conditions and the total is not enough on its own**: the listing
+and the count are separate queries, so an empty window beside a higher count (concurrent write, seed
+purge under the read) would leave `loaded` frozen, hand back the same `pageParam`, and react-query
+appends rather than dedupes, refetching the same empty window for ever. Three more rules fall out:
+the window is NOT part of the query key (one entry per "Charger plus" means pages that never
+accumulate), the total displayed is the **last** page's (a purge under the read would otherwise
+render "100 affichés sur 60"), and a page size may never exceed the route's `MAX_LIMIT` of 100,
+since a silently clamped `limit` makes the first page look short and stops the paging dead.
+
+**Audit verb labels live in `src/lib/audit-actions.ts`, once.** There were three copies before
+(the `/logs` card, the tenant page, the filter's options), each with a different subset, so the same
+row was labelled on one screen and blank on another. The maps are `Record<AuditLogAction, ...>` and
+NOT partial on purpose: a verb added to the API's `AuditLogActionValueObject` fails `yarn type-check`
+here until it is named, which is the only mechanism there is across two repositories. Wording is
+kept identical to vista-app's map, since the carrier and Livora read the same rows.
+
 **Tenant pickers** (e.g. `PromoCodeRulesEditor`) need the *full* tenant list,
 not a page — they use `useAdminTenants()`, which now hits
 `GET /admin/tenant/options` (lightweight `{id, name}[]`). The paginated
