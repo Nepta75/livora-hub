@@ -12,6 +12,8 @@ import type {
   // referencing a variant. Alias it here rather than spreading the number over every consumer.
   ITenant3 as ITenant,
   IUser,
+  GetAdminTenantAuditLogsResponse,
+  GetAdminTenantImpersonationLogsResponse,
   GetAdminTenantSubscriptionInvoiceReadResponse,
   GetAdminTenantEmbeddedPaymentReadResponse,
   PatchAdminTenantEmbeddedPaymentUpdateResponse,
@@ -171,8 +173,16 @@ export const tenantsService = {
   impersonate: (tenantId: string, userId: string, token: string) =>
     httpClient.post<{ token: string }>(`/tenant/${tenantId}/impersonate/${userId}`, {}, { token }),
 
+  /**
+   * The register window plus how many rows the tenant actually holds. The two differ as soon as a
+   * tenant passes the server cap, and since one impersonation journey writes a row per tenant it
+   * visits, that is reachable without anything unusual happening.
+   */
   getImpersonationLogs: (tenantId: string, token: string) =>
-    httpClient.get<ImpersonationLog[]>(`/tenant/${tenantId}/impersonation-logs`, { token }),
+    httpClient.get<GetAdminTenantImpersonationLogsResponse>(
+      `/tenant/${tenantId}/impersonation-logs`,
+      { token },
+    ),
 
   getAuditLogs: (
     tenantId: string,
@@ -187,7 +197,7 @@ export const tenantsService = {
       }
     });
     const qs = query.toString();
-    return httpClient.get<IAuditLog[]>(
+    return httpClient.get<GetAdminTenantAuditLogsResponse>(
       `/tenant/${tenantId}/audit-logs${qs ? `?${qs}` : ''}`,
       { token },
     );

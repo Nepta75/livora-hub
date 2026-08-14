@@ -3,8 +3,6 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   tenantsService,
   type CreateTenantPayload,
-  type IAuditLog,
-  type ImpersonationLog,
   type InviteTenantUserPayload,
   type TenantAuditLogFilters,
   type TenantAuditLogPagination,
@@ -16,6 +14,8 @@ import {
 import { SUBSCRIPTION_KEYS } from '@/hooks/api/plans/useAdminPlans';
 import { DASHBOARD_METRICS_KEYS } from '@/hooks/api/dashboard/useAdminDashboardMetrics';
 import type {
+  GetAdminTenantAuditLogsResponse,
+  GetAdminTenantImpersonationLogsResponse,
   GetAdminTenantSubscriptionInvoiceReadResponse,
   IRefundSubscriptionInvoiceDto,
 } from '@/types/generated/api-types';
@@ -31,8 +31,11 @@ export const TENANTS_KEYS = {
   users: (id: string) => ['admin', 'tenants', id, 'users'] as const,
   embeddedPayment: (id: string) => ['admin', 'tenants', id, 'embedded-payment'] as const,
   impersonationLogs: (id: string) => ['admin', 'tenants', id, 'impersonation-logs'] as const,
-  auditLogs: (id: string, filters?: TenantAuditLogFilters) =>
-    ['admin', 'tenants', id, 'audit-logs', filters] as const,
+  // The window is part of the key: two callers with the same filters and different limits would
+  // otherwise share one cache entry, and since the screens now render `total` beside `data.length`,
+  // that shows up as a truncation notice computed from two different requests.
+  auditLogs: (id: string, filters?: TenantAuditLogFilters, pagination?: TenantAuditLogPagination) =>
+    ['admin', 'tenants', id, 'audit-logs', filters, pagination] as const,
   subscriptionInvoices: (
     id: string,
     filters?: TenantSubscriptionInvoiceFilters,
@@ -163,7 +166,7 @@ export function useImpersonateTenant() {
 export function useImpersonationLogs(tenantId: string) {
   const { token } = useAuth();
 
-  return useQuery<ImpersonationLog[]>({
+  return useQuery<GetAdminTenantImpersonationLogsResponse>({
     queryKey: TENANTS_KEYS.impersonationLogs(tenantId),
     queryFn: () => tenantsService.getImpersonationLogs(tenantId, token),
   });
@@ -177,8 +180,8 @@ export function useAdminTenantAuditLogs(
 ) {
   const { token } = useAuth();
 
-  return useQuery<IAuditLog[]>({
-    queryKey: TENANTS_KEYS.auditLogs(tenantId, filters),
+  return useQuery<GetAdminTenantAuditLogsResponse>({
+    queryKey: TENANTS_KEYS.auditLogs(tenantId, filters, pagination),
     queryFn: () => tenantsService.getAuditLogs(tenantId, filters, token, pagination),
     enabled: enabled && !!tenantId,
   });

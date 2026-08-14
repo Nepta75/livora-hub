@@ -98,6 +98,15 @@ The matching list hooks (`useAdminTenantList`, `useAdminUserList`) hit
 table doesn't flash empty between pages. Page size constants live next to
 the hook (`TENANTS_PAGE_SIZE`, `HUB_USERS_PAGE_SIZE`).
 
+**Journal screens say what they are leaving out.** The three audit routes (`/logs`, the tenant
+page's "Actions de Livora" section and its access register, plus a plan's history card) answer
+`{data, total}`, and the total comes from the server under the same filters as the listing, never
+recomputed on the front. `WindowSummary` in `tenants/[id]/page.tsx` renders the notice and returns
+null when nothing is truncated. `useAdminAuditLogs` paginates against that total rather than against
+"did this page come back full", which could not tell a last full page from an exhausted feed. The
+access register's badge counts **arrivals on the tenant, not sessions**: one impersonation journey
+writes a row per tenant it visits and nothing correlates the rows of one journey.
+
 **Tenant pickers** (e.g. `PromoCodeRulesEditor`) need the *full* tenant list,
 not a page — they use `useAdminTenants()`, which now hits
 `GET /admin/tenant/options` (lightweight `{id, name}[]`). The paginated

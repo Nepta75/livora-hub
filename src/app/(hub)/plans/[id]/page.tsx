@@ -12,6 +12,7 @@ import {
 import { usePlanSubscriptions } from '@/hooks/api/plans/usePlanSubscriptions';
 import { useAdminAuditLogs } from '@/hooks/api/auditLogs/useAdminAuditLogs';
 import { AuditLogCard } from '@/components/auditLogs/AuditLogCard';
+import { WindowSummary } from '@/components/auditLogs/WindowSummary';
 import { PlanForm } from '@/components/plans/PlanForm';
 import { PlanVersionTimeline } from '@/components/plans/PlanVersionTimeline';
 import { buildPlanFeaturesPayload, type PlanFeatureState } from '@/components/plans/PlanFeaturesEditor';
@@ -178,7 +179,11 @@ function PlanHistoryCard({ planId }: { planId: string }) {
     entityId: planId,
   });
 
-  const logs = data?.pages.flat() ?? [];
+  const logs = data?.pages.flatMap((page) => page.data) ?? [];
+  // Was `logs.length` with a "+" glued on when another page existed, which is as much as the
+  // endpoint could say before it served a total. Debt 45 of MULTI_TENANT_AUDIT.md. Taken from the
+  // last page for the same reason as the /logs screen.
+  const total = data?.pages[data.pages.length - 1]?.total ?? 0;
 
   return (
     <Card>
@@ -188,8 +193,7 @@ function PlanHistoryCard({ planId }: { planId: string }) {
           Historique
           {!isLoading && (
             <Badge variant="secondary" className="ml-2 font-mono text-xs">
-              {logs.length}
-              {hasNextPage ? '+' : ''}
+              {total}
             </Badge>
           )}
         </CardTitle>
@@ -207,6 +211,7 @@ function PlanHistoryCard({ planId }: { planId: string }) {
           </p>
         ) : (
           <div className="space-y-2">
+            <WindowSummary shown={logs.length} total={total} label="événements affichés" />
             {logs.map((log) => (
               <AuditLogCard key={log.id} log={log} />
             ))}

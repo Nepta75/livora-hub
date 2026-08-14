@@ -1,5 +1,8 @@
 import { httpClient } from '@/services/http/httpClient';
-import type { AuditLogAction, IAuditLog } from '@/types/generated/api-types';
+import type {
+  AuditLogAction,
+  GetAdminAuditLogsReadResponse,
+} from '@/types/generated/api-types';
 
 export interface AdminAuditLogFilters {
   search?: string;
@@ -33,8 +36,13 @@ function buildQuery(params: AdminAuditLogPageParams): string {
 }
 
 export const auditLogsService = {
+  /**
+   * One window of the journal, plus how many rows match the filters behind it. The count is what
+   * lets the screen say it is showing a slice: this feed is unbounded, and one pass of the tenant
+   * seed writes hundreds of legitimate hub rows into it.
+   */
   getAll: (token: string, params: AdminAuditLogPageParams) =>
-    httpClient.get<IAuditLog[]>(`/audit-logs?${buildQuery(params)}`, { token }),
+    httpClient.get<GetAdminAuditLogsReadResponse>(`/audit-logs?${buildQuery(params)}`, { token }),
 
   getEntityTypes: (token: string) => httpClient.get<string[]>('/audit-logs/entity-types', { token }),
 };

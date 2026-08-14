@@ -26,9 +26,24 @@ export function useAdminAuditLogs(filters: AdminAuditLogFilters) {
         ...filters,
       }),
     initialPageParam: 0,
-    // Stop paginating as soon as a page returns less than a full window.
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.length < AUDIT_LOGS_PAGE_SIZE ? undefined : allPages.length * AUDIT_LOGS_PAGE_SIZE,
+    // Two stop conditions, and BOTH are load bearing.
+    //
+    // The total is what lets the screen say how much is behind the window, which the old rule
+    // ("the page came back short, so we are done") could never answer. But the total alone does not
+    // terminate: the listing and the count are two non-transactional queries, so a window can come
+    // back empty while the count still reads higher (a concurrent write, or a seed purge deleting
+    // rows under the read). `loaded` would then not move, this callback would hand back the same
+    // offset, and react-query appends rather than dedupes, so "Charger plus" would refetch the same
+    // empty window for ever. Keeping the short-page rule beside the total is what closes that.
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.data.length < AUDIT_LOGS_PAGE_SIZE) {
+        return undefined;
+      }
+
+      const loaded = allPages.reduce((sum, page) => sum + page.data.length, 0);
+
+      return loaded < lastPage.total ? loaded : undefined;
+    },
   });
 }
 

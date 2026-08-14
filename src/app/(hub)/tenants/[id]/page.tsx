@@ -68,6 +68,7 @@ import { useCancelPendingPlanChange } from '@/hooks/api/subscriptions/useChangeP
 import { cn } from '@/lib/utils';
 import { SubscriptionInvoicesSection } from '@/components/tenants/SubscriptionInvoicesSection';
 import { EmbeddedPaymentSection } from '@/components/tenants/EmbeddedPaymentSection';
+import { WindowSummary } from '@/components/auditLogs/WindowSummary';
 
 const ACTION_LABELS: Record<string, string> = {
   CREATE: 'Création',
@@ -143,17 +144,24 @@ function LivoraActivitySection({ tenantId }: { tenantId: string }) {
         {open && (
           <div className="mt-2">
             {isLoading && <p className="text-xs text-muted-foreground">Chargement…</p>}
-            {!isLoading && logs && logs.length === 0 && (
+            {!isLoading && logs && logs.data.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 Livora n&apos;a rien écrit sur ce tenant.
               </p>
             )}
-            {!isLoading && logs && logs.length > 0 && (
-              <div className="max-h-[600px] overflow-y-auto">
-                {logs.map(entry => (
-                  <AuditLogEntry key={entry.id} log={entry} />
-                ))}
-              </div>
+            {!isLoading && logs && logs.data.length > 0 && (
+              <>
+                <WindowSummary
+                  shown={logs.data.length}
+                  total={logs.total}
+                  label="écritures affichées"
+                />
+                <div className="max-h-[600px] overflow-y-auto">
+                  {logs.data.map(entry => (
+                    <AuditLogEntry key={entry.id} log={entry} />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}
@@ -284,15 +292,22 @@ function ImpersonationSessionRow({
           {isLoading && (
             <p className="text-xs text-muted-foreground">Chargement…</p>
           )}
-          {!isLoading && auditLogs && auditLogs.length === 0 && (
+          {!isLoading && auditLogs && auditLogs.data.length === 0 && (
             <p className="text-xs text-muted-foreground">Aucun changement enregistré pour cette session.</p>
           )}
-          {!isLoading && auditLogs && auditLogs.length > 0 && (
-            <div className="rounded border bg-muted/30 px-3 py-1">
-              {auditLogs.map(entry => (
-                <AuditLogEntry key={entry.id} log={entry} />
-              ))}
-            </div>
+          {!isLoading && auditLogs && auditLogs.data.length > 0 && (
+            <>
+              <WindowSummary
+                shown={auditLogs.data.length}
+                total={auditLogs.total}
+                label="changements affichés"
+              />
+              <div className="rounded border bg-muted/30 px-3 py-1">
+                {auditLogs.data.map(entry => (
+                  <AuditLogEntry key={entry.id} log={entry} />
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -1316,20 +1331,32 @@ export default function TenantDetailPage() {
 
       <LivoraActivitySection tenantId={id} />
 
-      {impersonationLogs && impersonationLogs.length > 0 && (
+      {impersonationLogs && impersonationLogs.data.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <ScrollText className="h-4 w-4 text-muted-foreground" />
               Journal d&apos;accès admin
+              {/* The badge counts ARRIVALS on this tenant, and says so, because it cannot count
+                  sessions: since debt 38 one journey writes a row per tenant it visits, and the
+                  register has no column grouping the rows of one journey. Reading `data.length`
+                  and calling the result sessions was doubly wrong, it also stopped at the window.
+                  Debt 41 of MULTI_TENANT_AUDIT.md. */}
               <Badge variant="secondary" className="ml-auto font-mono text-xs">
-                {impersonationLogs.length}
+                {impersonationLogs.total} accès
               </Badge>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
+            <div className="px-6 pt-2">
+              <WindowSummary
+                shown={impersonationLogs.data.length}
+                total={impersonationLogs.total}
+                label="accès affichés"
+              />
+            </div>
             <div className="max-h-[600px] overflow-y-auto divide-y">
-              {impersonationLogs.map(log => (
+              {impersonationLogs.data.map(log => (
                 <ImpersonationSessionRow key={log.id} log={log} tenantId={id} />
               ))}
             </div>

@@ -2143,8 +2143,14 @@ export type GetAdminTenantOptionsResponse = {
 export type PostAdminTenantImpersonateResponse = {
   token?: string;
 };
-export type GetAdminTenantImpersonationLogsResponse = ImpersonationLog[];
-export type GetAdminTenantAuditLogsResponse = IAuditLog[];
+export type GetAdminTenantImpersonationLogsResponse = {
+  data: ImpersonationLog[];
+  total: number;
+};
+export type GetAdminTenantAuditLogsResponse = {
+  data: IAuditLog[];
+  total: number;
+};
 export type GetAdminTenantSubscriptionReadResponse = {
   id?: string | null;
   tenantId?: string;
@@ -2456,7 +2462,10 @@ export type PostAdminBillingRunCronResponse = {
   errors?: number;
   lockHeld?: boolean | null;
 };
-export type GetAdminAuditLogsReadResponse = IAuditLog[];
+export type GetAdminAuditLogsReadResponse = {
+  data: IAuditLog[];
+  total: number;
+};
 export type GetAdminAuditLogsEntityTypesResponse = string[];
 export type GetGlobalSettingReadResponse = IGlobalSetting[] | IGlobalSetting;
 export type PostGlobalSettingCreateResponse = IGlobalSetting;

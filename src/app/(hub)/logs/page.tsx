@@ -140,7 +140,13 @@ function LogsPageContent() {
     fetchNextPage,
   } = useAdminAuditLogs(applied);
 
-  const logs = data?.pages.flat() ?? [];
+  const logs = data?.pages.flatMap(page => page.data) ?? [];
+  // Served by the API under the same filters as the listing, never recomputed here: a count the
+  // screen derives itself is a second definition of the predicate, and it drifts silently. Read
+  // from the LAST page, which is the figure the pagination itself stops on: rows written while the
+  // reader pages down move the count, and the first page's copy would then render "100 affichés sur
+  // 60".
+  const total = data?.pages[data.pages.length - 1]?.total ?? 0;
 
   if (!isAdmin) {
     return (
@@ -298,6 +304,15 @@ function LogsPageContent() {
         </div>
       ) : (
         <div className="space-y-2">
+          {/* An audit screen that stops at its window without saying so reads as an exhaustive
+              answer while being a page of one. A single tenant seed run writes hundreds of rows
+              here, all of them legitimate hub writes. */}
+          <p className="text-xs text-muted-foreground">
+            {logs.length} événement{logs.length > 1 ? 's' : ''} affiché
+            {logs.length > 1 ? 's' : ''} sur {total}
+            {hasNextPage ? ', les plus récents en premier' : ''}
+          </p>
+
           {logs.map((log) => (
             <AuditLogCard key={log.id} log={log} />
           ))}
