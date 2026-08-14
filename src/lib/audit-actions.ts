@@ -34,6 +34,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditLogAction, string> = {
   REPLACE_PROMO: 'Code promo remplacé',
   EXPORT: 'Export comptable',
   OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
+  RETENTION_PURGED: 'Purge de rétention',
   DEVTOOLS_ADVANCE_BILLING: 'Outil dev, avance facturation',
   DEVTOOLS_OVERAGE_INVOICES: 'Outil dev, factures de dépassement',
 };
@@ -41,8 +42,9 @@ export const AUDIT_ACTION_LABELS: Record<AuditLogAction, string> = {
 /**
  * Badge tone per verb. Three families: what happened to data (emerald / blue / red), what touches
  * money or an entitlement (sky), and what is an alert someone has to act on (amber, red).
- * The dev-tools verbs are neutral on purpose, they are noise on a real environment and a signal
- * only on the one where they were run.
+ * Neutral is the fourth family, for rows nobody has to act on: the dev-tools verbs, which are noise
+ * on a real environment and a signal only on the one where they were run, and the retention sweep,
+ * which is the system doing exactly its job.
  */
 export const AUDIT_ACTION_CLASSNAME: Record<AuditLogAction, string> = {
   CREATE: 'bg-emerald-100 text-emerald-800 border-emerald-200',
@@ -62,6 +64,11 @@ export const AUDIT_ACTION_CLASSNAME: Record<AuditLogAction, string> = {
   REPLACE_PROMO: 'bg-sky-100 text-sky-800 border-sky-200',
   EXPORT: 'bg-sky-100 text-sky-800 border-sky-200',
   OVERAGE_CAP_HIT: 'bg-amber-100 text-amber-800 border-amber-200',
+  // Neutral, not an alert: the sweep deleting what aged out is the system working. And absence is
+  // not the signal it looks like, so no badge is missing here: a sweep that never ran writes
+  // nothing, and neither does one that found nothing old enough, which is the ordinary state until
+  // the oldest row reaches twelve months.
+  RETENTION_PURGED: 'bg-zinc-100 text-zinc-700 border-zinc-200',
   DEVTOOLS_ADVANCE_BILLING: 'bg-zinc-100 text-zinc-700 border-zinc-200',
   DEVTOOLS_OVERAGE_INVOICES: 'bg-zinc-100 text-zinc-700 border-zinc-200',
 };
