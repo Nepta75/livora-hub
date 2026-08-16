@@ -2,6 +2,18 @@
 
 Next.js 14 (App Router) + Tailwind + shadcn/ui + React Hook Form + Yup + TanStack React Query v5.
 
+## ⚠️ Ce dépôt n'a AUCUN runner de test
+
+Ni jest, ni vitest, ni un seul fichier de test. Ce qui garde le hub est `yarn type-check` plus
+`yarn lint` : les types et le style, **aucun comportement**. Une fonction juste et une fonction
+fausse passent les mêmes portes.
+
+Conséquence pratique : tout ce qui porte une règle ici est tenu par la relecture seule. Trois choses
+en dépendent aujourd'hui, dont `src/lib/dateFilter.ts`, dont le jumeau de vista-app est couvert par
+un test avec son mutant joué. C'est la **dette 64** de `../api-vista-app/TECH_DEBT.md`, qui est la
+liste canonique unique des dettes ouvertes des trois dépôts. Ce n'est pas « le hub n'est pas testé »,
+c'est « le hub ne peut pas l'être » : il manque une infrastructure, pas un test.
+
 ## Rules
 - Abstraction layer: tous les composants UI passent par `src/components/ui/` (wrappers shadcn)
 - Ne jamais importer directement depuis @radix-ui — passer par les wrappers
