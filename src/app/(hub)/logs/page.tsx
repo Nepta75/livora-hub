@@ -24,6 +24,7 @@ import {
 import { AuditLogCard } from '@/components/auditLogs/AuditLogCard';
 import { LoadMoreRows, lastWindowTotal } from '@/components/auditLogs/LoadMoreRows';
 import { AUDIT_ACTION_OPTIONS, isAuditLogAction } from '@/lib/audit-actions';
+import { isDisplayableDay } from '@/lib/dateFilter';
 
 // base-ui Select requires a concrete value, use a sentinel to express "no filter".
 const ALL = '__all__';
@@ -80,13 +81,34 @@ function LogsPageContent() {
     [searchParams],
   );
 
+  /**
+   * The draft drops any date the field cannot render, while `applied` keeps it.
+   *
+   * `<input type="date">` blanks a value it cannot represent with no change event, and
+   * `2026-02-30` is such a value as much as `hello` is. Without this, a bad date pasted into the URL
+   * showed an EMPTY field while the state still held it, so every other edit rewrote it into the
+   * URL and the journal answered 400 for ever. `applied` keeps it on purpose: the listing must
+   * still refuse, and the screen must still say why.
+   */
+  const draftSeed = useMemo(() => {
+    const seed = { ...applied };
+    for (const key of ['dateFrom', 'dateTo'] as const) {
+      const value = seed[key];
+      if (undefined !== value && !isDisplayableDay(value)) {
+        delete seed[key];
+      }
+    }
+
+    return seed;
+  }, [applied]);
+
   // Local (draft) state lets text inputs feel snappy while debouncing URL writes.
-  const [draft, setDraft] = useState<AdminAuditLogFilters>(applied);
+  const [draft, setDraft] = useState<AdminAuditLogFilters>(draftSeed);
 
   // Resync draft whenever the URL changes (back/forward nav, external update).
   useEffect(() => {
-    setDraft(applied);
-  }, [applied]);
+    setDraft(draftSeed);
+  }, [draftSeed]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
@@ -130,6 +152,7 @@ function LogsPageContent() {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
+    error,
   } = useAdminAuditLogs(applied);
 
   const logs = data?.pages.flatMap(page => page.data) ?? [];
@@ -288,7 +311,19 @@ function LogsPageContent() {
         </CardContent>
       </Card>
 
-      {isLoading ? (
+      {/* The refusal is rendered, and that is not cosmetic: this query was destructured without
+          `error`, so a 400 left `data` undefined and the branch below announced "Aucun événement
+          correspondant aux filtres." The audit journal answered "this perimeter did nothing" to a
+          request the server had refused, which is the one sentence a journal must never say by
+          mistake. The French copy already existed in httpClient's CODE_TO_FR and nothing read it.
+          Same defect, same shape, as the carrier's own activity screen in vista-app. */}
+      {error ? (
+        <div className="rounded-xl border border-destructive/40 bg-destructive/5 py-8 text-center text-sm text-destructive">
+          {error instanceof Error && error.message
+            ? error.message
+            : 'Erreur lors du chargement du journal. Veuillez réessayer.'}
+        </div>
+      ) : isLoading ? (
         <LoadingSkeleton />
       ) : logs.length === 0 ? (
         <div className="rounded-xl border border-dashed py-16 text-center text-sm text-muted-foreground">
