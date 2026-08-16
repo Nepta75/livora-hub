@@ -1575,6 +1575,12 @@ export interface ISubscription2 {
   archivedAt?: string | null;
 }
 
+export interface ISubscription3 {
+  billingPeriod?: ChangePlanBillingPeriod | null;
+  pendingBillingPeriod?: ChangePlanBillingPeriod | null;
+  id: string;
+}
+
 export interface ISubscriptionDto {
   planId: string;
   source: SubscriptionSource;
@@ -1629,6 +1635,47 @@ export interface ISubscriptionInvoice {
   archivedAt?: string | null;
 }
 
+export interface ISubscriptionInvoice2 {
+  id: string;
+  tenant: ITenant5;
+  subscription?: ISubscription3 | null;
+  invoiceNumber: string;
+  status: string;
+  currency: string;
+  subtotal: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  total: number;
+  amountPaid?: number;
+  amountDue?: number;
+  refundedAmount?: number;
+  periodStart: string;
+  periodEnd: string;
+  issuedAt: string;
+  dueAt?: string | null;
+  paidAt?: string | null;
+  voidedAt?: string | null;
+  issuedEmailSentAt?: string | null;
+  provider: string;
+  issuerLegalName: string;
+  issuerLegalAddress: string;
+  issuerSiret: string;
+  issuerVatNumber: string;
+  issuerRcs: string;
+  issuerCapital: string;
+  customerName: string;
+  customerAddress: string;
+  customerSiret?: string | null;
+  customerVatNumber?: string | null;
+  customerEmail: string;
+  lines: ISubscriptionInvoiceLine2[];
+  taxBreakdowns: ISubscriptionInvoiceTaxBreakdown2[];
+  refunds: ISubscriptionInvoiceRefund2[];
+  automaticTaxEnabled?: boolean;
+  automaticTaxStatus?: string | null;
+  issuerVatRegime: string;
+}
+
 export interface ISubscriptionInvoiceCreditNote {
   id: string;
   creditNoteNumber: string;
@@ -1659,6 +1706,18 @@ export interface ISubscriptionInvoiceLine {
   archivedAt?: string | null;
 }
 
+export interface ISubscriptionInvoiceLine2 {
+  id: string;
+  description: string;
+  quantity?: number;
+  unitAmount?: number | null;
+  amount: number;
+  type: string;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  taxAmount?: number;
+}
+
 export interface ISubscriptionInvoiceRefund {
   id: string;
   amount: number;
@@ -1675,6 +1734,10 @@ export interface ISubscriptionInvoiceRefund {
   archivedAt?: string | null;
 }
 
+export interface ISubscriptionInvoiceRefund2 {
+  id: string;
+}
+
 export interface ISubscriptionInvoiceTaxBreakdown {
   id: string;
   ratePct: string;
@@ -1687,6 +1750,17 @@ export interface ISubscriptionInvoiceTaxBreakdown {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
+}
+
+export interface ISubscriptionInvoiceTaxBreakdown2 {
+  id: string;
+  ratePct: string;
+  jurisdiction?: string | null;
+  country?: string | null;
+  taxableAmount: number;
+  taxAmount: number;
+  inclusive?: boolean;
+  taxabilityReason?: string | null;
 }
 
 export interface ISuggestSingleInsertionDto {
@@ -1743,6 +1817,11 @@ export interface ITenant4 {
 }
 
 export interface ITenant5 {
+  user?: IUser;
+  id: string;
+}
+
+export interface ITenant6 {
   user?: IUser;
   name: string;
 }
@@ -2814,6 +2893,10 @@ export type PostOrderApiPricingResponse = {
   totalVolume?: number;
   requiresManualPricing?: boolean;
 };
+export type GetSubscriptionInvoiceReadResponse = (ISubscriptionInvoice2 | {
+  data?: ISubscriptionInvoice2[];
+  total?: number;
+});
 export type GetPublicInvitationStateResponse = {
   status?: 'valid' | 'expired' | 'consumed';
   email?: string | null;

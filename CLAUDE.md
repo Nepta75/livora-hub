@@ -67,6 +67,32 @@ Rules:
 - **Confirm dialogs** mirror the action tone — archive confirm uses `CONFIRM_BUTTON.warning`, delete uses shadcn `variant="destructive"`.
 - Do not introduce a new color scale without updating `action-palette.ts` and this section together.
 
+## API errors — never display `err.message` raw
+
+`httpClient` throws an `HttpError` whose `message` has already been resolved by
+`readableMessage` (`src/services/http/httpClient.ts`), and `body` carries the raw
+payload. Resolve, never re-derive.
+
+**Why it needs resolving at all.** `InvalidJsonException` is what the API raises
+for every refusal a screen can act on, and it builds its message as
+`"<Class> invalid json"` — an internal PHP class name, in English. The meaning is
+in `fields[]`, which is either a list of `{field: code}` objects or a flat list of
+strings depending on the service that threw. `readableMessage` reads a known code
+first, then the raw field value, then the top-level message unless it is that
+wrapper.
+
+- **A new typed backend code gets its French copy in `CODE_TO_FR`**, in
+  `httpClient.ts`, and nowhere else. `promoCodesService.ts` still carries its own
+  `PROMO_ERROR_FR` matching on the message; it works because the raw field value
+  now reaches the message, and it is the copy that should move here, not the
+  reverse.
+- **A toast may show `err.message` directly**, since it is resolved. What it must
+  not do is read `body.message`.
+- This repo has no test harness at all (no jest, no vitest), so nothing here is
+  pinned by a test. `vista-app` mirrors this resolution in
+  `src/services/http/apiErrorMessage.ts`, which IS pinned, and the two are meant
+  to stay recognisably the same shape.
+
 ## Subscription billing UI
 
 The admin subscription surface (`/tenants/[id]` + plan-change dialog) reads
