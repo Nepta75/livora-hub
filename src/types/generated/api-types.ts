@@ -297,8 +297,10 @@ export interface ICreditNoteDto {
 }
 
 export interface ICustomerOrderDto {
-  pickupDate: string;
-  deliveryDate: string;
+  pickupDate?: string | null;
+  deliveryDate?: string | null;
+  pickupDay?: string | null;
+  deliveryDay?: string | null;
   pickupAsSoonAsPossible: boolean;
   deliveryAsSoonAsPossible: boolean;
   pickupPoints: IOrderPickupPointDto[];
@@ -1330,8 +1332,10 @@ export interface IPublicCustomerDto {
 
 export interface IPublicOrderDto {
   customer: IPublicCustomerDto;
-  pickupDate: string;
-  deliveryDate: string;
+  pickupDate?: string | null;
+  deliveryDate?: string | null;
+  pickupDay?: string | null;
+  deliveryDay?: string | null;
   pickupAsSoonAsPossible: boolean;
   deliveryAsSoonAsPossible: boolean;
   pickupPoints: IOrderPickupPointDto[];
