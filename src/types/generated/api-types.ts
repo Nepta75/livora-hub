@@ -182,6 +182,12 @@ export interface IBillingIdentity {
   complete: boolean;
 }
 
+export interface ICarryOverOrderOverrideDto {
+  orderId?: string;
+  deliveryTimeShiftMinutes?: number;
+  pickupTimeShiftMinutes?: number | null;
+}
+
 export interface IChangePlanDto {
   targetPlanId?: string;
   billingPeriod?: ChangePlanBillingPeriod;
@@ -1491,6 +1497,7 @@ export interface IRescheduleCarryOverDto {
   reason?: RescheduleOrderReason;
   deliveryTimeShiftMinutes?: number | null;
   pickupTimeShiftMinutes?: number | null;
+  orderOverrides?: ICarryOverOrderOverrideDto[];
   notifyCustomer?: boolean;
 }
 
