@@ -29,6 +29,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditLogAction, string> = {
   TRIAL_EXTENDED: 'Essai prolongé',
   OVERAGE_INVOICE_CREATED: 'Facture de dépassement',
   EMBEDDED_AUTH_CAPTURE_TOGGLED: 'Réservation avant débit',
+  ORDER_TIME_SHIFTED: 'Heure de livraison modifiée',
   TAX_DELTA: 'Écart de TVA détecté',
   DOWNLOAD: 'Document téléchargé',
   REPLACE_PROMO: 'Code promo remplacé',
@@ -59,6 +60,9 @@ export const AUDIT_ACTION_CLASSNAME: Record<AuditLogAction, string> = {
   TRIAL_EXTENDED: 'bg-sky-100 text-sky-800 border-sky-200',
   OVERAGE_INVOICE_CREATED: 'bg-amber-100 text-amber-800 border-amber-200',
   EMBEDDED_AUTH_CAPTURE_TOGGLED: 'bg-sky-100 text-sky-800 border-sky-200',
+  // Amber: the row exists only when a reschedule rewrote the window a customer agreed to, which is
+  // something someone may have to answer for, not a routine data edit.
+  ORDER_TIME_SHIFTED: 'bg-amber-100 text-amber-800 border-amber-200',
   TAX_DELTA: 'bg-red-100 text-red-800 border-red-200',
   DOWNLOAD: 'bg-sky-100 text-sky-800 border-sky-200',
   REPLACE_PROMO: 'bg-sky-100 text-sky-800 border-sky-200',

@@ -13,7 +13,7 @@ export type IPricingType = 'distance' | 'city';
 // Enum Types (extracted from inline enum properties in OpenAPI schemas)
 export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing" | "warehouse";
 export type AppliedPromoCodeType = "discount" | "trial";
-export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE" | "CUSTOMER_ACCESS_GRANTED" | "QUOTE_OTP_SPENT" | "QUOTE_OTP_LOCKED" | "PLAN_CHANGE" | "PLAN_CHANGE_SCHEDULED" | "UPDATE_PAYMENT_METHOD" | "TRIAL_EXTENDED" | "OVERAGE_INVOICE_CREATED" | "EMBEDDED_AUTH_CAPTURE_TOGGLED" | "TAX_DELTA" | "DOWNLOAD" | "REPLACE_PROMO" | "EXPORT" | "OVERAGE_CAP_HIT" | "RETENTION_PURGED" | "DEVTOOLS_ADVANCE_BILLING" | "DEVTOOLS_OVERAGE_INVOICES";
+export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE" | "CUSTOMER_ACCESS_GRANTED" | "QUOTE_OTP_SPENT" | "QUOTE_OTP_LOCKED" | "PLAN_CHANGE" | "PLAN_CHANGE_SCHEDULED" | "UPDATE_PAYMENT_METHOD" | "TRIAL_EXTENDED" | "OVERAGE_INVOICE_CREATED" | "EMBEDDED_AUTH_CAPTURE_TOGGLED" | "ORDER_TIME_SHIFTED" | "TAX_DELTA" | "DOWNLOAD" | "REPLACE_PROMO" | "EXPORT" | "OVERAGE_CAP_HIT" | "RETENTION_PURGED" | "DEVTOOLS_ADVANCE_BILLING" | "DEVTOOLS_OVERAGE_INVOICES";
 export type AuditLogActorType = "USER" | "HUB_USER" | "PUBLIC_API" | "SYSTEM";
 export type ChangePlanBillingPeriod = "monthly" | "annual";
 export type ChangePlanProrationBehavior = "create_prorations" | "none" | "always_invoice";
@@ -1489,6 +1489,8 @@ export interface IRescheduleCarryOverDto {
   orderIds?: string[];
   targetDate?: string;
   reason?: RescheduleOrderReason;
+  deliveryTimeShiftMinutes?: number | null;
+  pickupTimeShiftMinutes?: number | null;
   notifyCustomer?: boolean;
 }
 
