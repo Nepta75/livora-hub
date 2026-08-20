@@ -121,3 +121,16 @@ jobs:
              done; \
              echo \"ERROR: timed out waiting for rollout to complete\"; \
              docker service ps livora_hub --no-trunc; exit 1"
+
+      # The deploy dashboard only annotates deploys started from its own screen, and this
+      # one never passes through it. Without this step nothing marks a CI release on the
+      # Grafana timeline. Non blocking: an annotation is not worth failing a good deploy,
+      # but the step goes red so a broken one is visible.
+      - name: Annotate deploy in Grafana
+        continue-on-error: true
+        run: |
+          SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          sshpass -p "${{ secrets.SSH_PASSWORD }}" ssh \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            "bash vista-vps-docker-config/scripts/grafana-annotate.sh hub sha-${SHA}"
