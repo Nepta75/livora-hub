@@ -30,9 +30,11 @@ export const AUDIT_ACTION_LABELS: Record<AuditLogAction, string> = {
   OVERAGE_INVOICE_CREATED: 'Facture de dépassement',
   EMBEDDED_AUTH_CAPTURE_TOGGLED: 'Réservation avant débit',
   ORDER_TIME_SHIFTED: 'Heure de livraison modifiée',
+  ORDER_VEHICLE_FORCED: 'Assignation véhicule forcée',
   TAX_DELTA: 'Écart de TVA détecté',
   DOWNLOAD: 'Document téléchargé',
   REPLACE_PROMO: 'Code promo remplacé',
+  DRIVER_SCHEDULE_OVERWRITTEN: 'Jours de planning remplacés',
   EXPORT: 'Export comptable',
   OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
   RETENTION_PURGED: 'Purge de rétention',
@@ -63,9 +65,15 @@ export const AUDIT_ACTION_CLASSNAME: Record<AuditLogAction, string> = {
   // Amber: the row exists only when a reschedule rewrote the window a customer agreed to, which is
   // something someone may have to answer for, not a routine data edit.
   ORDER_TIME_SHIFTED: 'bg-amber-100 text-amber-800 border-amber-200',
+  // Amber: the tour then runs below its declared vehicle and the delivery may fail, so it is an
+  // action someone may have to answer for, not a routine edit. Same tone as vista-app.
+  ORDER_VEHICLE_FORCED: 'bg-amber-100 text-amber-800 border-amber-200',
   TAX_DELTA: 'bg-red-100 text-red-800 border-red-200',
   DOWNLOAD: 'bg-sky-100 text-sky-800 border-sky-200',
   REPLACE_PROMO: 'bg-sky-100 text-sky-800 border-sky-200',
+  // Amber: forcing a recurring plan over days another plan owned archives those days, destructive
+  // on shared planning data. Same tone as vista-app.
+  DRIVER_SCHEDULE_OVERWRITTEN: 'bg-amber-100 text-amber-800 border-amber-200',
   EXPORT: 'bg-sky-100 text-sky-800 border-sky-200',
   OVERAGE_CAP_HIT: 'bg-amber-100 text-amber-800 border-amber-200',
   // Neutral, not an alert: the sweep deleting what aged out is the system working. And absence is
