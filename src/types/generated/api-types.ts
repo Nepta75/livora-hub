@@ -935,7 +935,6 @@ export interface IOrder {
   updatedAt: string;
   archivedAt?: string | null;
   auditIdentifier: string;
-  shortReference: string;
   pickupFormattedDate: string;
   totalCreditAmount: number;
   frozenPricing: boolean;
@@ -2822,6 +2821,20 @@ export type PostWarehouseCreateResponse = IWarehouse;
 export type PostWarehouseOrderReadResponse = IOrderWarehouseResponseDto[];
 export type PostDriverScheduleCreateResponse = IDriverSchedule;
 export type GetDriverScheduleReadResponse = IDriverSchedule[] | IDriverSchedule;
+export type GetDispatchSlaSummaryResponse = {
+  week?: {
+  kept?: number;
+  late?: number;
+  total?: number;
+  rate?: number | null;
+};
+  month?: {
+  kept?: number;
+  late?: number;
+  total?: number;
+  rate?: number | null;
+};
+};
 export type PostDeliveryZoneCreateResponse = IDeliveryZone;
 export type GetDeliveryZoneReadResponse = IDeliveryZone[] | IDeliveryZone;
 export type GetSubscriptionReadResponse = ISubscription & {
