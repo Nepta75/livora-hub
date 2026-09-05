@@ -3036,6 +3036,11 @@ export type GetSubscriptionInvoiceReadResponse = (ISubscriptionInvoice2 | {
   data?: ISubscriptionInvoice2[];
   total?: number;
 });
+export type GetPublicQuoteSigningStateResponse = {
+  state?: 'signable' | 'signed' | 'unavailable';
+  tenantName?: string;
+  quoteNumber?: string;
+};
 export type GetPublicInvitationStateResponse = {
   status?: 'valid' | 'expired' | 'consumed';
   email?: string | null;
