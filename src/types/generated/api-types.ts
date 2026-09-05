@@ -3039,7 +3039,6 @@ export type GetSubscriptionInvoiceReadResponse = (ISubscriptionInvoice2 | {
 export type GetPublicQuoteSigningStateResponse = {
   state?: 'signable' | 'signed' | 'unavailable';
   tenantName?: string;
-  quoteNumber?: string;
 };
 export type GetPublicInvitationStateResponse = {
   status?: 'valid' | 'expired' | 'consumed';
