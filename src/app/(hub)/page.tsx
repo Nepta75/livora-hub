@@ -15,6 +15,7 @@ import {
 import { useAdminUserList } from '@/hooks/api/users/useAdminUsers';
 import { useAdminDashboardMetrics } from '@/hooks/api/dashboard/useAdminDashboardMetrics';
 import { useAdminSeed } from '@/hooks/api/seed/useAdminSeed';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -92,6 +93,11 @@ export default function DashboardPage() {
   // First page only, `total` is the hub user count we display below.
   const { data: hubUsers } = useAdminUserList({}, 0);
   const seedMutation = useAdminSeed();
+  const { userRoles } = useAuth();
+  // Seeding mints a whole tenant plus its admin credentials, a power reserved to ROLE_ADMIN
+  // (POST /admin/seed is now ROLE_ADMIN-gated server-side too). A MODERATOR must not see the
+  // button: ENABLE_SEED alone left it in reach on preprod, where the flag is on.
+  const canSeed = ENABLE_SEED && (userRoles?.isAdmin ?? false);
 
   const handleSeed = async () => {
     try {
@@ -116,7 +122,7 @@ export default function DashboardPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Dashboard</h2>
-        {ENABLE_SEED && (
+        {canSeed && (
           <Button variant="outline" size="sm" onClick={handleSeed} disabled={seedMutation.isPending}>
             <FlaskConical className="h-4 w-4 mr-2" />
             {seedMutation.isPending ? 'Génération...' : 'Seed test data'}
