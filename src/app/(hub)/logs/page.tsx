@@ -3,7 +3,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ScrollText } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 import {
   useAdminAuditLogEntityTypes,
   useAdminAuditLogs,
@@ -72,8 +71,6 @@ function LoadingSkeleton() {
 function LogsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { userRoles } = useAuth();
-  const isAdmin = userRoles?.isAdmin ?? false;
 
   // URL is the source of truth for applied filters.
   const applied = useMemo(
@@ -163,14 +160,10 @@ function LogsPageContent() {
   // 60".
   const total = data ? lastWindowTotal(data) : 0;
 
-  if (!isAdmin) {
-    return (
-      <div>
-        <h2 className="text-2xl font-bold">Journal d&apos;activité admin</h2>
-        <p className="mt-4 text-muted-foreground">Accès refusé.</p>
-      </div>
-    );
-  }
+  // Readable by ROLE_MODERATOR too: GET /admin/audit-logs falls under the ^/admin catchall
+  // (ROLE_ADMIN + ROLE_MODERATOR), so the backend already serves this journal to a moderator.
+  // A front-only isAdmin gate hid a read the moderator is entitled to, and left the two out of
+  // step. Writes elsewhere in the hub stay ROLE_ADMIN; this screen has none.
 
   return (
     <div>

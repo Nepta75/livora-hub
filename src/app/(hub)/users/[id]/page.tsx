@@ -17,6 +17,7 @@ import {
   type UpdatePasswordFormValues,
 } from '@/validators/users/validator';
 import { HUB_ROLES } from '@/constants/roles';
+import { useAuth } from '@/hooks/useAuth';
 import type { HubUserRoles } from '@/types/generated/api-types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,10 +38,19 @@ import Link from 'next/link';
 export default function EditUserPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { userRoles } = useAuth();
   const { data: user, isLoading } = useAdminUser(id);
   const updateMutation = useUpdateAdminUser(id);
   const updatePasswordMutation = useUpdateAdminUserPassword(id);
   const updateRolesMutation = useUpdateAdminUserRoles(id);
+
+  // PATCH /admin/user/{id} (+ roles, password) is ROLE_ADMIN only. Without this gate a MODERATOR
+  // reached a fillable edit form that failed only on submit; bounce them like /plans/[id] does.
+  useEffect(() => {
+    if (userRoles && !userRoles.isAdmin) {
+      router.push('/users');
+    }
+  }, [userRoles, router]);
 
   const infoForm = useForm<UpdateUserFormValues>({
     resolver: yupResolver(updateUserSchema),
@@ -87,6 +97,7 @@ export default function EditUserPage() {
     }
   };
 
+  if (userRoles && !userRoles.isAdmin) return null;
   if (isLoading) return <p className="text-muted-foreground">Chargement...</p>;
   if (!user) return <p className="text-destructive">Utilisateur introuvable.</p>;
 

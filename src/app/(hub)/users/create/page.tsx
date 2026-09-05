@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
+import { useAuth } from '@/hooks/useAuth';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCreateAdminUser } from '@/hooks/api/users/useAdminUsers';
 import { useAdminRoles } from '@/hooks/api/roles/useAdminRoles';
@@ -17,8 +19,18 @@ import Link from 'next/link';
 
 export default function CreateUserPage() {
   const router = useRouter();
+  const { userRoles } = useAuth();
   const createMutation = useCreateAdminUser();
   const { data: rolesData } = useAdminRoles();
+
+  // POST /admin/user is ROLE_ADMIN only. Without this gate a MODERATOR reached a fully fillable
+  // form that failed only on submit; bounce them like /plans/create does. Backend still enforces.
+  useEffect(() => {
+    if (userRoles && !userRoles.isAdmin) {
+      router.push('/users');
+    }
+  }, [userRoles, router]);
+
   const {
     register,
     handleSubmit,
@@ -37,6 +49,8 @@ export default function CreateUserPage() {
       toast.error(error instanceof Error ? error.message : 'Une erreur est survenue.');
     }
   };
+
+  if (userRoles && !userRoles.isAdmin) return null;
 
   return (
     <div className="max-w-lg">

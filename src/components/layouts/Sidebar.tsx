@@ -28,7 +28,7 @@ const navItems = [
   { href: '/billing', label: 'Dépassements', icon: Receipt, adminOnly: false },
   { href: '/comptabilite', label: 'Comptabilité', icon: Calculator, adminOnly: true },
   { href: '/features', label: 'Features', icon: Zap, adminOnly: true },
-  { href: '/logs', label: 'Logs', icon: ScrollText, adminOnly: true },
+  { href: '/logs', label: 'Logs', icon: ScrollText, adminOnly: false },
   { href: '/roles', label: 'Rôles', icon: Shield, adminOnly: false },
   ...(IS_TEST_MODE
     ? [{ href: '/dev-tools', label: 'Dev Tools', icon: Wrench, adminOnly: true }]
@@ -75,8 +75,13 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="flex items-center justify-between p-6">
           <div>
             <h1 className="text-xl font-bold tracking-tight">Livora Hub</h1>
-            <p className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
-              {userRoles?.isAdmin ? 'Admin' : 'Modérateur'}
+            <p className="text-xs text-muted-foreground mt-1">
+              {/* Gate on `mounted`, exactly like `visibleItems` below: the server renders with
+                  no cookie, so `userRoles` is null and the label would be "Modérateur" for
+                  everyone. `suppressHydrationWarning` used to hide that mismatch, which FROZE the
+                  server's "Modérateur" on the client for an admin whose nav was already correct.
+                  Rendering nothing until mounted lets the client compute the real label. */}
+              {mounted ? (userRoles?.isAdmin ? 'Admin' : 'Modérateur') : null}
             </p>
           </div>
           <Button
