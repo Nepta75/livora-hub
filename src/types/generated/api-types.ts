@@ -1125,7 +1125,7 @@ export interface IPackageCategory {
 
 export interface IPackageCategoryDto {
   label: string;
-  dimensions: IPackageDimensionDto;
+  dimensions: IPackageDimensionDto | null;
   description?: string | null;
 }
 
