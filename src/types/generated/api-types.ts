@@ -1458,6 +1458,10 @@ export interface IQuoteDto {
   customerType: OrderCustomerType;
 }
 
+export interface IQuoteOtpValidationDto {
+  otpCode?: string;
+}
+
 export interface IQuoteVersion {
   id: string;
   quote: IQuote;
