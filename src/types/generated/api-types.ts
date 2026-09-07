@@ -31,6 +31,7 @@ export type ForgotPasswordClient = "web" | "driver";
 export type GenerateMorningBatchObjective = "asap" | "min_delay" | "optimize_global";
 export type GlobalSettingPricingType = "distance" | "city";
 export type GlobalSettingRecapAutomationLevel = "off" | "prepare" | "auto";
+export type HistoryEventKind = "milestone" | "audit";
 export type HubUserRoles = "ROLE_ADMIN" | "ROLE_MODERATOR";
 export type ImpersonationLogEventType = "OPEN" | "TENANT_SWITCH";
 export type InviteUserPayModel = "fixed" | "per_credit";
@@ -632,6 +633,23 @@ export interface IGlobalSettingDto {
   recapAutomationLevel?: GlobalSettingRecapAutomationLevel | null;
   invoiceRelanceEnabled?: boolean | null;
   acknowledgeUnreviewed?: boolean;
+}
+
+export interface IHistoryActorDto {
+  type?: AuditLogActorType | null;
+  email?: string | null;
+  byLivora: boolean;
+  isImpersonated: boolean;
+  impersonatedByName?: string | null;
+}
+
+export interface IHistoryEventDto {
+  at: string;
+  kind: HistoryEventKind;
+  label: string;
+  actor?: IHistoryActorDto | null;
+  changes?: { [key: string]: unknown } | null;
+  quoteVersion?: number | null;
 }
 
 export interface IHistoryInterface {
@@ -1575,6 +1593,7 @@ export interface IRejectLeadDto {
 
 export interface IReorderTourDto {
   stopIds?: string[];
+  baseStopIds?: string[] | null;
 }
 
 export interface IRescheduleCarryOverDto {
@@ -2709,6 +2728,7 @@ export type GetOrderStopsReadResponse = {
   lastName?: string;
 } | null;
 }[];
+export type GetOrderHistoryReadResponse = IHistoryEventDto[];
 export type PostOrderPaymentLinkResponse = IOrderPayment;
 export type PostOrderCalculateTripResponse = ITripSummaryDto;
 export type PostOrderCalculatePricingResponse = IPricingSummaryDto;
@@ -2798,6 +2818,7 @@ export type PostInvoiceCreditNoteCreateResponse = {
   refundError: string | null;
   delivered: boolean;
 };
+export type GetInvoiceHistoryReadResponse = IHistoryEventDto[];
 export type GetQuoteListResponse = {
   data: IQuote[];
   total: number;
@@ -2810,6 +2831,7 @@ export type GetQuoteListResponse = {
 };
 };
 export type PostQuoteCreateResponse = IQuote;
+export type GetQuoteHistoryReadResponse = IHistoryEventDto[];
 export type PostPackageCategoryCreateResponse = IPackageCategory;
 export type GetPackageCategoryReadResponse = (IPackageCategory | {
   data?: IPackageCategory[];
