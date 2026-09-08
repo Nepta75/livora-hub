@@ -12,13 +12,15 @@ export interface ChangePlanPreviewPayload {
   targetPlanId: string;
   billingPeriod: ChangePlanBillingPeriod;
   prorationBehavior?: ChangePlanProrationBehavior;
+  // Admin override only, bypasses the annual→monthly mid-cycle guard. The
+  // preview enforces the same guard as the commit, so a forced downgrade must
+  // send force here too or it can never be previewed (and thus never confirmed).
+  force?: boolean;
 }
 
 export interface ChangePlanCommitPayload extends ChangePlanPreviewPayload {
   reason?: string | null;
   previewedAt: number;
-  // Admin override only, bypasses the annual→monthly mid-cycle guard.
-  force?: boolean;
 }
 
 export const subscriptionPlanChangeService = {

@@ -127,7 +127,16 @@ export function ChangePlanDialog({
     && (targetPlanId !== currentPlanId || billingPeriod !== currentBillingPeriod);
 
   const previewBody = isDifferent
-    ? { targetPlanId, billingPeriod, prorationBehavior }
+    ? {
+        targetPlanId,
+        billingPeriod,
+        prorationBehavior,
+        // Mirror the commit: the backend refuses an annual→monthly preview
+        // unless forced, so send force here exactly as handleSubmit does.
+        // Typing ROMPRE flips this to true and refetches the preview (force is
+        // part of the query key), unlocking the confirm button.
+        force: isPeriodDowngrade && bypassReady,
+      }
     : null;
 
   const previewQuery = useChangePlanPreview({
