@@ -2963,6 +2963,7 @@ export type PostSubscriptionSetupIntentResponse = {
 export type PostSubscriptionFinalizeFromSessionResponse = {
   status?: string | null;
   subscriptionId?: string | null;
+  token?: string | null;
 };
 export type PostMeAddTenantResponse = {
   checkoutUrl?: string;
