@@ -183,6 +183,17 @@ export interface IBankDetail {
   auditIdentifier: string;
 }
 
+export interface IBankDetailDto {
+  bankLabel: string;
+  bankName: string;
+  iban: string;
+  bic: string;
+  bankCode: string;
+  accountNumber: string;
+  isDefaultBankDetail?: boolean;
+  accountHolderName: string;
+}
+
 export interface IBillingIdentity {
   line1?: string | null;
   line2?: string | null;
@@ -1958,6 +1969,20 @@ export interface ITenantApiKey {
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
+}
+
+export interface ITenantDto {
+  name: string;
+  logo?: string | null;
+  email: string;
+  tenantAdminUserId: string;
+  siretNumber: string;
+  rcsCity: string;
+  phone: string;
+  vatNumber?: string | null;
+  defaultBankDetail: IBankDetailDto;
+  address: IAddressDto;
+  sirenNumber: string;
 }
 
 export interface ITenantPaymentAccount {
