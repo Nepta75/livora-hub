@@ -1027,6 +1027,7 @@ export interface IOrderPayment {
   applicationFeeAmount?: number | null;
   status?: string;
   refundedAmount?: number;
+  refundedAt?: string | null;
   createdOrderId?: string | null;
   paidAt?: string | null;
   authorizedAmount?: number | null;
