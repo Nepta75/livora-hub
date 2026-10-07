@@ -17,6 +17,7 @@ export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE" | "CUSTOMER_ACCESS_G
 export type AuditLogActorType = "USER" | "HUB_USER" | "PUBLIC_API" | "SYSTEM";
 export type ChangePlanBillingPeriod = "monthly" | "annual";
 export type ChangePlanProrationBehavior = "create_prorations" | "none" | "always_invoice";
+export type ConnectEInvoiceMode = "managed" | "external";
 export type ContactRequestContext = "founding-setup" | "enterprise" | "demo";
 export type ContactRequestVolume = "1-50" | "50-200" | "200-500" | "500+";
 export type CreatePromoCodeDuration = "once" | "repeating" | "forever";
@@ -265,6 +266,10 @@ export interface ICommitSuggestionDto {
   chosenDriverId?: string;
   vehicleId?: string | null;
   force?: boolean;
+}
+
+export interface IConnectEInvoiceDto {
+  mode?: ConnectEInvoiceMode;
 }
 
 export interface IContactRequestDto {
@@ -562,6 +567,11 @@ export interface IDriverScheduleTimeSlotDto {
   endTime: string;
   slotType: DriverScheduleTimeSlotType;
   description?: string | null;
+}
+
+export interface IEInvoiceCallbackDto {
+  code: string;
+  state: string;
 }
 
 export interface IExtendTrialDto {
