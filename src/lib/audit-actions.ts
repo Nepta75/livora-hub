@@ -35,6 +35,7 @@ export const AUDIT_ACTION_LABELS: Record<AuditLogAction, string> = {
   DOWNLOAD: 'Document téléchargé',
   REPLACE_PROMO: 'Code promo remplacé',
   DRIVER_SCHEDULE_OVERWRITTEN: 'Jours de planning remplacés',
+  EINVOICE_LIFECYCLE_REPORTED: 'Facture reçue : statut déclaré',
   EXPORT: 'Export comptable',
   OVERAGE_CAP_HIT: 'Plafond de dépassement atteint',
   RETENTION_PURGED: 'Purge de rétention',
@@ -74,6 +75,9 @@ export const AUDIT_ACTION_CLASSNAME: Record<AuditLogAction, string> = {
   // Amber: forcing a recurring plan over days another plan owned archives those days, destructive
   // on shared planning data. Same tone as vista-app.
   DRIVER_SCHEDULE_OVERWRITTEN: 'bg-amber-100 text-amber-800 border-amber-200',
+  // Sky: a buyer's lifecycle ack on a received e-invoice, a declaration, not an alert. Same tone as
+  // the other reporting verbs, matching vista-app.
+  EINVOICE_LIFECYCLE_REPORTED: 'bg-sky-100 text-sky-800 border-sky-200',
   EXPORT: 'bg-sky-100 text-sky-800 border-sky-200',
   OVERAGE_CAP_HIT: 'bg-amber-100 text-amber-800 border-amber-200',
   // Neutral, not an alert: the sweep deleting what aged out is the system working. And absence is

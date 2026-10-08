@@ -13,7 +13,7 @@ export type IPricingType = 'distance' | 'city';
 // Enum Types (extracted from inline enum properties in OpenAPI schemas)
 export type AddressMandatoryType = "pickup" | "delivery" | "starting_point" | "billing" | "warehouse";
 export type AppliedPromoCodeType = "discount" | "trial";
-export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE" | "CUSTOMER_ACCESS_GRANTED" | "QUOTE_OTP_SPENT" | "QUOTE_OTP_LOCKED" | "PLAN_CHANGE" | "PLAN_CHANGE_SCHEDULED" | "UPDATE_PAYMENT_METHOD" | "TRIAL_EXTENDED" | "OVERAGE_INVOICE_CREATED" | "EMBEDDED_AUTH_CAPTURE_TOGGLED" | "ORDER_TIME_SHIFTED" | "ORDER_VEHICLE_FORCED" | "TAX_DELTA" | "DOWNLOAD" | "REPLACE_PROMO" | "DRIVER_SCHEDULE_OVERWRITTEN" | "EXPORT" | "OVERAGE_CAP_HIT" | "RETENTION_PURGED" | "DEVTOOLS_ADVANCE_BILLING" | "DEVTOOLS_OVERAGE_INVOICES";
+export type AuditLogAction = "CREATE" | "UPDATE" | "DELETE" | "CUSTOMER_ACCESS_GRANTED" | "QUOTE_OTP_SPENT" | "QUOTE_OTP_LOCKED" | "PLAN_CHANGE" | "PLAN_CHANGE_SCHEDULED" | "UPDATE_PAYMENT_METHOD" | "TRIAL_EXTENDED" | "OVERAGE_INVOICE_CREATED" | "EMBEDDED_AUTH_CAPTURE_TOGGLED" | "ORDER_TIME_SHIFTED" | "ORDER_VEHICLE_FORCED" | "TAX_DELTA" | "DOWNLOAD" | "REPLACE_PROMO" | "DRIVER_SCHEDULE_OVERWRITTEN" | "EXPORT" | "OVERAGE_CAP_HIT" | "RETENTION_PURGED" | "EINVOICE_LIFECYCLE_REPORTED" | "DEVTOOLS_ADVANCE_BILLING" | "DEVTOOLS_OVERAGE_INVOICES";
 export type AuditLogActorType = "USER" | "HUB_USER" | "PUBLIC_API" | "SYSTEM";
 export type ChangePlanBillingPeriod = "monthly" | "annual";
 export type ChangePlanProrationBehavior = "create_prorations" | "none" | "always_invoice";
@@ -47,6 +47,7 @@ export type RecurringDriverScheduleWeekdays = "monday" | "tuesday" | "wednesday"
 export type RefundSubscriptionInvoiceReason = "duplicate" | "fraudulent" | "requested_by_customer";
 export type RegisterDriverDeviceTokenPlatform = "ios" | "android";
 export type RejectLeadReason = "UNREACHABLE" | "OUT_OF_SCOPE" | "DUPLICATE" | "SPAM" | "CUSTOMER_DECLINED" | "OTHER";
+export type ReportReceivedInvoiceEventEvent = "received" | "accepted" | "paid";
 export type RescheduleOrderReason = "LATE" | "CUSTOMER_REQUEST" | "CAPACITY" | "FAILED_DELIVERY";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
@@ -1582,6 +1583,8 @@ export interface IReceivedInvoice {
   purchaseOrderReference?: string | null;
   processingRule?: string | null;
   status: string;
+  reportedStatus?: string | null;
+  reportedAt?: string | null;
   platformCreatedAt?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -1654,6 +1657,10 @@ export interface IRejectLeadDto {
 export interface IReorderTourDto {
   stopIds?: string[];
   baseStopIds?: string[] | null;
+}
+
+export interface IReportReceivedInvoiceEventDto {
+  event?: ReportReceivedInvoiceEventEvent;
 }
 
 export interface IRescheduleCarryOverDto {
