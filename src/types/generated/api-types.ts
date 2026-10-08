@@ -1566,6 +1566,28 @@ export interface IReadWarehouseOrderDto {
   daysInWarehouse?: number;
 }
 
+export interface IReceivedInvoice {
+  id: string;
+  tenant: ITenant3;
+  providerDocumentId: string;
+  number?: string | null;
+  issueDate?: string | null;
+  sellerName?: string | null;
+  sellerLegalRegistrationId?: string | null;
+  currencyCode?: string;
+  taxExclusiveCents?: number;
+  vatAmountCents?: number;
+  taxInclusiveCents?: number;
+  paymentDueDate?: string | null;
+  purchaseOrderReference?: string | null;
+  processingRule?: string | null;
+  status: string;
+  platformCreatedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+}
+
 export interface IRecordDriverLocationBatchDto {
   points?: IRecordDriverLocationPointDto[];
 }
@@ -2871,6 +2893,15 @@ export type PostInvoiceCreditNoteCreateResponse = {
   delivered: boolean;
 };
 export type GetInvoiceHistoryReadResponse = IHistoryEventDto[];
+export type GetReceivedInvoiceListResponse = {
+  data: IReceivedInvoice[];
+  total: number;
+  summary: {
+  receivedThisMonthCount: number;
+  receivedThisMonthCents: number;
+  overdueCount: number;
+};
+};
 export type GetQuoteListResponse = {
   data: IQuote[];
   total: number;
