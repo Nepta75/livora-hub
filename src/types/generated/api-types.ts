@@ -770,6 +770,7 @@ export interface Invoice {
   eInvoiceLastAttemptAt?: string | null;
   eInvoiceAttempts?: number;
   eInvoiceLastError?: string | null;
+  eInvoiceBareXmlFallback?: boolean;
   invoiceNumber?: string | null;
   issuedAt?: string | null;
   sequenceNumber?: number | null;
