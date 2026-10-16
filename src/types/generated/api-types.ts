@@ -319,6 +319,13 @@ export interface ICreditNote {
   vatRate?: number | null;
   issuedAt: string;
   sentDate?: string | null;
+  eInvoiceStatus?: string | null;
+  eInvoiceProviderId?: string | null;
+  eInvoiceTransmittedAt?: string | null;
+  eInvoiceLastAttemptAt?: string | null;
+  eInvoiceAttempts?: number;
+  eInvoiceLastError?: string | null;
+  eInvoiceBareXmlFallback?: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
