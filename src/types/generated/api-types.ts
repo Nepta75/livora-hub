@@ -47,7 +47,7 @@ export type RecurringDriverScheduleWeekdays = "monday" | "tuesday" | "wednesday"
 export type RefundSubscriptionInvoiceReason = "duplicate" | "fraudulent" | "requested_by_customer";
 export type RegisterDriverDeviceTokenPlatform = "ios" | "android";
 export type RejectLeadReason = "UNREACHABLE" | "OUT_OF_SCOPE" | "DUPLICATE" | "SPAM" | "CUSTOMER_DECLINED" | "OTHER";
-export type ReportReceivedInvoiceEventEvent = "received" | "accepted" | "paid";
+export type ReportReceivedInvoiceEventEvent = "received" | "accepted" | "refused" | "disputed" | "paid";
 export type RescheduleOrderReason = "LATE" | "CUSTOMER_REQUEST" | "CAPACITY" | "FAILED_DELIVERY";
 export type SubscriptionSource = "stripe" | "manual";
 export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "incomplete" | "registration_failed";
@@ -909,6 +909,30 @@ export interface IssueOrderInvoiceDto {
   acknowledgedDocumentCount?: number | null;
 }
 
+export interface ILivoraReceivedInvoice {
+  id: string;
+  providerDocumentId: string;
+  number?: string | null;
+  issueDate?: string | null;
+  sellerName?: string | null;
+  sellerLegalRegistrationId?: string | null;
+  currencyCode?: string;
+  taxExclusiveCents?: number;
+  vatAmountCents?: number;
+  taxInclusiveCents?: number;
+  paymentDueDate?: string | null;
+  purchaseOrderReference?: string | null;
+  processingRule?: string | null;
+  status: string;
+  reportedStatus?: string | null;
+  reportedReasonCode?: string | null;
+  reportedAt?: string | null;
+  platformCreatedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  archivedAt?: string | null;
+}
+
 export interface IManualAssignOrderDto {
   orderId?: string;
   driverId?: string;
@@ -1594,6 +1618,7 @@ export interface IReceivedInvoice {
   processingRule?: string | null;
   status: string;
   reportedStatus?: string | null;
+  reportedReasonCode?: string | null;
   reportedAt?: string | null;
   platformCreatedAt?: string | null;
   createdAt: string;
@@ -1671,6 +1696,7 @@ export interface IReorderTourDto {
 
 export interface IReportReceivedInvoiceEventDto {
   event?: ReportReceivedInvoiceEventEvent;
+  reasonCode?: string | null;
 }
 
 export interface IRescheduleCarryOverDto {
@@ -1819,12 +1845,24 @@ export interface ISubscriptionInvoice {
   customerSiret?: string | null;
   customerVatNumber?: string | null;
   customerEmail: string;
+  customerAddressLine1?: string | null;
+  customerAddressLine2?: string | null;
+  customerPostalCode?: string | null;
+  customerCity?: string | null;
+  customerCountryCode?: string | null;
   lines: ISubscriptionInvoiceLine[];
   taxBreakdowns: ISubscriptionInvoiceTaxBreakdown[];
   refunds: ISubscriptionInvoiceRefund[];
   automaticTaxEnabled?: boolean;
   automaticTaxStatus?: string | null;
   issuerVatRegime: string;
+  eInvoiceStatus?: string | null;
+  eInvoiceProviderId?: string | null;
+  eInvoiceTransmittedAt?: string | null;
+  eInvoiceLastAttemptAt?: string | null;
+  eInvoiceAttempts?: number;
+  eInvoiceLastError?: string | null;
+  eInvoiceBareXmlFallback?: boolean;
   createdAt: string;
   updatedAt: string;
   archivedAt?: string | null;
@@ -1863,12 +1901,24 @@ export interface ISubscriptionInvoice2 {
   customerSiret?: string | null;
   customerVatNumber?: string | null;
   customerEmail: string;
+  customerAddressLine1?: string | null;
+  customerAddressLine2?: string | null;
+  customerPostalCode?: string | null;
+  customerCity?: string | null;
+  customerCountryCode?: string | null;
   lines: ISubscriptionInvoiceLine2[];
   taxBreakdowns: ISubscriptionInvoiceTaxBreakdown2[];
   refunds: ISubscriptionInvoiceRefund2[];
   automaticTaxEnabled?: boolean;
   automaticTaxStatus?: string | null;
   issuerVatRegime: string;
+  eInvoiceStatus?: string | null;
+  eInvoiceProviderId?: string | null;
+  eInvoiceTransmittedAt?: string | null;
+  eInvoiceLastAttemptAt?: string | null;
+  eInvoiceAttempts?: number;
+  eInvoiceLastError?: string | null;
+  eInvoiceBareXmlFallback?: boolean;
 }
 
 export interface ISubscriptionInvoiceCreditNote {
@@ -2768,6 +2818,15 @@ export type GetAdminAuditLogsReadResponse = {
   total: number;
 };
 export type GetAdminAuditLogsEntityTypesResponse = string[];
+export type GetAdminLivoraReceivedInvoiceListResponse = {
+  data: ILivoraReceivedInvoice[];
+  total: number;
+  summary: {
+  receivedThisMonthCount: number;
+  receivedThisMonthCents: number;
+  overdueCount: number;
+};
+};
 export type GetGlobalSettingReadResponse = IGlobalSetting[] | IGlobalSetting;
 export type PostGlobalSettingCreateResponse = IGlobalSetting;
 export type GetDispatchSettingReadResponse = IDispatchSetting;
