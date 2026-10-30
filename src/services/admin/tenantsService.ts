@@ -111,9 +111,12 @@ export interface CreateTenantPayload {
     latitude: number;
     longitude: number;
   };
-  defaultBankDetail: {
+  // Optional: a tenant can be created without a RIB (it only feeds the bank line on the tenant's own
+  // client invoices). The form sends this only when the bank block is filled; the back accepts it absent.
+  defaultBankDetail?: {
     bankLabel: string;
     bankName: string;
+    accountHolderName: string;
     iban: string;
     bic: string;
     bankCode: string;

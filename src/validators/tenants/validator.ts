@@ -29,15 +29,41 @@ export const createTenantSchema = yup.object({
     country: yup.string().required('Pays requis'),
   }).required(),
 
-  defaultBankDetail: yup.object({
-    bankLabel: yup.string().required('Libellé requis'),
-    bankName: yup.string().required('Nom de la banque requis'),
-    accountHolderName: yup.string().required('Titulaire du compte requis'),
-    iban: yup.string().required('IBAN requis').min(15, 'IBAN invalide').max(34, 'IBAN invalide'),
-    bic: yup.string().required('BIC requis').min(8, 'BIC invalide').max(11, 'BIC invalide'),
-    bankCode: yup.string().required('Code banque requis'),
-    accountNumber: yup.string().required('Numéro de compte requis'),
-  }).required(),
+  // Bank details are OPTIONAL: they only feed the RIB line on the tenant's own client invoices, so they
+  // must not block tenant creation. The rule is complete-or-empty, which mirrors the back (a sent bank
+  // block must have every field, @Assert\NotBlank on each): leave the whole block blank, or fill it fully.
+  defaultBankDetail: yup
+    .object({
+      bankLabel: yup.string().default(''),
+      bankName: yup.string().default(''),
+      accountHolderName: yup.string().default(''),
+      iban: yup.string().default('').max(34, 'IBAN invalide'),
+      bic: yup.string().default('').max(11, 'BIC invalide'),
+      bankCode: yup.string().default(''),
+      accountNumber: yup.string().default(''),
+    })
+    .required()
+    .test(
+      'rib-complete-or-empty',
+      'Coordonnées bancaires incomplètes : remplissez tout le bloc ou laissez-le entièrement vide.',
+      (value) => {
+        const fields = [
+          value?.bankLabel, value?.bankName, value?.accountHolderName,
+          value?.iban, value?.bic, value?.bankCode, value?.accountNumber,
+        ];
+        const filled = fields.filter((field) => (field ?? '').trim() !== '').length;
+
+        if (0 === filled) {
+          return true;
+        }
+        if (filled !== fields.length) {
+          return false;
+        }
+
+        // Fully filled: the IBAN/BIC lengths the back also enforces (min side; max is a field rule above).
+        return (value?.iban ?? '').length >= 15 && (value?.bic ?? '').length >= 8;
+      },
+    ),
 });
 
 export type CreateTenantFormValues = yup.InferType<typeof createTenantSchema>;

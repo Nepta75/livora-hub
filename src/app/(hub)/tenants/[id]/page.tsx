@@ -956,8 +956,13 @@ export default function TenantDetailPage() {
 
   const onEditTenantSubmit = async (values: UpdateTenantFormValues) => {
     try {
+      const { defaultBankDetail, ...rest } = values;
+      // Mirror the create form: an empty-but-present bank block is rejected by the back (every field is
+      // NotBlank once sent). When the RIB is left blank we omit it, which on an update means "leave the
+      // existing bank detail untouched" rather than clearing it (removing a RIB is a separate operation).
+      const bankFilled = Object.values(defaultBankDetail).some((field) => (field ?? '').trim() !== '');
       const payload = {
-        ...values,
+        ...rest,
         vatNumber: values.vatExempt ? '' : values.vatNumber,
         address: {
           ...values.address,
@@ -965,6 +970,7 @@ export default function TenantDetailPage() {
           latitude: tenant?.address?.latitude ?? 0,
           longitude: tenant?.address?.longitude ?? 0,
         },
+        ...(bankFilled ? { defaultBankDetail } : {}),
       };
       await updateTenantMutation.mutateAsync(payload);
       toast.success('Tenant mis à jour.');
@@ -1121,9 +1127,12 @@ export default function TenantDetailPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Coordonnées bancaires</CardTitle>
+              <CardTitle className="text-base">Coordonnées bancaires (facultatif)</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {editTenantForm.formState.errors.defaultBankDetail?.message && (
+                <p className="sm:col-span-2 text-sm text-destructive">{editTenantForm.formState.errors.defaultBankDetail.message}</p>
+              )}
               <Field label="Libellé compte" id="edit-bankLabel" error={editTenantForm.formState.errors.defaultBankDetail?.bankLabel?.message}>
                 <Input id="edit-bankLabel" {...editTenantForm.register('defaultBankDetail.bankLabel')} />
               </Field>

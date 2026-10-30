@@ -55,8 +55,12 @@ export default function CreateTenantPage() {
 
   const onSubmit = async (values: CreateTenantFormValues) => {
     try {
+      const { defaultBankDetail, ...rest } = values;
+      // The back rejects an empty-but-present bank block (every field is NotBlank once the block is sent),
+      // so when the RIB was left blank we omit it entirely and the tenant is created without one.
+      const bankFilled = Object.values(defaultBankDetail).some((field) => (field ?? '').trim() !== '');
       const payload = {
-        ...values,
+        ...rest,
         vatNumber: values.vatExempt ? '' : values.vatNumber,
         address: {
           ...values.address,
@@ -64,6 +68,7 @@ export default function CreateTenantPage() {
           latitude: 0,
           longitude: 0,
         },
+        ...(bankFilled ? { defaultBankDetail } : {}),
       };
       const tenant = await createMutation.mutateAsync(payload);
       router.push(`/tenants/${tenant.id}`);
@@ -156,9 +161,12 @@ export default function CreateTenantPage() {
         {/* RIB */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Coordonnées bancaires</CardTitle>
+            <CardTitle className="text-base">Coordonnées bancaires (facultatif)</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {errors.defaultBankDetail?.message && (
+              <p className="sm:col-span-2 text-sm text-destructive">{errors.defaultBankDetail.message}</p>
+            )}
             <Field label="Libellé compte" id="bankLabel" error={errors.defaultBankDetail?.bankLabel?.message}>
               <Input id="bankLabel" {...register('defaultBankDetail.bankLabel')} placeholder="Compte principal" />
             </Field>
