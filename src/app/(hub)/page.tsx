@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,6 +18,7 @@ import { useAdminDashboardMetrics } from '@/hooks/api/dashboard/useAdminDashboar
 import { useAdminSeed } from '@/hooks/api/seed/useAdminSeed';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -94,6 +96,10 @@ export default function DashboardPage() {
   const { data: hubUsers } = useAdminUserList({}, 0);
   const seedMutation = useAdminSeed();
   const { userRoles } = useAuth();
+  // Optional overrides for the seed: a sandbox SIRET pins the tenant's SIREN to a SUPER PDP test company
+  // (e.g. 000000002), which the normal create-tenant form cannot set (Luhn). Empty = generated default.
+  const [seedSiret, setSeedSiret] = useState('');
+  const [seedName, setSeedName] = useState('');
   // Seeding mints a whole tenant plus its admin credentials, a power reserved to ROLE_ADMIN
   // (POST /admin/seed is now ROLE_ADMIN-gated server-side too). A MODERATOR must not see the
   // button: ENABLE_SEED alone left it in reach on preprod, where the flag is on.
@@ -101,11 +107,16 @@ export default function DashboardPage() {
 
   const handleSeed = async () => {
     try {
-      const result = await seedMutation.mutateAsync();
+      const result = await seedMutation.mutateAsync({
+        siretNumber: seedSiret.trim() || undefined,
+        name: seedName.trim() || undefined,
+      });
       toast.success(
         `Tenant "${result.tenant.name}" créé, login: ${result.user.email} / ${result.password}`,
         { duration: 15000 },
       );
+      setSeedSiret('');
+      setSeedName('');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur lors du seed.');
     }
@@ -123,10 +134,25 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold">Dashboard</h2>
         {canSeed && (
-          <Button variant="outline" size="sm" onClick={handleSeed} disabled={seedMutation.isPending}>
-            <FlaskConical className="h-4 w-4 mr-2" />
-            {seedMutation.isPending ? 'Génération...' : 'Seed test data'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Input
+              value={seedSiret}
+              onChange={(e) => setSeedSiret(e.target.value)}
+              placeholder="SIRET sandbox (ex. 000000002)"
+              className="h-8 w-56"
+              title="Laisser vide pour un SIRET généré. Renseigner le numéro d'entreprise sandbox SUPER PDP (000000001 Tricatel, 000000002 Burger Queen) pour tester la connexion e-facturation."
+            />
+            <Input
+              value={seedName}
+              onChange={(e) => setSeedName(e.target.value)}
+              placeholder="Nom (optionnel)"
+              className="h-8 w-40"
+            />
+            <Button variant="outline" size="sm" onClick={handleSeed} disabled={seedMutation.isPending}>
+              <FlaskConical className="h-4 w-4 mr-2" />
+              {seedMutation.isPending ? 'Génération...' : 'Seed test data'}
+            </Button>
+          </div>
         )}
       </div>
 
