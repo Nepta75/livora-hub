@@ -2827,6 +2827,10 @@ export type GetAdminLivoraReceivedInvoiceListResponse = {
   overdueCount: number;
 };
 };
+export type GetAdminLivoraSubscriptionInvoiceListResponse = {
+  data?: ISubscriptionInvoice[];
+  total?: number;
+};
 export type GetGlobalSettingReadResponse = IGlobalSetting[] | IGlobalSetting;
 export type PostGlobalSettingCreateResponse = IGlobalSetting;
 export type GetDispatchSettingReadResponse = IDispatchSetting;

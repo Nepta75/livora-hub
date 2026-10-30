@@ -4,15 +4,23 @@ import { useState } from 'react';
 import { Calculator } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { AccountingExportSection } from '@/components/comptabilite/AccountingExportSection';
+import { LivoraEmittedInvoicesSection } from '@/components/comptabilite/LivoraEmittedInvoicesSection';
 import { LivoraReceivedInvoicesSection } from '@/components/comptabilite/LivoraReceivedInvoicesSection';
 import { cn } from '@/lib/utils';
 
-type Tab = 'export' | 'received';
+type Tab = 'export' | 'emitted' | 'received';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'export', label: 'Export comptable' },
+  { id: 'emitted', label: 'Émises' },
   { id: 'received', label: 'Factures reçues' },
 ];
+
+const SECTIONS: Record<Tab, React.ReactNode> = {
+  export: <AccountingExportSection />,
+  emitted: <LivoraEmittedInvoicesSection />,
+  received: <LivoraReceivedInvoicesSection />,
+};
 
 export default function AccountingPage() {
   const { userRoles } = useAuth();
@@ -59,7 +67,7 @@ export default function AccountingPage() {
         ))}
       </div>
 
-      {tab === 'export' ? <AccountingExportSection /> : <LivoraReceivedInvoicesSection />}
+      {SECTIONS[tab]}
     </div>
   );
 }
